@@ -1083,25 +1083,33 @@
     background: var(--bg-soft);
     padding: 3px;
     border-radius: 8px;
-    overflow: hidden;
+    width: 100%;
+    position: relative;
+    z-index: 2;
   }
   .range-btn {
-    flex: 1;
+    flex: 1 1 0;
+    min-width: 40px;
     background: transparent;
     border: none;
-    padding: 6px 4px;
+    padding: 8px 4px;
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
     font-weight: 600;
     color: var(--ink-soft);
     cursor: pointer;
     border-radius: 6px;
-    transition: all 0.15s;
-    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    -webkit-tap-highlight-color: rgba(45,134,89,0.15);
     text-transform: uppercase;
     letter-spacing: 0.03em;
+    position: relative;
+    z-index: 3;
+    touch-action: manipulation;
   }
-  .range-btn:active { transform: scale(0.96); }
+  .range-btn:active {
+    background: var(--accent-soft);
+  }
   .range-btn.active {
     background: var(--bg-card);
     color: var(--accent-deep);
@@ -2348,7 +2356,7 @@ const FOODS = [
 ];
 
 // ========== APP VERSION ==========
-const APP_VERSION = '1.0.4';
+const APP_VERSION = '1.0.5';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
@@ -3394,16 +3402,6 @@ function renderWeight() {
 
   drawWeightChart(dates, values);
 
-  // Range selector handlers
-  document.querySelectorAll('.range-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const r = parseInt(btn.dataset.range);
-      state.weightRange = r;
-      try { localStorage.setItem(KEY_PREFIX + 'weightRange', String(r)); } catch(e) {}
-      renderWeight();
-    });
-  });
-
   // History
   showBtn.style.display = 'block';
   const historyDiv = document.getElementById('weight-history');
@@ -3426,6 +3424,24 @@ function renderWeight() {
       await saveWeights();
       renderWeight();
     });
+  });
+}
+
+// Initialize event delegation for range selector (attached once, survives re-renders)
+function initRangeSelector() {
+  const container = document.getElementById('weight-content');
+  if (!container || container.dataset.rangeBound === 'true') return;
+  container.dataset.rangeBound = 'true';
+  container.addEventListener('click', (e) => {
+    const btn = e.target.closest('.range-btn');
+    if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
+    const r = parseInt(btn.dataset.range);
+    if (isNaN(r)) return;
+    state.weightRange = r;
+    try { localStorage.setItem(KEY_PREFIX + 'weightRange', String(r)); } catch(err) {}
+    renderWeight();
   });
 }
 
@@ -4321,6 +4337,7 @@ function initVersionBadge() {
   initVersionBadge();
   await loadState();
   renderAll();
+  initRangeSelector();
 })();
 </script>
 </body>
