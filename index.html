@@ -1411,7 +1411,12 @@
 <div class="scanner-modal-overlay" id="scanner-modal">
   <div class="scanner-header">
     <h3>Scansiona codice a barre</h3>
-    <button class="scanner-close" id="scanner-close">✕</button>
+    <div style="display:flex; gap:8px;">
+      <button class="scanner-close" id="scanner-torch" style="display:none;" title="Torcia">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
+      </button>
+      <button class="scanner-close" id="scanner-close">✕</button>
+    </div>
   </div>
   <div class="scanner-video-wrap">
     <video id="scanner-video" autoplay playsinline muted></video>
@@ -3265,96 +3270,247 @@ const scannerStrong = document.getElementById('scanner-strong');
 const scannerInstrText = document.getElementById('scanner-instr-text');
 
 let scannerStream = null;
+let scannerInterval = null;
 let scannerReader = null;
 let scannerLibLoaded = false;
 let scanCooldown = false;
+let scanTrackRef = null;
+let nativeDetector = null;
+let useNative = false;
+let scanLastSeen = null;
+let scanLastSeenCount = 0;
+
+// EAN-13 / EAN-8 / UPC-A checksum verification
+function isValidBarcode(code) {
+  if (!/^\d+$/.test(code)) return false;
+  if (code.length === 13 || code.length === 12 || code.length === 8) {
+    const digits = code.split('').map(Number);
+    const checkDigit = digits.pop();
+    let sum = 0;
+    digits.reverse().forEach((d, i) => {
+      sum += d * (i % 2 === 0 ? 3 : 1);
+    });
+    const expected = (10 - (sum % 10)) % 10;
+    return expected === checkDigit;
+  }
+  return code.length >= 6 && code.length <= 14;
+}
+
+async function detectNativeAvailable() {
+  if (!('BarcodeDetector' in window)) return false;
+  try {
+    const formats = await BarcodeDetector.getSupportedFormats();
+    return formats.includes('ean_13') || formats.includes('ean_8') || formats.includes('upc_a');
+  } catch (e) {
+    return false;
+  }
+}
 
 async function loadScannerLib() {
-  if (scannerLibLoaded) return true;
+  if (scannerLibLoaded && window.ZXing) return true;
   return new Promise((resolve) => {
     const script = document.createElement('script');
     script.src = 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js';
-    script.onload = () => { scannerLibLoaded = true; resolve(true); };
+    script.onload = () => {
+      scannerLibLoaded = !!window.ZXing;
+      resolve(scannerLibLoaded);
+    };
     script.onerror = () => { resolve(false); };
     document.head.appendChild(script);
   });
 }
 
+async function acquireCamera() {
+  scannerStatus.textContent = 'Richiesta permesso fotocamera...';
+  const constraints = {
+    audio: false,
+    video: {
+      facingMode: { ideal: 'environment' },
+      width: { ideal: 1920 },
+      height: { ideal: 1080 }
+    }
+  };
+  try {
+    scannerStream = await navigator.mediaDevices.getUserMedia(constraints);
+  } catch (e1) {
+    scannerStream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: { facingMode: { ideal: 'environment' } }
+    });
+  }
+  scannerVideo.srcObject = scannerStream;
+  scanTrackRef = scannerStream.getVideoTracks()[0];
+  // Try continuous autofocus
+  if (scanTrackRef && scanTrackRef.applyConstraints) {
+    try {
+      await scanTrackRef.applyConstraints({ advanced: [{ focusMode: 'continuous' }] });
+    } catch (e) { /* not supported */ }
+  }
+  updateTorchButton();
+  await scannerVideo.play();
+}
+
 async function startScanner() {
   scannerModal.classList.add('show');
-  scannerStatus.textContent = 'Caricamento scanner...';
+  scannerStatus.textContent = 'Inizializzazione...';
   scannerStrong.textContent = 'Inquadra il codice a barre';
-  scannerInstrText.textContent = 'Tieni il telefono fermo a 15-20 cm dal prodotto';
+  scannerInstrText.textContent = 'Tieni il telefono a 15-20 cm dal prodotto';
   document.getElementById('scanner-manual').style.display = 'none';
+  scanCooldown = false;
+  scanLastSeen = null;
+  scanLastSeenCount = 0;
 
-  const ok = await loadScannerLib();
-  if (!ok) {
-    scannerStatus.textContent = 'Errore: impossibile caricare lo scanner. Sei online?';
-    return;
-  }
-
-  if (!window.ZXing) {
-    scannerStatus.textContent = 'Errore: libreria scanner non disponibile.';
-    return;
-  }
+  // Detect native availability
+  useNative = await detectNativeAvailable();
 
   try {
-    scannerStatus.textContent = 'Richiesta permesso fotocamera...';
-    const hints = new Map();
-    const formats = [
-      ZXing.BarcodeFormat.EAN_13,
-      ZXing.BarcodeFormat.EAN_8,
-      ZXing.BarcodeFormat.UPC_A,
-      ZXing.BarcodeFormat.UPC_E,
-      ZXing.BarcodeFormat.CODE_128,
-      ZXing.BarcodeFormat.CODE_39
-    ];
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
-    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
-
-    scannerReader = new ZXing.BrowserMultiFormatReader(hints);
-
-    // Get back camera if available
-    const devices = await scannerReader.listVideoInputDevices();
-    let deviceId = undefined;
-    if (devices.length > 0) {
-      const back = devices.find(d => /back|rear|environment/i.test(d.label));
-      deviceId = back ? back.deviceId : devices[devices.length - 1].deviceId;
-    }
-
-    scannerStatus.textContent = 'Scanner pronto. Inquadra il codice.';
-    scanCooldown = false;
-
-    await scannerReader.decodeFromVideoDevice(deviceId, scannerVideo, async (result, err) => {
-      if (result && !scanCooldown) {
-        scanCooldown = true;
-        const barcode = result.getText();
-        // Validate barcode (8, 12, 13, or 14 digits typical)
-        if (!/^\d{6,14}$/.test(barcode)) {
-          scanCooldown = false;
-          return;
-        }
-        await handleBarcodeFound(barcode);
-        // Re-arm after short delay
-        setTimeout(() => { scanCooldown = false; }, 2000);
-      }
-    });
+    await acquireCamera();
   } catch (err) {
-    console.error('Scanner error:', err);
+    console.error('Camera error:', err);
     if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-      scannerStatus.textContent = 'Permesso fotocamera negato. Concedi l\'accesso dalle impostazioni del browser.';
+      scannerStatus.textContent = 'Permesso fotocamera negato.';
     } else if (err.name === 'NotFoundError') {
       scannerStatus.textContent = 'Nessuna fotocamera trovata.';
     } else {
       scannerStatus.textContent = 'Errore fotocamera: ' + (err.message || err.name);
     }
+    document.getElementById('scanner-manual').style.display = 'block';
+    return;
+  }
+
+  if (useNative) {
+    scannerStatus.textContent = '✓ Scanner nativo attivo. Inquadra il codice.';
+    scannerInstrText.textContent = 'Scanner Google (precisione massima). Tieni fermo 1-2 sec.';
+    startNativeDetection();
+  } else {
+    scannerStatus.textContent = 'Caricamento libreria scanner...';
+    const ok = await loadScannerLib();
+    if (!ok) {
+      scannerStatus.textContent = 'Scanner non disponibile. Usa l\'inserimento manuale.';
+      document.getElementById('scanner-manual').style.display = 'block';
+      return;
+    }
+    scannerStatus.textContent = '⚠ Scanner di backup attivo (meno preciso).';
+    startZXingDetection();
   }
 }
 
+async function startNativeDetection() {
+  nativeDetector = new BarcodeDetector({
+    formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'code_93', 'itf']
+  });
+
+  scannerInterval = setInterval(async () => {
+    if (scanCooldown || !scannerVideo.videoWidth) return;
+    try {
+      const barcodes = await nativeDetector.detect(scannerVideo);
+      if (barcodes.length === 0) {
+        if (scanLastSeenCount > 0) {
+          scanLastSeen = null;
+          scanLastSeenCount = 0;
+        }
+        return;
+      }
+      const code = barcodes[0].rawValue;
+
+      if (!isValidBarcode(code)) {
+        scannerStatus.textContent = `Codice non valido: ${code} (checksum errato)`;
+        return;
+      }
+
+      // Confirmation: 2 identical reads = accept
+      if (code === scanLastSeen) {
+        scanLastSeenCount += 1;
+      } else {
+        scanLastSeen = code;
+        scanLastSeenCount = 1;
+      }
+
+      scannerStatus.textContent = `Letto ${code} ${'✓'.repeat(scanLastSeenCount)}`;
+
+      if (scanLastSeenCount >= 2) {
+        scanCooldown = true;
+        await handleBarcodeFound(code);
+        setTimeout(() => { scanCooldown = false; scanLastSeen = null; scanLastSeenCount = 0; }, 2000);
+      }
+    } catch (err) { /* silent */ }
+  }, 200);
+}
+
+async function startZXingDetection() {
+  if (!window.ZXing) return;
+  const hints = new Map();
+  const formats = [
+    ZXing.BarcodeFormat.EAN_13,
+    ZXing.BarcodeFormat.EAN_8,
+    ZXing.BarcodeFormat.UPC_A,
+    ZXing.BarcodeFormat.UPC_E,
+    ZXing.BarcodeFormat.CODE_128
+  ];
+  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+  // NOTE: NOT using TRY_HARDER - causes false positives
+
+  scannerReader = new ZXing.BrowserMultiFormatReader(hints, 300);
+
+  await scannerReader.decodeFromStream(scannerStream, scannerVideo, async (result, err) => {
+    if (!result || scanCooldown) return;
+    const code = result.getText();
+
+    if (!isValidBarcode(code)) {
+      scannerStatus.textContent = `Codice non valido: ${code}`;
+      return;
+    }
+
+    if (code === scanLastSeen) {
+      scanLastSeenCount += 1;
+    } else {
+      scanLastSeen = code;
+      scanLastSeenCount = 1;
+    }
+
+    scannerStatus.textContent = `Letto ${code} ${'✓'.repeat(scanLastSeenCount)}`;
+
+    if (scanLastSeenCount >= 2) {
+      scanCooldown = true;
+      await handleBarcodeFound(code);
+      setTimeout(() => { scanCooldown = false; scanLastSeen = null; scanLastSeenCount = 0; }, 2000);
+    }
+  });
+}
+
+function updateTorchButton() {
+  const torchBtn = document.getElementById('scanner-torch');
+  if (!torchBtn) return;
+  if (!scanTrackRef) { torchBtn.style.display = 'none'; return; }
+  const capabilities = scanTrackRef.getCapabilities ? scanTrackRef.getCapabilities() : {};
+  if (capabilities.torch) {
+    torchBtn.style.display = 'flex';
+  } else {
+    torchBtn.style.display = 'none';
+  }
+}
+
+let torchOn = false;
+async function toggleTorch() {
+  if (!scanTrackRef) return;
+  try {
+    torchOn = !torchOn;
+    await scanTrackRef.applyConstraints({ advanced: [{ torch: torchOn }] });
+    const torchBtn = document.getElementById('scanner-torch');
+    if (torchBtn) torchBtn.style.background = torchOn ? 'var(--accent)' : 'rgba(255,255,255,0.2)';
+  } catch (e) { console.error('Torch error:', e); }
+}
+
 function stopScanner() {
+  if (scannerInterval) { clearInterval(scannerInterval); scannerInterval = null; }
   if (scannerReader) {
     try { scannerReader.reset(); } catch (e) {}
     scannerReader = null;
+  }
+  torchOn = false;
+  if (scanTrackRef) {
+    try { scanTrackRef.applyConstraints({ advanced: [{ torch: false }] }).catch(() => {}); } catch (e) {}
+    scanTrackRef = null;
   }
   if (scannerStream) {
     scannerStream.getTracks().forEach(t => t.stop());
@@ -3368,47 +3524,44 @@ function stopScanner() {
 }
 
 async function handleBarcodeFound(barcode) {
-  // Vibrate if available
-  if (navigator.vibrate) navigator.vibrate(100);
+  if (navigator.vibrate) navigator.vibrate([60, 30, 60]);
 
-  scannerStrong.textContent = `Codice letto: ${barcode}`;
-  scannerInstrText.textContent = 'Ricerca prodotto in Open Food Facts...';
-  scannerStatus.textContent = 'Connessione...';
+  scannerStrong.textContent = `✓ Codice letto: ${barcode}`;
+  scannerInstrText.textContent = 'Ricerca prodotto...';
+  scannerStatus.textContent = 'Connessione a Open Food Facts...';
 
-  // First check if we already have this barcode as custom food
   const existing = state.customFoods.find(f => f.barcode === barcode);
   if (existing) {
-    scannerStatus.textContent = 'Prodotto già nei tuoi alimenti';
-    stopScanner();
-    scannerModal.classList.remove('show');
-    openQtyModal({...existing, custom: true});
+    scannerStatus.textContent = 'Prodotto già nei tuoi alimenti!';
+    setTimeout(() => {
+      stopScanner();
+      scannerModal.classList.remove('show');
+      openQtyModal({...existing, custom: true});
+    }, 400);
     return;
   }
 
   const food = await fetchProductByBarcode(barcode);
   if (!food) {
-    scannerStrong.textContent = 'Prodotto non trovato';
-    scannerInstrText.textContent = 'Il codice non è nel database. Aggiungilo manualmente?';
-    scannerStatus.textContent = `Codice: ${barcode}`;
-    // Offer to open custom food form
+    scannerStrong.textContent = 'Prodotto non in Open Food Facts';
+    scannerInstrText.textContent = `Codice valido (${barcode}) ma non trovato nel database`;
+    scannerStatus.textContent = 'Vuoi aggiungerlo a mano?';
     setTimeout(() => {
-      if (confirm(`Prodotto con codice ${barcode} non trovato in Open Food Facts.\n\nVuoi aggiungerlo manualmente?`)) {
+      if (confirm(`Codice ${barcode} non trovato in Open Food Facts.\n\nVuoi aggiungerlo manualmente?`)) {
         stopScanner();
         scannerModal.classList.remove('show');
         openCustomFoodModal('');
       } else {
-        // Resume scanning
-        scannerStrong.textContent = 'Inquadra un altro codice';
-        scannerInstrText.textContent = 'Oppure chiudi e riprova';
+        scannerStrong.textContent = 'Inquadra il codice';
+        scannerInstrText.textContent = 'Riprova con un altro prodotto';
       }
     }, 500);
     return;
   }
 
-  // Found - save and open quantity modal
   scannerStrong.textContent = '✓ Trovato!';
   scannerInstrText.textContent = food.name;
-  scannerStatus.textContent = `${food.kcal} kcal · ${food.protein.toFixed(1)}g proteine / 100g`;
+  scannerStatus.textContent = `${food.kcal} kcal · ${food.protein.toFixed(1)}g prot / 100g`;
 
   await saveOffProductAsCustom(food);
 
@@ -3424,6 +3577,8 @@ document.getElementById('scanner-close').addEventListener('click', () => {
   stopScanner();
   scannerModal.classList.remove('show');
 });
+const _torchBtn = document.getElementById('scanner-torch');
+if (_torchBtn) _torchBtn.addEventListener('click', toggleTorch);
 
 // Manual barcode entry
 document.getElementById('scanner-manual-toggle').addEventListener('click', () => {
