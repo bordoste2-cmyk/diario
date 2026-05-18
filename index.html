@@ -774,6 +774,287 @@
     border: 1px dashed var(--line);
   }
 
+  /* Activity Card */
+  .add-activity-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--warm-soft) 0%, var(--gold-soft) 100%);
+    border: 1.5px solid rgba(224,122,60,0.3);
+    border-radius: 10px;
+    color: #a04a1f;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    margin-bottom: 12px;
+  }
+  .add-activity-btn:active { transform: scale(0.98); }
+  .add-activity-btn:hover { background: var(--warm); color: white; border-color: var(--warm); }
+  .add-activity-btn .add-icon {
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .activity-item {
+    display: flex;
+    align-items: stretch;
+    padding: 0;
+    gap: 0;
+    border-radius: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    margin-bottom: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(42,42,38,0.03);
+  }
+  .activity-item::before {
+    content: '';
+    width: 4px;
+    background: linear-gradient(180deg, var(--warm) 0%, var(--gold) 100%);
+    flex-shrink: 0;
+  }
+  .activity-tap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 10px 12px;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.1s;
+    min-width: 0;
+  }
+  .activity-tap:active { background: var(--bg-soft); }
+  .activity-emoji-big {
+    font-size: 26px;
+    flex-shrink: 0;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+  }
+  .activity-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .activity-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .activity-meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 3px;
+  }
+  .activity-kcal {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--warm);
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .activity-kcal .lbl { font-size: 9px; font-weight: 500; color: var(--ink-faint); display: block; text-transform: uppercase; letter-spacing: 0.05em; }
+  .activity-actions {
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--line);
+  }
+  .empty-activity {
+    color: var(--ink-faint);
+    font-size: 13px;
+    font-style: italic;
+    padding: 16px 12px;
+    text-align: center;
+    background: var(--bg-soft);
+    border-radius: 8px;
+    border: 1px dashed var(--line);
+  }
+
+  /* Activity modal */
+  .activity-step { margin-bottom: 16px; }
+  .step-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .activity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(86px, 1fr));
+    gap: 6px;
+    max-height: 280px;
+    overflow-y: auto;
+  }
+  .activity-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 6px;
+    background: var(--bg-soft);
+    border: 1.5px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+    color: var(--ink);
+    min-height: 70px;
+    text-align: center;
+  }
+  .activity-chip:active { transform: scale(0.97); }
+  .activity-chip:hover { background: var(--accent-soft); border-color: var(--accent-soft); }
+  .activity-chip.selected {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent-deep);
+  }
+  .activity-chip .chip-emoji { font-size: 22px; line-height: 1; }
+  .activity-chip .chip-name { font-size: 10.5px; font-weight: 500; line-height: 1.15; }
+  .intensity-options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .intensity-option {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--bg-soft);
+    border: 1.5px solid transparent;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+    color: var(--ink);
+    text-align: left;
+    font-size: 14px;
+  }
+  .intensity-option:active { transform: scale(0.99); }
+  .intensity-option:hover { background: var(--accent-soft); }
+  .intensity-option.selected {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent-deep);
+    font-weight: 600;
+  }
+  .intensity-option .met-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: rgba(255,255,255,0.5);
+    padding: 3px 8px;
+    border-radius: 10px;
+    color: var(--ink-soft);
+  }
+  .intensity-option.selected .met-badge {
+    background: var(--accent-deep);
+    color: white;
+  }
+  .duration-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .duration-input input {
+    flex: 1;
+    padding: 12px 14px;
+    font-size: 18px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    text-align: center;
+    color: var(--ink);
+  }
+  .duration-input input:focus { outline: none; border-color: var(--accent); }
+  .duration-input .dur-unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .duration-picks {
+    margin-top: 8px;
+  }
+  .activity-preview {
+    background: linear-gradient(135deg, var(--warm-soft) 0%, var(--gold-soft) 100%);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+  .preview-summary {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: #8c5e1d;
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+  .preview-kcal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .preview-kcal .kcal-label {
+    font-size: 11px;
+    color: #8c5e1d;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .preview-kcal .kcal-value {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--warm);
+    line-height: 1;
+    margin-top: 4px;
+  }
+
+  /* Net balance in daily summary */
+  .net-balance {
+    background: var(--bg-soft);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+  .net-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+  }
+  .net-row.net-final {
+    border-top: 1px solid var(--line);
+    margin-top: 4px;
+    padding-top: 8px;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .net-lbl { color: var(--ink-soft); }
+  .net-final .net-lbl { color: var(--ink); }
+  .net-val { color: var(--ink); font-weight: 600; }
+  .net-burned { color: var(--warm) !important; }
+  .net-final .net-val { font-size: 14px; }
+
   /* Add custom food */
   .add-custom {
     background: none;
@@ -1690,6 +1971,15 @@
         <div id="meals"></div>
       </div>
 
+      <!-- ACTIVITIES -->
+      <div class="card">
+        <h2>Attività di oggi <span class="sub" id="activities-sub">—</span></h2>
+        <button class="add-activity-btn" id="add-activity-btn">
+          <span class="add-icon">+</span> Registra attività
+        </button>
+        <div id="activities-list"></div>
+      </div>
+
     </div>
 
     <!-- RIGHT: summary -->
@@ -1706,6 +1996,20 @@
             <span class="delta" id="kcal-delta">—</span>
           </span>
         </div>
+        <div class="net-balance" id="net-balance" style="display:none;">
+          <div class="net-row">
+            <span class="net-lbl">📥 Assunte</span>
+            <span class="net-val" id="net-in">0 kcal</span>
+          </div>
+          <div class="net-row">
+            <span class="net-lbl">🔥 Bruciate</span>
+            <span class="net-val net-burned" id="net-out">-0 kcal</span>
+          </div>
+          <div class="net-row net-final">
+            <span class="net-lbl">Bilancio netto</span>
+            <span class="net-val" id="net-result">0 kcal</span>
+          </div>
+        </div>
         <div id="macros"></div>
       </div>
 
@@ -1719,6 +2023,19 @@
         <div id="week-summary" style="margin-top:14px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-soft); display:flex; justify-content:space-between;">
           <span>Media <strong id="week-avg-kcal" style="color:var(--ink)">—</strong> kcal</span>
           <span>Proteine medie <strong id="week-avg-prot" style="color:var(--accent)">—</strong> g</span>
+        </div>
+      </div>
+
+      <!-- ACTIVITY WEEK -->
+      <div class="card">
+        <h2>Attività settimana <span class="sub">7 giorni</span></h2>
+        <div class="week-chart">
+          <div class="week-bars" id="activity-week-bars"></div>
+          <div class="week-labels" id="activity-week-labels"></div>
+        </div>
+        <div id="activity-week-summary" style="margin-top:14px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-soft); display:flex; justify-content:space-between;">
+          <span>Tot. <strong id="week-tot-kcal-burned" style="color:var(--warm)">—</strong> kcal bruciate</span>
+          <span>Tot. <strong id="week-tot-min" style="color:var(--ink)">—</strong> min</span>
         </div>
       </div>
 
@@ -1825,6 +2142,60 @@
 
     <div class="modal-actions">
       <button class="btn-secondary" id="online-search-close" style="flex: 1;">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- ACTIVITY MODAL -->
+<div class="modal-overlay" id="activity-modal">
+  <div class="modal" style="max-width: 520px;">
+    <h3 id="activity-modal-title">Registra attività</h3>
+    <div class="modal-sub">Calcolo basato sui METs (formula medica standard)</div>
+
+    <!-- Step 1: choose sport -->
+    <div class="activity-step">
+      <div class="step-label">1. Sport</div>
+      <div class="activity-grid" id="activity-grid"></div>
+    </div>
+
+    <!-- Step 2: intensity -->
+    <div class="activity-step" id="intensity-step" style="display:none;">
+      <div class="step-label">2. Intensità</div>
+      <div class="intensity-options" id="intensity-options"></div>
+      <input type="number" id="custom-mets-input" step="0.1" min="0.5" max="20" placeholder="MET personalizzato (es. 6.5)" style="display:none; width:100%; margin-top:8px; padding:10px; border:1.5px solid var(--line); border-radius:6px; font-family:inherit; font-size:14px;">
+    </div>
+
+    <!-- Step 3: duration -->
+    <div class="activity-step" id="duration-step" style="display:none;">
+      <div class="step-label">3. Durata</div>
+      <div class="duration-input">
+        <input type="number" id="activity-duration" min="1" max="600" step="1" placeholder="minuti" inputmode="numeric">
+        <span class="dur-unit">min</span>
+      </div>
+      <div class="quick-picks duration-picks" id="duration-picks"></div>
+    </div>
+
+    <!-- Step 4: weight -->
+    <div class="activity-step" id="weight-step" style="display:none;">
+      <div class="step-label">4. Peso al momento dell'attività</div>
+      <div class="duration-input">
+        <input type="number" id="activity-weight" step="0.1" min="20" max="200" inputmode="decimal">
+        <span class="dur-unit">kg</span>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="activity-preview" id="activity-preview" style="display:none;">
+      <div class="preview-summary" id="activity-preview-summary"></div>
+      <div class="preview-kcal">
+        <span class="kcal-label">Calorie bruciate</span>
+        <span class="kcal-value" id="kcal-burned-preview">— kcal</span>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" id="activity-cancel">Annulla</button>
+      <button class="btn-primary" id="activity-save" disabled>Salva</button>
     </div>
   </div>
 </div>
@@ -2388,8 +2759,99 @@ const FOODS = [
   { id:'falafel', name:'Falafel', cat:'Etnico', kcal:333, protein:13, carbs:32, sugar:3, fat:18, sat:2.4, fiber:5, unit:'g' },
 ];
 
+// ========== ACTIVITIES DATABASE ==========
+// METs values from the Compendium of Physical Activities (Ainsworth et al)
+// kcal/h = METs × kg
+const ACTIVITIES = [
+  // Sport che fai più spesso
+  { id:'padel', name:'Padel', emoji:'🎾', cat:'Sport racchetta',
+    levels: [{name:'partita standard', mets:7.0}] },
+  { id:'manubri', name:'Allenamento con manubri', emoji:'🏋️', cat:'Forza',
+    levels: [
+      {name:'leggero', mets:3.5},
+      {name:'moderato', mets:5.0},
+      {name:'intenso', mets:6.0}
+    ] },
+  { id:'camminata', name:'Camminata', emoji:'🚶', cat:'Cardio',
+    levels: [
+      {name:'passeggio (4 km/h)', mets:3.0},
+      {name:'sostenuta (5 km/h)', mets:4.3},
+      {name:'a passo veloce (6 km/h)', mets:5.0}
+    ] },
+  { id:'bicicletta', name:'Bicicletta', emoji:'🚴', cat:'Cardio',
+    levels: [
+      {name:'rilassata (<16 km/h)', mets:4.0},
+      {name:'moderata (16-19 km/h)', mets:6.8},
+      {name:'veloce (20-22 km/h)', mets:10.0}
+    ] },
+  { id:'nuoto', name:'Nuoto', emoji:'🏊', cat:'Cardio',
+    levels: [
+      {name:'rilassato', mets:5.8},
+      {name:'moderato', mets:8.3},
+      {name:'veloce', mets:10.0}
+    ] },
+  { id:'calcio', name:'Calcio', emoji:'⚽', cat:'Sport',
+    levels: [
+      {name:'amichevole', mets:7.0},
+      {name:'competitivo', mets:10.0}
+    ] },
+  // Altri sport
+  { id:'corsa', name:'Corsa', emoji:'🏃', cat:'Cardio',
+    levels: [
+      {name:'jogging (8 km/h)', mets:7.0},
+      {name:'moderata (10 km/h)', mets:9.8},
+      {name:'veloce (12 km/h)', mets:11.5}
+    ] },
+  { id:'tennis', name:'Tennis', emoji:'🎾', cat:'Sport racchetta',
+    levels: [
+      {name:'doppi', mets:7.3},
+      {name:'singolo', mets:8.0}
+    ] },
+  { id:'sci-fondo', name:'Sci di fondo', emoji:'⛷️', cat:'Sport invernali',
+    levels: [{name:'moderato', mets:9.0}] },
+  { id:'sci-alpino', name:'Sci alpino', emoji:'🎿', cat:'Sport invernali',
+    levels: [
+      {name:'rilassato', mets:5.3},
+      {name:'intenso', mets:8.0}
+    ] },
+  { id:'trekking', name:'Trekking / Escursione', emoji:'🥾', cat:'Outdoor',
+    levels: [
+      {name:'pianeggiante', mets:4.3},
+      {name:'collinare', mets:6.0},
+      {name:'montano con zaino', mets:7.8}
+    ] },
+  { id:'yoga', name:'Yoga', emoji:'🧘', cat:'Flessibilità',
+    levels: [
+      {name:'hatha rilassato', mets:2.5},
+      {name:'vinyasa/power', mets:4.0}
+    ] },
+  { id:'pilates', name:'Pilates', emoji:'🤸', cat:'Flessibilità',
+    levels: [{name:'standard', mets:3.0}] },
+  { id:'stretching', name:'Stretching', emoji:'🧎', cat:'Flessibilità',
+    levels: [{name:'leggero', mets:2.3}] },
+  { id:'sesso', name:'Attività sessuale', emoji:'❤️', cat:'Altro',
+    levels: [{name:'moderato', mets:5.8}] },
+  { id:'giardinaggio', name:'Giardinaggio', emoji:'🌱', cat:'Altro',
+    levels: [
+      {name:'leggero', mets:3.5},
+      {name:'pesante (vangare, potare)', mets:5.0}
+    ] },
+  { id:'pulizie', name:'Faccende domestiche', emoji:'🧹', cat:'Altro',
+    levels: [
+      {name:'leggere', mets:2.5},
+      {name:'energiche', mets:4.0},
+      {name:'pesanti (trasloco)', mets:5.5}
+    ] },
+  { id:'scale', name:'Salire le scale', emoji:'🪜', cat:'Altro',
+    levels: [{name:'salita rapida', mets:8.8}] },
+  { id:'altro', name:'Altro (manuale)', emoji:'✨', cat:'Altro',
+    levels: [
+      {name:'MET personalizzato', mets:null, custom:true}
+    ] }
+];
+
 // ========== APP VERSION ==========
-const APP_VERSION = '1.0.7';
+const APP_VERSION = '1.1.0';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
@@ -2397,6 +2859,7 @@ let state = {
   diary: {},       // { 'YYYY-MM-DD': { 'Colazione': [{foodId, qty, name, ...computed}], ... } }
   customFoods: [], // user-added foods
   weights: {},     // { 'YYYY-MM-DD': 78.5 }
+  activities: {},  // { 'YYYY-MM-DD': [{activityId, name, emoji, level, mets, durationMin, weightKg, kcalBurned, ts}] }
   targets: {
     kcal: 2100,
     protein: 140,
@@ -2407,7 +2870,8 @@ let state = {
   },
   currentDate: todayISO(),
   selectedMeal: 'Colazione',
-  weightRange: 90 // days; 0 = all
+  weightRange: 90, // days; 0 = all
+  activityRange: 7 // days for weekly activity chart
 };
 
 function todayISO() {
@@ -2454,6 +2918,12 @@ async function loadState() {
     state.weights = {...PRELOADED_WEIGHTS};
   }
 
+  // Activities
+  try {
+    const a = localStorage.getItem(KEY_PREFIX + 'activities');
+    if (a) state.activities = JSON.parse(a);
+  } catch (e) { state.activities = {}; }
+
   // Backup tracking
   const lb = localStorage.getItem(KEY_PREFIX + 'lastBackup');
   if (lb) lastBackupTime = parseInt(lb);
@@ -2464,6 +2934,10 @@ async function loadState() {
   // Weight range preference
   const wr = localStorage.getItem(KEY_PREFIX + 'weightRange');
   if (wr !== null) state.weightRange = parseInt(wr);
+
+  // Activity range preference
+  const ar = localStorage.getItem(KEY_PREFIX + 'activityRange');
+  if (ar !== null) state.activityRange = parseInt(ar);
 }
 
 function markUnbackedChange() {
@@ -2500,6 +2974,40 @@ async function saveTargets() {
 async function saveWeights() {
   try { localStorage.setItem(KEY_PREFIX + 'weights', JSON.stringify(state.weights)); markUnbackedChange(); }
   catch (e) { console.error('save weights', e); }
+}
+async function saveActivities() {
+  try { localStorage.setItem(KEY_PREFIX + 'activities', JSON.stringify(state.activities)); markUnbackedChange(); }
+  catch (e) { console.error('save activities', e); }
+}
+
+// ========== ACTIVITY HELPERS ==========
+function findActivity(id) { return ACTIVITIES.find(a => a.id === id); }
+
+function computeKcalBurned(mets, weightKg, durationMin) {
+  // kcal = METs × kg × hours
+  return mets * weightKg * (durationMin / 60);
+}
+
+function getDayActivities(dateKey) {
+  if (!state.activities[dateKey]) state.activities[dateKey] = [];
+  return state.activities[dateKey];
+}
+
+function dayActivityTotals(dateKey) {
+  const items = state.activities[dateKey] || [];
+  return items.reduce((acc, it) => {
+    acc.kcal += it.kcalBurned || 0;
+    acc.minutes += it.durationMin || 0;
+    acc.count += 1;
+    return acc;
+  }, { kcal: 0, minutes: 0, count: 0 });
+}
+
+function getCurrentWeightKg() {
+  // Find most recent weight measurement
+  const dates = Object.keys(state.weights).sort();
+  if (dates.length === 0) return 78; // fallback
+  return state.weights[dates[dates.length - 1]];
 }
 
 // ========== DATA HELPERS ==========
@@ -2780,6 +3288,20 @@ function renderTotals() {
   else if (delta > 50) { deltaEl.textContent = `+${fmt(delta)} kcal`; deltaEl.className = 'delta over'; }
   else { deltaEl.textContent = `${delta >= 0 ? '+':''}${fmt(delta)} kcal`; deltaEl.className = 'delta'; }
 
+  // Net balance — only show if there are activities today
+  const activityTotals = dayActivityTotals(state.currentDate);
+  const netBox = document.getElementById('net-balance');
+  if (activityTotals.count > 0) {
+    netBox.style.display = 'block';
+    const burned = Math.round(activityTotals.kcal);
+    const net = t.kcal - burned;
+    document.getElementById('net-in').textContent = `${fmt(t.kcal)} kcal`;
+    document.getElementById('net-out').textContent = `-${burned} kcal`;
+    document.getElementById('net-result').textContent = `${fmt(net)} kcal`;
+  } else {
+    netBox.style.display = 'none';
+  }
+
   // macros
   const macros = [
     { key:'protein', label:'Proteine', val:t.protein, target:tg.protein, cls:'protein', goal:'min' },
@@ -2878,6 +3400,8 @@ function renderAll() {
   renderTotals();
   renderWeekChart();
   renderWeight();
+  renderActivities();
+  renderActivityWeekChart();
 }
 
 // ========== SEARCH ==========
@@ -3524,6 +4048,328 @@ function showDebug(msg) {
   box.style.opacity = '1';
 }
 
+// ========== ACTIVITY RENDERING ==========
+function renderActivities() {
+  const container = document.getElementById('activities-list');
+  if (!container) return;
+  const items = getDayActivities(state.currentDate);
+  const sub = document.getElementById('activities-sub');
+  if (sub) {
+    const tot = dayActivityTotals(state.currentDate);
+    sub.textContent = items.length === 0 ? 'nessuna' : `${items.length} attività · ${Math.round(tot.kcal)} kcal · ${tot.minutes} min`;
+  }
+  container.innerHTML = '';
+  if (items.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'empty-activity';
+    empty.textContent = '— nessuna attività registrata oggi —';
+    container.appendChild(empty);
+    return;
+  }
+  items.forEach((it, idx) => {
+    const card = document.createElement('div');
+    card.className = 'activity-item';
+    card.innerHTML = `
+      <div class="activity-tap" data-idx="${idx}">
+        <span class="activity-emoji-big">${it.emoji||'✨'}</span>
+        <div class="activity-info">
+          <div class="activity-name">${it.name}</div>
+          <div class="activity-meta">${it.level||''} · ${it.durationMin} min · ${it.mets} MET · ${it.weightKg}kg</div>
+        </div>
+        <div class="activity-kcal">
+          <span class="lbl">kcal</span>
+          ${Math.round(it.kcalBurned)}
+        </div>
+      </div>
+      <div class="activity-actions">
+        <button class="edit-btn" data-idx="${idx}" title="Modifica">✎</button>
+        <button class="delete-btn act-del" data-idx="${idx}" title="Rimuovi">✕</button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+  // edit handlers
+  container.querySelectorAll('.activity-tap, .edit-btn').forEach(el => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = parseInt(el.dataset.idx);
+      openActivityModalEdit(idx);
+    });
+  });
+  container.querySelectorAll('.act-del').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.idx);
+      state.activities[state.currentDate].splice(idx, 1);
+      await saveActivities();
+      renderAll();
+    });
+  });
+}
+
+// ========== ACTIVITY WEEK CHART ==========
+function renderActivityWeekChart() {
+  const barsEl = document.getElementById('activity-week-bars');
+  const labelsEl = document.getElementById('activity-week-labels');
+  if (!barsEl) return;
+
+  // Build 7 days (including today)
+  const today = new Date(state.currentDate);
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - i);
+    const key = dateKeyISO(d);
+    const tot = dayActivityTotals(key);
+    days.push({ date: d, key, kcal: tot.kcal, min: tot.minutes });
+  }
+  const maxKcal = Math.max(100, ...days.map(d => d.kcal));
+
+  barsEl.innerHTML = '';
+  labelsEl.innerHTML = '';
+
+  days.forEach((d, i) => {
+    const pct = (d.kcal / maxKcal) * 100;
+    const isToday = d.key === state.currentDate;
+    const bar = document.createElement('div');
+    bar.className = 'week-bar';
+    bar.style.cssText = `flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;`;
+    bar.dataset.date = d.key;
+    bar.innerHTML = `
+      <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:${isToday?'var(--warm)':'var(--ink-faint)'}; font-weight:${isToday?'700':'400'};">${d.kcal > 0 ? Math.round(d.kcal) : ''}</div>
+      <div style="width:100%; max-width:32px; height:100%; display:flex; align-items:flex-end;">
+        <div style="width:100%; height:${pct}%; min-height:${d.kcal>0?'4px':'0'}; background:${isToday?'linear-gradient(180deg, var(--warm) 0%, var(--gold) 100%)':'linear-gradient(180deg, var(--warm-soft) 0%, var(--gold-soft) 100%)'}; border-radius:4px 4px 0 0; transition:height 0.3s;"></div>
+      </div>
+    `;
+    barsEl.appendChild(bar);
+
+    const label = document.createElement('div');
+    label.style.cssText = `flex:1; text-align:center; font-family:'JetBrains Mono', monospace; font-size:9px; color:${isToday?'var(--warm)':'var(--ink-faint)'}; font-weight:${isToday?'700':'400'};`;
+    const dayNames = ['dom','lun','mar','mer','gio','ven','sab'];
+    label.textContent = `${dayNames[d.date.getDay()]} ${d.date.getDate()}`;
+    labelsEl.appendChild(label);
+  });
+
+  // Tap-to-navigate to day
+  barsEl.querySelectorAll('.week-bar').forEach(b => {
+    b.addEventListener('click', () => {
+      state.currentDate = b.dataset.date;
+      renderAll();
+    });
+  });
+
+  // Summary
+  const totKcal = days.reduce((s, d) => s + d.kcal, 0);
+  const totMin = days.reduce((s, d) => s + d.min, 0);
+  document.getElementById('week-tot-kcal-burned').textContent = Math.round(totKcal);
+  document.getElementById('week-tot-min').textContent = totMin;
+}
+
+// ========== ACTIVITY MODAL ==========
+const activityModal = document.getElementById('activity-modal');
+let activitySelection = { activity: null, level: null, customMets: null, durationMin: null, weightKg: null, editIdx: null };
+
+function openActivityModal() {
+  activitySelection = { activity: null, level: null, customMets: null, durationMin: null, weightKg: getCurrentWeightKg(), editIdx: null };
+  document.getElementById('activity-modal-title').textContent = 'Registra attività';
+  document.getElementById('activity-save').disabled = true;
+  document.getElementById('activity-save').textContent = 'Salva';
+  populateActivityGrid();
+  document.getElementById('intensity-step').style.display = 'none';
+  document.getElementById('duration-step').style.display = 'none';
+  document.getElementById('weight-step').style.display = 'none';
+  document.getElementById('activity-preview').style.display = 'none';
+  document.getElementById('activity-duration').value = '';
+  document.getElementById('activity-weight').value = activitySelection.weightKg.toFixed(1);
+  document.getElementById('custom-mets-input').style.display = 'none';
+  document.getElementById('custom-mets-input').value = '';
+  activityModal.classList.add('show');
+}
+
+function openActivityModalEdit(idx) {
+  const item = state.activities[state.currentDate][idx];
+  if (!item) return;
+  const act = findActivity(item.activityId);
+  if (!act) return;
+  activitySelection = {
+    activity: act,
+    level: { name: item.level, mets: item.mets, custom: item.customMets ? true : false },
+    customMets: item.customMets || null,
+    durationMin: item.durationMin,
+    weightKg: item.weightKg,
+    editIdx: idx
+  };
+  document.getElementById('activity-modal-title').textContent = 'Modifica attività';
+  document.getElementById('activity-save').textContent = 'Salva modifiche';
+  populateActivityGrid();
+  showIntensityStep();
+  showDurationStep();
+  showWeightStep();
+  document.getElementById('activity-duration').value = item.durationMin;
+  document.getElementById('activity-weight').value = item.weightKg.toFixed(1);
+  if (activitySelection.level.custom) {
+    document.getElementById('custom-mets-input').style.display = 'block';
+    document.getElementById('custom-mets-input').value = item.customMets;
+  }
+  updateActivityPreview();
+  activityModal.classList.add('show');
+}
+
+function populateActivityGrid() {
+  const grid = document.getElementById('activity-grid');
+  grid.innerHTML = '';
+  ACTIVITIES.forEach(a => {
+    const chip = document.createElement('button');
+    chip.className = 'activity-chip';
+    if (activitySelection.activity && activitySelection.activity.id === a.id) chip.classList.add('selected');
+    chip.innerHTML = `
+      <span class="chip-emoji">${a.emoji}</span>
+      <span class="chip-name">${a.name}</span>
+    `;
+    chip.addEventListener('click', () => selectActivity(a));
+    grid.appendChild(chip);
+  });
+}
+
+function selectActivity(act) {
+  activitySelection.activity = act;
+  activitySelection.level = null;
+  document.querySelectorAll('.activity-chip').forEach(c => c.classList.remove('selected'));
+  event.target.closest('.activity-chip').classList.add('selected');
+  showIntensityStep();
+}
+
+function showIntensityStep() {
+  const step = document.getElementById('intensity-step');
+  const opts = document.getElementById('intensity-options');
+  step.style.display = 'block';
+  opts.innerHTML = '';
+  activitySelection.activity.levels.forEach(lv => {
+    const btn = document.createElement('button');
+    btn.className = 'intensity-option';
+    if (activitySelection.level && activitySelection.level.name === lv.name) btn.classList.add('selected');
+    btn.innerHTML = `
+      <span>${lv.name}</span>
+      <span class="met-badge">${lv.mets !== null ? lv.mets + ' MET' : 'manuale'}</span>
+    `;
+    btn.addEventListener('click', () => selectLevel(lv));
+    opts.appendChild(btn);
+  });
+  // hide future steps until level chosen
+  if (!activitySelection.level) {
+    document.getElementById('duration-step').style.display = 'none';
+    document.getElementById('weight-step').style.display = 'none';
+    document.getElementById('activity-preview').style.display = 'none';
+    document.getElementById('activity-save').disabled = true;
+  }
+}
+
+function selectLevel(lv) {
+  activitySelection.level = lv;
+  document.querySelectorAll('.intensity-option').forEach(o => o.classList.remove('selected'));
+  event.target.closest('.intensity-option').classList.add('selected');
+  // Show custom MET input if needed
+  const customInput = document.getElementById('custom-mets-input');
+  if (lv.custom) {
+    customInput.style.display = 'block';
+    customInput.focus();
+  } else {
+    customInput.style.display = 'none';
+    activitySelection.customMets = null;
+  }
+  showDurationStep();
+}
+
+function showDurationStep() {
+  document.getElementById('duration-step').style.display = 'block';
+  // Build quick picks
+  const picksEl = document.getElementById('duration-picks');
+  picksEl.innerHTML = '';
+  [15, 30, 45, 60, 75, 90, 120].forEach(m => {
+    const btn = document.createElement('button');
+    btn.textContent = `${m} min`;
+    btn.addEventListener('click', () => {
+      document.getElementById('activity-duration').value = m;
+      activitySelection.durationMin = m;
+      showWeightStep();
+      updateActivityPreview();
+    });
+    picksEl.appendChild(btn);
+  });
+}
+
+function showWeightStep() {
+  document.getElementById('weight-step').style.display = 'block';
+}
+
+function updateActivityPreview() {
+  // Compute MET
+  let mets = activitySelection.level ? activitySelection.level.mets : null;
+  if (activitySelection.level && activitySelection.level.custom) {
+    const v = parseFloat(document.getElementById('custom-mets-input').value);
+    if (!isNaN(v) && v > 0) {
+      mets = v;
+      activitySelection.customMets = v;
+    } else {
+      mets = null;
+    }
+  }
+  const dur = parseFloat(document.getElementById('activity-duration').value);
+  const wt = parseFloat(document.getElementById('activity-weight').value);
+
+  if (!mets || isNaN(dur) || dur <= 0 || isNaN(wt) || wt <= 0) {
+    document.getElementById('activity-preview').style.display = 'none';
+    document.getElementById('activity-save').disabled = true;
+    return;
+  }
+
+  activitySelection.durationMin = dur;
+  activitySelection.weightKg = wt;
+  const kcal = computeKcalBurned(mets, wt, dur);
+  document.getElementById('activity-preview').style.display = 'block';
+  document.getElementById('activity-preview-summary').textContent =
+    `${activitySelection.activity.emoji} ${activitySelection.activity.name} · ${activitySelection.level.name} (${mets} MET) · ${dur} min @ ${wt.toFixed(1)}kg`;
+  document.getElementById('kcal-burned-preview').textContent = `${Math.round(kcal)} kcal`;
+  document.getElementById('activity-save').disabled = false;
+}
+
+document.getElementById('add-activity-btn').addEventListener('click', openActivityModal);
+document.getElementById('activity-cancel').addEventListener('click', () => activityModal.classList.remove('show'));
+activityModal.addEventListener('click', (e) => { if (e.target === activityModal) activityModal.classList.remove('show'); });
+document.getElementById('activity-duration').addEventListener('input', updateActivityPreview);
+document.getElementById('activity-weight').addEventListener('input', updateActivityPreview);
+document.getElementById('custom-mets-input').addEventListener('input', updateActivityPreview);
+
+document.getElementById('activity-save').addEventListener('click', async () => {
+  const sel = activitySelection;
+  if (!sel.activity || !sel.level || !sel.durationMin || !sel.weightKg) return;
+  let mets = sel.level.mets;
+  if (sel.level.custom) mets = sel.customMets;
+  if (!mets) return;
+  const kcalBurned = computeKcalBurned(mets, sel.weightKg, sel.durationMin);
+  const entry = {
+    activityId: sel.activity.id,
+    name: sel.activity.name,
+    emoji: sel.activity.emoji,
+    level: sel.level.name,
+    mets: mets,
+    customMets: sel.level.custom ? sel.customMets : null,
+    durationMin: sel.durationMin,
+    weightKg: sel.weightKg,
+    kcalBurned: kcalBurned,
+    ts: Date.now()
+  };
+  if (!state.activities[state.currentDate]) state.activities[state.currentDate] = [];
+  if (sel.editIdx !== null && sel.editIdx !== undefined) {
+    state.activities[state.currentDate][sel.editIdx] = entry;
+  } else {
+    state.activities[state.currentDate].push(entry);
+  }
+  await saveActivities();
+  activityModal.classList.remove('show');
+  renderAll();
+});
+
 function drawWeightChart(dates, values) {
   const wrap = document.getElementById('weight-chart-wrap');
   if (dates.length === 0) { wrap.innerHTML = ''; return; }
@@ -3715,13 +4561,14 @@ const fabBackup = document.getElementById('fab-backup');
 
 function getAllData() {
   return {
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
     appName: 'Health Diary',
     data: {
       diary: state.diary,
       customFoods: state.customFoods,
       weights: state.weights,
+      activities: state.activities,
       targets: state.targets
     }
   };
@@ -3731,6 +4578,7 @@ function formatBackupStats() {
   const days = Object.keys(state.diary).length;
   const weights = Object.keys(state.weights).length;
   const custom = state.customFoods.length;
+  const actDays = Object.keys(state.activities || {}).filter(d => state.activities[d].length > 0).length;
   let lastBackupStr = 'mai';
   if (lastBackupTime) {
     const d = new Date(lastBackupTime);
@@ -3739,7 +4587,7 @@ function formatBackupStats() {
     else if (daysAgo === 1) lastBackupStr = 'ieri';
     else lastBackupStr = `${daysAgo} giorni fa`;
   }
-  return `${days} giorni di pasti registrati<br>${weights} misurazioni di peso<br>${custom} alimenti personalizzati<br><br>Ultimo backup: <strong>${lastBackupStr}</strong>${unbackedChanges > 0 ? `<br>(${unbackedChanges} modifiche da allora)` : ''}`;
+  return `${days} giorni di pasti registrati<br>${actDays} giorni con attività<br>${weights} misurazioni di peso<br>${custom} alimenti personalizzati<br><br>Ultimo backup: <strong>${lastBackupStr}</strong>${unbackedChanges > 0 ? `<br>(${unbackedChanges} modifiche da allora)` : ''}`;
 }
 
 function openBackupModal() {
@@ -3827,6 +4675,7 @@ document.getElementById('backup-file-input').addEventListener('change', async (e
     const summary = [
       `Pasti: ${Object.keys(d.diary || {}).length} giorni`,
       `Peso: ${Object.keys(d.weights || {}).length} misurazioni`,
+      `Attività: ${Object.keys(d.activities || {}).filter(k => (d.activities[k]||[]).length>0).length} giorni`,
       `Alimenti personalizzati: ${(d.customFoods || []).length}`,
       `Obiettivi: ${d.targets ? 'inclusi' : 'non inclusi'}`
     ].join('\n');
@@ -3837,10 +4686,12 @@ document.getElementById('backup-file-input').addEventListener('change', async (e
     if (d.diary) state.diary = d.diary;
     if (d.customFoods) state.customFoods = d.customFoods;
     if (d.weights) state.weights = d.weights;
+    if (d.activities) state.activities = d.activities;
     if (d.targets) state.targets = d.targets;
     await saveDiary();
     await saveCustomFoods();
     await saveWeights();
+    await saveActivities();
     await saveTargets();
     // Reset backup badge (just restored, equivalent to fresh state)
     lastBackupTime = Date.now();
