@@ -83,6 +83,31 @@
     color: var(--accent);
     font-weight: 400;
   }
+  .version-badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    background: var(--bg-soft);
+    padding: 3px 8px;
+    border-radius: 4px;
+    vertical-align: middle;
+    margin-left: 8px;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .version-badge:hover, .version-badge:active {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+  .version-badge.fresh {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
   .title p {
     font-size: 13px;
     color: var(--ink-soft);
@@ -1271,7 +1296,7 @@
   <!-- HEADER -->
   <div class="top">
     <div class="title">
-      <h1>Diario <em>alimentare</em></h1>
+      <h1>Diario <em>alimentare</em> <span class="version-badge" id="version-badge">v—</span></h1>
       <p id="quick-summary">caricamento...</p>
     </div>
     <div class="date-pick">
@@ -2012,6 +2037,10 @@ const FOODS = [
   { id:'pollo-curry', name:'Pollo al curry', cat:'Etnico', kcal:165, protein:15, carbs:5, sugar:2, fat:10, sat:4, fiber:1, unit:'g' },
   { id:'falafel', name:'Falafel', cat:'Etnico', kcal:333, protein:13, carbs:32, sugar:3, fat:18, sat:2.4, fiber:5, unit:'g' },
 ];
+
+// ========== APP VERSION ==========
+const APP_VERSION = '6.0';
+const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
 let state = {
@@ -3666,8 +3695,68 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// ========== VERSION BADGE + DIAGNOSTIC ==========
+function initVersionBadge() {
+  const badge = document.getElementById('version-badge');
+  if (!badge) return;
+  badge.textContent = 'v' + APP_VERSION;
+  // Highlight badge briefly on load to confirm fresh version
+  badge.classList.add('fresh');
+  setTimeout(() => badge.classList.remove('fresh'), 3000);
+
+  badge.addEventListener('click', async () => {
+    const lines = [];
+    lines.push(`Diario Alimentare v${APP_VERSION}`);
+    lines.push(`Build: ${APP_BUILD_DATE}`);
+    lines.push('');
+    lines.push('— DIAGNOSTICA SCANNER —');
+
+    // Native barcode detector?
+    if ('BarcodeDetector' in window) {
+      try {
+        const formats = await BarcodeDetector.getSupportedFormats();
+        lines.push(`✓ BarcodeDetector nativo: SI`);
+        lines.push(`Formati: ${formats.join(', ')}`);
+      } catch (e) {
+        lines.push(`⚠ BarcodeDetector presente ma errore: ${e.message}`);
+      }
+    } else {
+      lines.push(`✗ BarcodeDetector nativo: NO`);
+      lines.push(`(verrà usato ZXing come fallback)`);
+    }
+
+    lines.push('');
+    lines.push('— DATI —');
+    lines.push(`Giorni di pasti: ${Object.keys(state.diary).length}`);
+    lines.push(`Misurazioni peso: ${Object.keys(state.weights).length}`);
+    lines.push(`Alimenti personalizzati: ${state.customFoods.length}`);
+    lines.push(`Database alimenti: ${FOODS.length}`);
+
+    lines.push('');
+    lines.push('— PWA —');
+    lines.push(`Modalità: ${window.matchMedia('(display-mode: standalone)').matches ? 'standalone (installata)' : 'browser'}`);
+    lines.push(`Online: ${navigator.onLine ? 'SI' : 'NO'}`);
+    if ('serviceWorker' in navigator) {
+      try {
+        const reg = await navigator.serviceWorker.getRegistration();
+        lines.push(`Service worker: ${reg ? 'attivo' : 'non registrato'}`);
+        if (reg) lines.push(`SW scope: ${reg.scope}`);
+      } catch (e) {
+        lines.push(`Service worker: errore`);
+      }
+    }
+
+    lines.push('');
+    lines.push('— BROWSER —');
+    lines.push(`UserAgent: ${navigator.userAgent.substring(0, 80)}...`);
+
+    alert(lines.join('\n'));
+  });
+}
+
 // ========== INIT ==========
 (async () => {
+  initVersionBadge();
   await loadState();
   renderAll();
 })();
