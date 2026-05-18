@@ -910,6 +910,321 @@
     border: 1px dashed var(--line);
   }
 
+  /* Lab / Blood test card */
+  .add-lab-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, var(--tomato-soft) 0%, var(--berry-soft) 100%);
+    border: 1.5px solid rgba(217,74,61,0.3);
+    border-radius: 10px;
+    color: #8c2a25;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    margin-bottom: 14px;
+  }
+  .add-lab-btn:active { transform: scale(0.98); }
+  .add-lab-btn:hover { background: var(--tomato); color: white; border-color: var(--tomato); }
+  .lab-empty {
+    color: var(--ink-faint);
+    font-size: 13px;
+    font-style: italic;
+    padding: 16px 12px;
+    text-align: center;
+    background: var(--bg-soft);
+    border-radius: 8px;
+    border: 1px dashed var(--line);
+  }
+  .lab-last-date {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    padding: 0 4px 8px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 12px;
+  }
+  .lab-last-date .lab-history-link {
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-decoration: underline;
+  }
+  .lab-last-date .lab-history-link:hover { background: var(--accent-soft); }
+  .lab-group {
+    margin-bottom: 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+    background: var(--bg-card);
+  }
+  .lab-group-header {
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    font-family: inherit;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background: var(--bg-soft);
+    gap: 10px;
+    transition: background 0.15s;
+  }
+  .lab-group-header:active { background: var(--line); }
+  .lab-group-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    font-weight: 500;
+    font-style: italic;
+    color: var(--ink);
+  }
+  .lab-group-title .lab-group-emoji {
+    font-size: 18px;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.06));
+  }
+  .lab-group-chevron {
+    color: var(--ink-soft);
+    font-size: 13px;
+    opacity: 0.7;
+    transition: transform 0.2s;
+  }
+  .lab-group-header.collapsed .lab-group-chevron { transform: rotate(-90deg); }
+  .lab-group-body {
+    overflow: hidden;
+    max-height: 800px;
+    transition: max-height 0.25s ease, opacity 0.2s, padding 0.2s;
+    padding: 8px 12px 12px;
+    opacity: 1;
+  }
+  .lab-group-body.collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  .lab-param-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.04);
+    gap: 8px;
+  }
+  .lab-param-row:last-child { border-bottom: none; }
+  .lab-param-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .lab-param-name {
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .lab-param-target {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    margin-top: 2px;
+  }
+  .lab-param-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex-shrink: 0;
+  }
+  .lab-param-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink);
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: var(--bg-soft);
+    min-width: 70px;
+    text-align: right;
+  }
+  .lab-param-value .unit {
+    font-weight: 400;
+    font-size: 10px;
+    color: var(--ink-faint);
+    margin-left: 2px;
+  }
+  .lab-param-value.status-ok {
+    background: var(--accent-soft);
+    color: var(--accent-deep);
+  }
+  .lab-param-value.status-borderline {
+    background: var(--gold-soft);
+    color: #8c5e1d;
+  }
+  .lab-param-value.status-bad {
+    background: var(--tomato-soft);
+    color: #8c2a25;
+  }
+  .lab-param-value.status-unknown {
+    color: var(--ink-faint);
+    font-weight: 400;
+    font-style: italic;
+  }
+  .lab-param-delta {
+    font-size: 10px;
+    color: var(--ink-faint);
+    margin-top: 3px;
+  }
+  .lab-param-delta.improving { color: var(--accent); }
+  .lab-param-delta.worsening { color: var(--tomato); }
+  /* Lab modal */
+  .lab-date-row { margin-bottom: 14px; }
+  .lab-date-row input[type="date"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .lab-date-row input:focus { outline: none; border-color: var(--accent); }
+  .lab-notes-row { margin-bottom: 14px; }
+  .lab-notes-row textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 13px;
+    resize: vertical;
+    color: var(--ink);
+  }
+  .lab-notes-row textarea:focus { outline: none; border-color: var(--accent); }
+  .lab-modal-group {
+    margin-bottom: 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: var(--bg-soft);
+  }
+  .lab-modal-group-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--ink);
+    margin-bottom: 10px;
+  }
+  .lab-modal-input-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 6px 0;
+  }
+  .lab-modal-input-row label {
+    flex: 1;
+    font-size: 12.5px;
+    color: var(--ink);
+    line-height: 1.25;
+  }
+  .lab-modal-input-row label small {
+    display: block;
+    color: var(--ink-faint);
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 1px;
+  }
+  .lab-modal-input-row input {
+    width: 85px;
+    padding: 8px 10px;
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: right;
+    color: var(--ink);
+    flex-shrink: 0;
+  }
+  .lab-modal-input-row input:focus { outline: none; border-color: var(--accent); }
+  .lab-modal-input-row .unit-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    width: 50px;
+    text-align: left;
+    flex-shrink: 0;
+  }
+  .btn-danger {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid var(--tomato);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+    background: var(--tomato-soft);
+    color: #8c2a25;
+  }
+  .btn-danger:hover { background: var(--tomato); color: white; }
+  /* Lab history */
+  .lab-history-entry {
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 8px;
+    background: var(--bg-card);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .lab-history-entry:hover { background: var(--bg-soft); }
+  .lab-history-date {
+    font-family: 'Fraunces', serif;
+    font-size: 14px;
+    font-style: italic;
+    color: var(--accent-deep);
+    margin-bottom: 4px;
+  }
+  .lab-history-values {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+  .lab-history-notes {
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-style: italic;
+    margin-top: 4px;
+  }
+
   /* Activity Card */
   .activity-chart-legend {
     display: flex;
@@ -2407,6 +2722,15 @@
         <div class="weight-history" id="weight-history" style="display:none;"></div>
       </div>
 
+      <!-- BLOOD TESTS / LABS -->
+      <div class="card">
+        <h2>Esami del sangue <span class="sub" id="labs-sub">—</span></h2>
+        <button class="add-lab-btn" id="add-lab-btn">
+          <span class="add-icon">+</span> Registra esami
+        </button>
+        <div id="labs-content"></div>
+      </div>
+
     </div>
 
   </div>
@@ -2493,6 +2817,32 @@
 
     <div class="modal-actions">
       <button class="btn-secondary" id="online-search-close" style="flex: 1;">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- LAB MODAL -->
+<div class="modal-overlay" id="lab-modal">
+  <div class="modal" style="max-width: 540px;">
+    <h3 id="lab-modal-title">Registra esami</h3>
+    <div class="modal-sub">Inserisci solo i valori che hai. I campi vuoti vengono ignorati.</div>
+
+    <div class="lab-date-row">
+      <label class="step-label">Data degli esami</label>
+      <input type="date" id="lab-date-input">
+    </div>
+
+    <div id="lab-groups-container"></div>
+
+    <div class="lab-notes-row">
+      <label class="step-label">Note (opzionale)</label>
+      <textarea id="lab-notes-input" rows="2" placeholder="Es. esami a digiuno, post-influenza, dopo cambio dieta..."></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" id="lab-cancel">Annulla</button>
+      <button class="btn-danger" id="lab-delete" style="display:none;">Elimina</button>
+      <button class="btn-primary" id="lab-save">Salva</button>
     </div>
   </div>
 </div>
@@ -3201,8 +3551,72 @@ const ACTIVITIES = [
     ] }
 ];
 
+// ========== LAB / BLOOD TEST SCHEMA ==========
+// Each parameter has: id, name, unit, ranges {ok, borderlineMax, badAbove or badBelow}
+// Targets follow ESC/SID Italian guidelines for adult male
+const LAB_SCHEMA = [
+  {
+    id: 'lipids',
+    name: 'Lipidi',
+    emoji: '🩸',
+    color: 'tomato',
+    params: [
+      { id: 'colTot', name: 'Colesterolo totale', unit: 'mg/dL', goal: 'max',
+        target: 190, borderline: 240, ranges: 'ottimale ≤190, accettabile <240, alto ≥240' },
+      { id: 'ldl', name: 'Colesterolo LDL', unit: 'mg/dL', goal: 'max',
+        target: 115, borderline: 160, ranges: 'ottimale ≤115, borderline 115-160, alto ≥160' },
+      { id: 'hdl', name: 'Colesterolo HDL', unit: 'mg/dL', goal: 'min',
+        target: 40, low: 35, ranges: 'ottimale ≥40 (uomo), basso <40' },
+      { id: 'trigl', name: 'Trigliceridi', unit: 'mg/dL', goal: 'max',
+        target: 150, borderline: 200, ranges: 'ottimale ≤150, borderline 150-200, alto ≥200' }
+    ]
+  },
+  {
+    id: 'glucose',
+    name: 'Glicemia',
+    emoji: '🍬',
+    color: 'gold',
+    params: [
+      { id: 'glycemia', name: 'Glicemia a digiuno', unit: 'mg/dL', goal: 'range',
+        targetMin: 70, targetMax: 99, borderlineMax: 125,
+        ranges: 'normale 70-99, alterata 100-125, diabete ≥126' },
+      { id: 'hba1c', name: 'Emoglobina glicata (HbA1c)', unit: '%', goal: 'max',
+        target: 5.7, borderline: 6.5, ranges: 'normale <5.7, pre-diabete 5.7-6.4, diabete ≥6.5' }
+    ]
+  },
+  {
+    id: 'pressure',
+    name: 'Pressione arteriosa',
+    emoji: '❤️',
+    color: 'tomato',
+    params: [
+      { id: 'sys', name: 'Sistolica (massima)', unit: 'mmHg', goal: 'max',
+        target: 130, borderline: 140, ranges: 'normale ≤130, alta-normale 130-140, ipertensione ≥140' },
+      { id: 'dia', name: 'Diastolica (minima)', unit: 'mmHg', goal: 'max',
+        target: 85, borderline: 90, ranges: 'normale ≤85, alta-normale 85-90, ipertensione ≥90' },
+      { id: 'hr', name: 'Frequenza a riposo', unit: 'bpm', goal: 'range',
+        targetMin: 50, targetMax: 80, borderlineMax: 100,
+        ranges: 'normale 60-80, bradicardia <50, tachicardia ≥100' }
+    ]
+  }
+];
+
+// Pre-loaded blood test (Stefano's 3 April 2026 results)
+const PRELOADED_LAB = {
+  date: '2026-04-03',
+  ts: new Date('2026-04-03T08:00:00').getTime(),
+  values: {
+    colTot: 214,
+    ldl: 128,
+    hdl: 47,
+    trigl: 163,
+    glycemia: 83
+  },
+  notes: 'Esami del sangue di partenza, peso 81 kg'
+};
+
 // ========== APP VERSION ==========
-const APP_VERSION = '1.1.12';
+const APP_VERSION = '1.2.0';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
@@ -3211,6 +3625,8 @@ let state = {
   customFoods: [], // user-added foods
   weights: {},     // { 'YYYY-MM-DD': 78.5 }
   activities: {},  // { 'YYYY-MM-DD': [{activityId, name, emoji, level, mets, durationMin, weightKg, kcalBurned, ts}] }
+  labs: [],        // [{ts, date, values: {paramId: number, ...}, notes}] - sorted by ts asc
+  collapsedLabGroups: {}, // { lipids: false, glucose: false, pressure: false }
   targets: {
     kcal: 2100,
     protein: 140,
@@ -3284,6 +3700,24 @@ async function loadState() {
     const a = localStorage.getItem(KEY_PREFIX + 'activities');
     if (a) state.activities = JSON.parse(a);
   } catch (e) { state.activities = {}; }
+
+  // Labs (blood tests) — bootstrap with preloaded sample if first launch
+  try {
+    const labs = localStorage.getItem(KEY_PREFIX + 'labs');
+    if (labs) {
+      state.labs = JSON.parse(labs);
+    } else {
+      // First launch: seed with the user's known April 3 lab
+      state.labs = [PRELOADED_LAB];
+      localStorage.setItem(KEY_PREFIX + 'labs', JSON.stringify(state.labs));
+    }
+  } catch (e) { state.labs = []; }
+
+  // Collapsed lab groups
+  try {
+    const cl = localStorage.getItem(KEY_PREFIX + 'collapsedLabGroups');
+    if (cl) state.collapsedLabGroups = JSON.parse(cl);
+  } catch (e) { state.collapsedLabGroups = {}; }
 
   // Profile (height, age, sex)
   try {
@@ -3359,6 +3793,68 @@ async function saveActivities() {
 async function saveProfile() {
   try { localStorage.setItem(KEY_PREFIX + 'profile', JSON.stringify(state.profile)); markUnbackedChange(); }
   catch (e) { console.error('save profile', e); }
+}
+async function saveLabs() {
+  try {
+    // Keep labs sorted by ts ascending
+    state.labs.sort((a, b) => a.ts - b.ts);
+    localStorage.setItem(KEY_PREFIX + 'labs', JSON.stringify(state.labs));
+    markUnbackedChange();
+  } catch (e) { console.error('save labs', e); }
+}
+
+// ========== LAB HELPERS ==========
+function findLabParam(paramId) {
+  for (const group of LAB_SCHEMA) {
+    const p = group.params.find(x => x.id === paramId);
+    if (p) return { param: p, group };
+  }
+  return null;
+}
+
+// Classify a value: 'ok', 'borderline', 'bad'
+function classifyLabValue(param, value) {
+  if (value === null || value === undefined || isNaN(value)) return 'unknown';
+  if (param.goal === 'max') {
+    if (value <= param.target) return 'ok';
+    if (param.borderline && value < param.borderline) return 'borderline';
+    return 'bad';
+  }
+  if (param.goal === 'min') {
+    if (value >= param.target) return 'ok';
+    if (param.low && value >= param.low) return 'borderline';
+    return 'bad';
+  }
+  if (param.goal === 'range') {
+    if (value >= param.targetMin && value <= param.targetMax) return 'ok';
+    if (param.borderlineMax && value <= param.borderlineMax) return 'borderline';
+    return 'bad';
+  }
+  return 'unknown';
+}
+
+// Get the most recent value for a param (and its date)
+function lastLabValue(paramId) {
+  for (let i = state.labs.length - 1; i >= 0; i--) {
+    const v = state.labs[i].values[paramId];
+    if (v !== undefined && v !== null && v !== '') {
+      return { value: v, date: state.labs[i].date, ts: state.labs[i].ts };
+    }
+  }
+  return null;
+}
+
+// Get the previous value for a param (second most recent), to compute delta
+function previousLabValue(paramId) {
+  let count = 0;
+  for (let i = state.labs.length - 1; i >= 0; i--) {
+    const v = state.labs[i].values[paramId];
+    if (v !== undefined && v !== null && v !== '') {
+      count++;
+      if (count === 2) return { value: v, date: state.labs[i].date, ts: state.labs[i].ts };
+    }
+  }
+  return null;
 }
 
 // ========== ACTIVITY HELPERS ==========
@@ -3981,6 +4477,7 @@ function renderAll() {
   renderWeight();
   renderActivities();
   renderActivityWeekChart();
+  renderLabs();
 }
 
 // ========== SEARCH ==========
@@ -5155,13 +5652,285 @@ document.getElementById('import-textarea').addEventListener('input', () => {
   document.getElementById('import-result').classList.remove('show');
 });
 
+// ========== LAB / BLOOD TESTS RENDERING ==========
+function renderLabs() {
+  const content = document.getElementById('labs-content');
+  const sub = document.getElementById('labs-sub');
+  if (!content) return;
+
+  const labs = state.labs || [];
+  if (sub) sub.textContent = labs.length === 0 ? 'nessun esame' : (labs.length === 1 ? '1 esame' : `${labs.length} esami`);
+  content.innerHTML = '';
+
+  if (labs.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'lab-empty';
+    empty.textContent = '— nessun esame del sangue registrato —';
+    content.appendChild(empty);
+    return;
+  }
+
+  // Get latest lab entry
+  const latest = labs[labs.length - 1];
+
+  // Header row with date + history link
+  const dateRow = document.createElement('div');
+  dateRow.className = 'lab-last-date';
+  const dateLabel = new Date(latest.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+  dateRow.innerHTML = `
+    <span>Ultimi esami: <strong>${dateLabel}</strong></span>
+    <button class="lab-history-link" id="lab-history-btn">${labs.length > 1 ? `storico (${labs.length})` : 'modifica'}</button>
+  `;
+  content.appendChild(dateRow);
+
+  // Render groups
+  LAB_SCHEMA.forEach(group => {
+    const collapsed = state.collapsedLabGroups[group.id] === true;
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'lab-group';
+    groupDiv.innerHTML = `
+      <button class="lab-group-header ${collapsed ? 'collapsed' : ''}" data-group="${group.id}" type="button">
+        <span class="lab-group-title">
+          <span class="lab-group-emoji">${group.emoji}</span>${group.name}
+        </span>
+        <span class="lab-group-chevron">▾</span>
+      </button>
+      <div class="lab-group-body ${collapsed ? 'collapsed' : ''}"></div>
+    `;
+    const body = groupDiv.querySelector('.lab-group-body');
+
+    group.params.forEach(param => {
+      const last = lastLabValue(param.id);
+      const prev = previousLabValue(param.id);
+      const status = last ? classifyLabValue(param, last.value) : 'unknown';
+      const valDisplay = last ? `${last.value}<span class="unit">${param.unit === '%' ? '%' : ' ' + param.unit}</span>` : `<span style="font-size:13px;">— ${param.unit}</span>`;
+
+      // Compute target text
+      let targetText = '';
+      if (param.goal === 'max') targetText = `target ≤${param.target}`;
+      else if (param.goal === 'min') targetText = `target ≥${param.target}`;
+      else if (param.goal === 'range') targetText = `${param.targetMin}–${param.targetMax}`;
+
+      // Compute delta vs previous
+      let deltaHtml = '';
+      if (last && prev) {
+        const delta = last.value - prev.value;
+        const absDelta = Math.abs(delta).toFixed(delta % 1 === 0 ? 0 : 1);
+        if (Math.abs(delta) > 0.01) {
+          // Determine if it's improving based on goal
+          let isImproving = false;
+          if (param.goal === 'max') isImproving = delta < 0;
+          else if (param.goal === 'min') isImproving = delta > 0;
+          else if (param.goal === 'range') {
+            // improving if moving toward range center
+            const center = (param.targetMin + param.targetMax) / 2;
+            isImproving = Math.abs(last.value - center) < Math.abs(prev.value - center);
+          }
+          deltaHtml = `<div class="lab-param-delta ${isImproving ? 'improving' : 'worsening'}">${delta > 0 ? '+' : '−'}${absDelta} vs prec.</div>`;
+        }
+      }
+
+      const row = document.createElement('div');
+      row.className = 'lab-param-row';
+      row.innerHTML = `
+        <div class="lab-param-info">
+          <div class="lab-param-name">${param.name}</div>
+          <div class="lab-param-target">${targetText}</div>
+        </div>
+        <div class="lab-param-right">
+          <span class="lab-param-value status-${status}">${valDisplay}</span>
+          ${deltaHtml}
+        </div>
+      `;
+      body.appendChild(row);
+    });
+
+    content.appendChild(groupDiv);
+  });
+
+  // Group header collapse handlers
+  content.querySelectorAll('.lab-group-header').forEach(hdr => {
+    hdr.addEventListener('click', () => {
+      const gid = hdr.dataset.group;
+      const wasCollapsed = state.collapsedLabGroups[gid] === true;
+      state.collapsedLabGroups[gid] = !wasCollapsed;
+      try { localStorage.setItem(KEY_PREFIX + 'collapsedLabGroups', JSON.stringify(state.collapsedLabGroups)); } catch (e) {}
+      hdr.classList.toggle('collapsed');
+      hdr.nextElementSibling.classList.toggle('collapsed');
+    });
+  });
+
+  // History/edit button
+  const histBtn = document.getElementById('lab-history-btn');
+  if (histBtn) {
+    histBtn.addEventListener('click', () => {
+      if (labs.length === 1) openLabModalEdit(0);
+      else openLabHistory();
+    });
+  }
+}
+
+// ========== LAB MODAL ==========
+const labModal = document.getElementById('lab-modal');
+let labEditIndex = null; // null = new, integer = edit existing
+
+function openLabModalNew() {
+  labEditIndex = null;
+  document.getElementById('lab-modal-title').textContent = 'Registra esami';
+  document.getElementById('lab-delete').style.display = 'none';
+  document.getElementById('lab-date-input').value = todayISO();
+  document.getElementById('lab-notes-input').value = '';
+  populateLabModalGroups({});
+  labModal.classList.add('show');
+}
+
+function openLabModalEdit(idx) {
+  const entry = state.labs[idx];
+  if (!entry) return;
+  labEditIndex = idx;
+  document.getElementById('lab-modal-title').textContent = 'Modifica esami';
+  document.getElementById('lab-delete').style.display = 'inline-block';
+  document.getElementById('lab-date-input').value = entry.date;
+  document.getElementById('lab-notes-input').value = entry.notes || '';
+  populateLabModalGroups(entry.values || {});
+  labModal.classList.add('show');
+}
+
+function populateLabModalGroups(currentValues) {
+  const container = document.getElementById('lab-groups-container');
+  container.innerHTML = '';
+  LAB_SCHEMA.forEach(group => {
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'lab-modal-group';
+    let inputsHtml = '';
+    group.params.forEach(param => {
+      const current = currentValues[param.id];
+      const valAttr = (current !== undefined && current !== null && current !== '') ? `value="${current}"` : '';
+      inputsHtml += `
+        <div class="lab-modal-input-row">
+          <label>${param.name}<small>${param.ranges}</small></label>
+          <input type="number" step="any" min="0" data-param="${param.id}" ${valAttr} inputmode="decimal" placeholder="—">
+          <span class="unit-label">${param.unit}</span>
+        </div>
+      `;
+    });
+    groupDiv.innerHTML = `
+      <div class="lab-modal-group-title">${group.emoji} ${group.name}</div>
+      ${inputsHtml}
+    `;
+    container.appendChild(groupDiv);
+  });
+}
+
+document.getElementById('add-lab-btn').addEventListener('click', openLabModalNew);
+document.getElementById('lab-cancel').addEventListener('click', () => labModal.classList.remove('show'));
+labModal.addEventListener('click', (e) => { if (e.target === labModal) labModal.classList.remove('show'); });
+
+document.getElementById('lab-save').addEventListener('click', async () => {
+  const dateVal = document.getElementById('lab-date-input').value;
+  if (!dateVal) {
+    alert('Seleziona una data per gli esami.');
+    return;
+  }
+  const notes = document.getElementById('lab-notes-input').value.trim();
+  const values = {};
+  document.querySelectorAll('#lab-groups-container input[data-param]').forEach(inp => {
+    const v = inp.value.trim();
+    if (v !== '') {
+      const n = parseFloat(v);
+      if (!isNaN(n)) values[inp.dataset.param] = n;
+    }
+  });
+  if (Object.keys(values).length === 0) {
+    alert('Inserisci almeno un valore prima di salvare.');
+    return;
+  }
+  const entry = {
+    ts: new Date(dateVal + 'T08:00:00').getTime(),
+    date: dateVal,
+    values: values,
+    notes: notes
+  };
+  if (labEditIndex !== null) {
+    state.labs[labEditIndex] = entry;
+  } else {
+    state.labs.push(entry);
+  }
+  await saveLabs();
+  labModal.classList.remove('show');
+  renderAll();
+});
+
+document.getElementById('lab-delete').addEventListener('click', async () => {
+  if (labEditIndex === null) return;
+  if (!confirm('Eliminare questi esami? L\'azione non può essere annullata.')) return;
+  state.labs.splice(labEditIndex, 1);
+  await saveLabs();
+  labModal.classList.remove('show');
+  renderAll();
+});
+
+// Lab history modal — reuse existing modal pattern. Show list of dates, tap to edit
+function openLabHistory() {
+  // Build a simple modal using a confirm-like approach: create one on the fly
+  let histModal = document.getElementById('lab-history-modal');
+  if (!histModal) {
+    histModal = document.createElement('div');
+    histModal.id = 'lab-history-modal';
+    histModal.className = 'modal-overlay';
+    histModal.innerHTML = `
+      <div class="modal" style="max-width: 480px;">
+        <h3>Storico esami</h3>
+        <div class="modal-sub">Tocca un esame per visualizzarlo o modificarlo</div>
+        <div id="lab-history-list"></div>
+        <div class="modal-actions">
+          <button class="btn-secondary" id="lab-history-close">Chiudi</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(histModal);
+    histModal.addEventListener('click', (e) => { if (e.target === histModal) histModal.classList.remove('show'); });
+    document.getElementById('lab-history-close').addEventListener('click', () => histModal.classList.remove('show'));
+  }
+  const list = document.getElementById('lab-history-list');
+  list.innerHTML = '';
+  // Most recent first
+  const reversed = [...state.labs].reverse();
+  reversed.forEach((entry, displayIdx) => {
+    const originalIdx = state.labs.length - 1 - displayIdx;
+    const div = document.createElement('div');
+    div.className = 'lab-history-entry';
+    const dateLabel = new Date(entry.date).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+    // Build compact summary of values
+    const summaryParts = [];
+    LAB_SCHEMA.forEach(g => {
+      g.params.forEach(p => {
+        if (entry.values[p.id] !== undefined) {
+          summaryParts.push(`${p.name.split(' ')[0]} ${entry.values[p.id]}`);
+        }
+      });
+    });
+    div.innerHTML = `
+      <div class="lab-history-date">${dateLabel}</div>
+      <div class="lab-history-values">${summaryParts.join(' · ')}</div>
+      ${entry.notes ? `<div class="lab-history-notes">${entry.notes}</div>` : ''}
+    `;
+    div.addEventListener('click', () => {
+      histModal.classList.remove('show');
+      openLabModalEdit(originalIdx);
+    });
+    list.appendChild(div);
+  });
+  histModal.classList.add('show');
+}
+
 // ========== BACKUP & RESTORE ==========
 const backupModal = document.getElementById('backup-modal');
 const fabBackup = document.getElementById('fab-backup');
 
 function getAllData() {
   return {
-    version: 2,
+    version: 3,
     exportedAt: new Date().toISOString(),
     appName: 'Health Diary',
     data: {
@@ -5169,6 +5938,7 @@ function getAllData() {
       customFoods: state.customFoods,
       weights: state.weights,
       activities: state.activities,
+      labs: state.labs,
       targets: state.targets,
       profile: state.profile
     }
@@ -5180,6 +5950,7 @@ function formatBackupStats() {
   const weights = Object.keys(state.weights).length;
   const custom = state.customFoods.length;
   const actDays = Object.keys(state.activities || {}).filter(d => state.activities[d].length > 0).length;
+  const labCount = (state.labs || []).length;
   let lastBackupStr = 'mai';
   if (lastBackupTime) {
     const d = new Date(lastBackupTime);
@@ -5188,7 +5959,7 @@ function formatBackupStats() {
     else if (daysAgo === 1) lastBackupStr = 'ieri';
     else lastBackupStr = `${daysAgo} giorni fa`;
   }
-  return `${days} giorni di pasti registrati<br>${actDays} giorni con attività<br>${weights} misurazioni di peso<br>${custom} alimenti personalizzati<br><br>Ultimo backup: <strong>${lastBackupStr}</strong>${unbackedChanges > 0 ? `<br>(${unbackedChanges} modifiche da allora)` : ''}`;
+  return `${days} giorni di pasti registrati<br>${actDays} giorni con attività<br>${weights} misurazioni di peso<br>${labCount} esami del sangue<br>${custom} alimenti personalizzati<br><br>Ultimo backup: <strong>${lastBackupStr}</strong>${unbackedChanges > 0 ? `<br>(${unbackedChanges} modifiche da allora)` : ''}`;
 }
 
 function openBackupModal() {
@@ -5277,6 +6048,7 @@ document.getElementById('backup-file-input').addEventListener('change', async (e
       `Pasti: ${Object.keys(d.diary || {}).length} giorni`,
       `Peso: ${Object.keys(d.weights || {}).length} misurazioni`,
       `Attività: ${Object.keys(d.activities || {}).filter(k => (d.activities[k]||[]).length>0).length} giorni`,
+      `Esami del sangue: ${(d.labs || []).length}`,
       `Alimenti personalizzati: ${(d.customFoods || []).length}`,
       `Obiettivi: ${d.targets ? 'inclusi' : 'non inclusi'}`
     ].join('\n');
@@ -5288,12 +6060,14 @@ document.getElementById('backup-file-input').addEventListener('change', async (e
     if (d.customFoods) state.customFoods = d.customFoods;
     if (d.weights) state.weights = d.weights;
     if (d.activities) state.activities = d.activities;
+    if (d.labs) state.labs = d.labs;
     if (d.targets) state.targets = d.targets;
     if (d.profile) state.profile = { ...state.profile, ...d.profile };
     await saveDiary();
     await saveCustomFoods();
     await saveWeights();
     await saveActivities();
+    await saveLabs();
     await saveTargets();
     await saveProfile();
     // Reset backup badge (just restored, equivalent to fresh state)
