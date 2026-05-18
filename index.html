@@ -501,24 +501,37 @@
   }
   .meal-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
     border-radius: 10px;
     background: linear-gradient(135deg, var(--accent-soft) 0%, rgba(212,235,220,0.4) 100%);
     margin-bottom: 12px;
-    gap: 8px;
     min-width: 0;
+  }
+  .meal-header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .meal-header-bottom {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-top: 4px;
+    border-top: 1px solid rgba(45,134,89,0.15);
   }
   .meal-name {
     font-family: 'Fraunces', serif;
-    font-size: 16px;
+    font-size: 17px;
     font-weight: 500;
     font-style: italic;
     color: var(--accent-deep);
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     min-width: 0;
     flex-shrink: 1;
     overflow: hidden;
@@ -526,30 +539,49 @@
     white-space: nowrap;
   }
   .meal-emoji {
-    font-size: 18px;
+    font-size: 20px;
     filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
     flex-shrink: 0;
   }
-  .meal-totals {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10.5px;
-    color: var(--accent-deep);
-    opacity: 0.85;
-    text-align: right;
-    white-space: nowrap;
+  .meal-kcal-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255,255,255,0.6);
+    padding: 4px 10px;
+    border-radius: 12px;
     flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
   }
-  .meal-totals .kcal-total {
-    color: var(--accent-deep);
+  .meal-kcal-badge .nutri-icon {
+    width: 13px;
+    height: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .meal-kcal-badge .nutri-icon svg { width: 100%; height: 100%; }
+  .meal-kcal-val {
     font-weight: 700;
+    color: var(--tomato);
     font-size: 13px;
   }
+  /* Reuse nutri-chip styling on meal-header-bottom — slightly different colors / sizing */
+  .meal-header-bottom .nutri-chip {
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .meal-header-bottom .nutri-chip .nutri-icon {
+    width: 14px;
+    height: 14px;
+  }
   @media (max-width: 380px) {
-    .meal-name { font-size: 14px; }
-    .meal-emoji { font-size: 16px; }
-    .meal-totals { font-size: 10px; }
-    .meal-totals .kcal-total { font-size: 12px; }
-    .meal-header { padding: 7px 10px; }
+    .meal-name { font-size: 15px; }
+    .meal-emoji { font-size: 17px; }
+    .meal-kcal-val { font-size: 12px; }
+    .meal-header { padding: 8px 10px; }
+    .meal-header-bottom { gap: 10px; }
+    .meal-header-bottom .nutri-chip { font-size: 11px; }
   }
   .item {
     display: flex;
@@ -2873,7 +2905,7 @@ const ACTIVITIES = [
 ];
 
 // ========== APP VERSION ==========
-const APP_VERSION = '1.1.1';
+const APP_VERSION = '1.1.2';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
@@ -3084,8 +3116,13 @@ function dayTotals(dateKey) {
 function mealTotals(dateKey, mealName) {
   const day = state.diary[dateKey] || {};
   const items = day[mealName] || [];
-  const t = { kcal:0, protein:0 };
-  for (const item of items) { t.kcal += item.kcal; t.protein += item.protein; }
+  const t = { kcal:0, protein:0, carbs:0, fat:0 };
+  for (const item of items) {
+    t.kcal += item.kcal;
+    t.protein += item.protein;
+    t.carbs += (item.carbs || 0);
+    t.fat += (item.fat || 0);
+  }
   return t;
 }
 
@@ -3141,10 +3178,37 @@ function renderMeals() {
     mealDiv.className = 'meal';
     // Display short label on narrow screens (data key stays the same)
     const displayName = mealName === 'Spuntino mattina' ? 'Spuntino' : mealName;
+    // SVG icons (same as item chips)
+    const flameSvgH = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>';
+    const leafSvgH = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z"/></svg>';
+    const wheatSvgH = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 8c0-2.21 1.79-4 4-4 1.74 0 3.21 1.12 3.75 2.67l1.13-.6C13.2 4 11.21 3 9 3 5.69 3 3 5.69 3 9c0 2.21 1 4.2 2.57 5.55l.6-1.13C5 12.21 5 10.74 5 9V8zm14 6c0 2.21-1.79 4-4 4-1.74 0-3.21-1.12-3.75-2.67l-1.13.6C10.8 18 12.79 19 15 19c3.31 0 6-2.69 6-6 0-2.21-1-4.2-2.57-5.55l-.6 1.13C19 11.79 19 13.26 19 15v-1z"/><circle cx="9" cy="9" r="2"/><circle cx="15" cy="15" r="2"/></svg>';
+    const dropSvgH = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.1L7.05 8.05a7 7 0 109.9 0L12 3.1zm0 2.83l3.54 3.54a5 5 0 11-7.07 0L12 5.93z"/></svg>';
+    const showMacros = items.length > 0;
     mealDiv.innerHTML = `
       <div class="meal-header">
-        <div class="meal-name"><span class="meal-emoji">${mealEmojis[mealName]||'🍴'}</span>${displayName}</div>
-        <div class="meal-totals"><span class="kcal-total">${fmt(mt.kcal)}</span> kcal · ${fmt(mt.protein)} g prot</div>
+        <div class="meal-header-top">
+          <div class="meal-name"><span class="meal-emoji">${mealEmojis[mealName]||'🍴'}</span>${displayName}</div>
+          <div class="meal-kcal-badge">
+            <span class="nutri-icon nutri-kcal">${flameSvgH}</span>
+            <span class="meal-kcal-val">${fmt(mt.kcal)}</span>
+          </div>
+        </div>
+        ${showMacros ? `
+        <div class="meal-header-bottom">
+          <span class="nutri-chip">
+            <span class="nutri-icon nutri-prot">${leafSvgH}</span>
+            <span class="nutri-val">${fmt(mt.protein,1)}</span>
+          </span>
+          <span class="nutri-chip">
+            <span class="nutri-icon nutri-carbs">${wheatSvgH}</span>
+            <span class="nutri-val">${fmt(mt.carbs,1)}</span>
+          </span>
+          <span class="nutri-chip">
+            <span class="nutri-icon nutri-fat">${dropSvgH}</span>
+            <span class="nutri-val">${fmt(mt.fat,1)}</span>
+          </span>
+        </div>
+        ` : ''}
       </div>
     `;
     if (items.length === 0) {
