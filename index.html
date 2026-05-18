@@ -519,6 +519,16 @@
     margin-bottom: 22px;
   }
   .meal-header {
+    /* button reset */
+    appearance: none;
+    -webkit-appearance: none;
+    border: none;
+    font-family: inherit;
+    text-align: left;
+    width: 100%;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+
     display: flex;
     flex-direction: column;
     gap: 6px;
@@ -527,13 +537,45 @@
     background: linear-gradient(135deg, var(--accent-soft) 0%, rgba(212,235,220,0.4) 100%);
     margin-bottom: 12px;
     min-width: 0;
+    transition: background 0.15s, margin 0.15s;
   }
+  .meal-header:active { background: linear-gradient(135deg, rgba(45,134,89,0.18) 0%, rgba(212,235,220,0.6) 100%); }
+  .meal-header.collapsed { margin-bottom: 8px; }
   .meal-header-top {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 10px;
     min-width: 0;
+  }
+  .meal-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .meal-chevron {
+    color: var(--accent-deep);
+    font-size: 14px;
+    line-height: 1;
+    opacity: 0.6;
+    transition: transform 0.2s;
+    display: inline-block;
+  }
+  .meal-header.collapsed .meal-chevron {
+    transform: rotate(-90deg);
+  }
+  .meal-body {
+    overflow: hidden;
+    transition: max-height 0.25s ease, opacity 0.2s, margin 0.2s;
+    max-height: 4000px;
+    opacity: 1;
+  }
+  .meal-body.collapsed {
+    max-height: 0;
+    opacity: 0;
+    margin-top: -12px; /* absorb spacing from meal-header margin-bottom */
+    pointer-events: none;
   }
   .meal-header-bottom {
     display: flex;
@@ -1466,6 +1508,29 @@
   }
   .settings-toggle:hover { color: var(--accent); }
 
+  .meals-collapse-all {
+    float: right;
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.15s;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .meals-collapse-all:active { transform: scale(0.92); }
+  .meals-collapse-all:hover { color: var(--accent); border-color: var(--accent); }
+
   /* Weight section */
   .weight-quick {
     display: flex;
@@ -2118,7 +2183,7 @@
 
       <!-- MEALS -->
       <div class="card">
-        <h2>Pasti di oggi <span class="sub" id="meals-sub">—</span></h2>
+        <h2>Pasti di oggi <span class="sub" id="meals-sub">—</span><button class="meals-collapse-all" id="meals-collapse-all" title="Comprimi/espandi tutti">⇅</button></h2>
         <div id="meals"></div>
       </div>
 
@@ -3015,7 +3080,7 @@ const ACTIVITIES = [
 ];
 
 // ========== APP VERSION ==========
-const APP_VERSION = '1.1.5';
+const APP_VERSION = '1.1.6';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
@@ -3041,6 +3106,7 @@ let state = {
     sex: 'male'
   },
   showMetabolism: false, // toggle nascosto
+  collapsedMeals: {},    // { 'Colazione': true, 'Pranzo': false, ... } - persists per meal
   currentDate: todayISO(),
   selectedMeal: 'Colazione',
   weightRange: 90, // days; 0 = all
@@ -3106,6 +3172,12 @@ async function loadState() {
   // Show metabolism toggle
   const sm = localStorage.getItem(KEY_PREFIX + 'showMetabolism');
   state.showMetabolism = sm === 'true';
+
+  // Collapsed meals state (which meals are minimized)
+  try {
+    const cm = localStorage.getItem(KEY_PREFIX + 'collapsedMeals');
+    if (cm) state.collapsedMeals = JSON.parse(cm);
+  } catch (e) { state.collapsedMeals = {}; }
 
   // Backup tracking
   const lb = localStorage.getItem(KEY_PREFIX + 'lastBackup');
@@ -3394,13 +3466,17 @@ function renderMeals() {
     const wheatSvgH = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 8c0-2.21 1.79-4 4-4 1.74 0 3.21 1.12 3.75 2.67l1.13-.6C13.2 4 11.21 3 9 3 5.69 3 3 5.69 3 9c0 2.21 1 4.2 2.57 5.55l.6-1.13C5 12.21 5 10.74 5 9V8zm14 6c0 2.21-1.79 4-4 4-1.74 0-3.21-1.12-3.75-2.67l-1.13.6C10.8 18 12.79 19 15 19c3.31 0 6-2.69 6-6 0-2.21-1-4.2-2.57-5.55l-.6 1.13C19 11.79 19 13.26 19 15v-1z"/><circle cx="9" cy="9" r="2"/><circle cx="15" cy="15" r="2"/></svg>';
     const dropSvgH = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.1L7.05 8.05a7 7 0 109.9 0L12 3.1zm0 2.83l3.54 3.54a5 5 0 11-7.07 0L12 5.93z"/></svg>';
     const showMacros = items.length > 0;
+    const isCollapsed = state.collapsedMeals[mealName] === true;
     mealDiv.innerHTML = `
-      <div class="meal-header">
+      <button class="meal-header ${isCollapsed ? 'collapsed' : ''}" data-meal="${mealName}" type="button">
         <div class="meal-header-top">
           <div class="meal-name"><span class="meal-emoji">${mealEmojis[mealName]||'🍴'}</span>${displayName}</div>
-          <div class="meal-kcal-badge">
-            <span class="nutri-icon nutri-kcal">${flameSvgH}</span>
-            <span class="meal-kcal-val">${fmt(mt.kcal)}</span>
+          <div class="meal-header-right">
+            <div class="meal-kcal-badge">
+              <span class="nutri-icon nutri-kcal">${flameSvgH}</span>
+              <span class="meal-kcal-val">${fmt(mt.kcal)}</span>
+            </div>
+            <span class="meal-chevron" aria-hidden="true">▾</span>
           </div>
         </div>
         ${showMacros ? `
@@ -3419,13 +3495,15 @@ function renderMeals() {
           </span>
         </div>
         ` : ''}
-      </div>
+      </button>
+      <div class="meal-body ${isCollapsed ? 'collapsed' : ''}" data-meal-body="${mealName}"></div>
     `;
+    const bodyDiv = mealDiv.querySelector('.meal-body');
     if (items.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'empty-meal';
       empty.textContent = '— nessun alimento —';
-      mealDiv.appendChild(empty);
+      bodyDiv.appendChild(empty);
     } else {
       items.forEach((item, idx) => {
         const itemDiv = document.createElement('div');
@@ -3518,7 +3596,7 @@ function renderMeals() {
             <button class="delete-btn" data-meal="${mealName}" data-idx="${idx}" title="Rimuovi">✕</button>
           </div>
         `;
-        mealDiv.appendChild(itemDiv);
+        mealDiv.querySelector('.meal-body').appendChild(itemDiv);
       });
     }
     container.appendChild(mealDiv);
@@ -3546,6 +3624,21 @@ function renderMeals() {
       const meal = el.dataset.meal;
       const idx = parseInt(el.dataset.idx);
       openEditModal(meal, idx);
+    });
+  });
+
+  // meal header click → toggle collapse
+  container.querySelectorAll('.meal-header').forEach(hdr => {
+    hdr.addEventListener('click', (e) => {
+      // Don't trigger if clicking on a button/link inside (defensive)
+      if (e.target.closest('button') && e.target.closest('button') !== hdr) return;
+      const meal = hdr.dataset.meal;
+      const wasCollapsed = state.collapsedMeals[meal] === true;
+      state.collapsedMeals[meal] = !wasCollapsed;
+      try { localStorage.setItem(KEY_PREFIX + 'collapsedMeals', JSON.stringify(state.collapsedMeals)); } catch (err) {}
+      hdr.classList.toggle('collapsed');
+      const body = hdr.parentElement.querySelector('.meal-body');
+      if (body) body.classList.toggle('collapsed');
     });
   });
 
@@ -5662,6 +5755,21 @@ function initMetabolismToggle() {
   }
 }
 
+function initCollapseAllButton() {
+  const btn = document.getElementById('meals-collapse-all');
+  if (!btn || btn.dataset.bound) return;
+  btn.dataset.bound = 'true';
+  btn.addEventListener('click', () => {
+    const meals = ['Colazione', 'Spuntino mattina', 'Pranzo', 'Merenda', 'Cena'];
+    // If most are expanded, collapse all. If most are collapsed, expand all.
+    const collapsedCount = meals.filter(m => state.collapsedMeals[m] === true).length;
+    const shouldCollapse = collapsedCount < meals.length / 2;
+    meals.forEach(m => { state.collapsedMeals[m] = shouldCollapse; });
+    try { localStorage.setItem(KEY_PREFIX + 'collapsedMeals', JSON.stringify(state.collapsedMeals)); } catch (e) {}
+    renderMeals();
+  });
+}
+
 // ========== INIT ==========
 (async () => {
   initVersionBadge();
@@ -5669,6 +5777,7 @@ function initMetabolismToggle() {
   renderAll();
   initRangeSelector();
   initMetabolismToggle();
+  initCollapseAllButton();
 })();
 </script>
 </body>
