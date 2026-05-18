@@ -1124,6 +1124,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 4px 0;
+    gap: 8px;
   }
   .net-row.net-final {
     border-top: 1px solid var(--line);
@@ -1132,11 +1133,59 @@
     font-weight: 700;
     font-size: 13px;
   }
-  .net-lbl { color: var(--ink-soft); }
+  .net-lbl { color: var(--ink-soft); display: flex; align-items: center; gap: 4px; }
   .net-final .net-lbl { color: var(--ink); }
-  .net-val { color: var(--ink); font-weight: 600; }
+  .net-val { color: var(--ink); font-weight: 600; white-space: nowrap; }
   .net-burned { color: var(--warm) !important; }
   .net-final .net-val { font-size: 14px; }
+  .net-val.net-deficit { color: var(--accent) !important; }
+  .net-val.net-surplus { color: var(--tomato) !important; }
+  .net-val.net-balanced { color: var(--ink) !important; }
+  .met-info-btn {
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    font-size: 10px;
+    cursor: pointer;
+    color: var(--ink-soft);
+    padding: 0;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .met-info-btn:active { transform: scale(0.9); }
+  .met-info-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* Metabolism toggle button (the 'eye' link) */
+  .metabolism-toggle-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 10px;
+  }
+  .metabolism-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: 1px dashed var(--line);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+  }
+  .metabolism-toggle:active { transform: scale(0.97); }
+  .metabolism-toggle:hover { border-color: var(--accent); color: var(--accent); border-style: solid; }
+  .met-toggle-icon { font-size: 12px; line-height: 1; }
 
   /* Add custom food */
   .add-custom {
@@ -2080,17 +2129,29 @@
           </span>
         </div>
         <div class="summary-chips" id="summary-chips"></div>
+
+        <div class="metabolism-toggle-row">
+          <button class="metabolism-toggle" id="metabolism-toggle">
+            <span class="met-toggle-icon" id="met-toggle-icon">👁</span>
+            <span class="met-toggle-label" id="met-toggle-label">Mostra bilancio dettagliato</span>
+          </button>
+        </div>
+
         <div class="net-balance" id="net-balance" style="display:none;">
           <div class="net-row">
             <span class="net-lbl">📥 Assunte</span>
             <span class="net-val" id="net-in">0 kcal</span>
           </div>
-          <div class="net-row">
-            <span class="net-lbl">🔥 Bruciate</span>
+          <div class="net-row" id="net-out-row" style="display:none;">
+            <span class="net-lbl">🔥 Attività</span>
             <span class="net-val net-burned" id="net-out">-0 kcal</span>
           </div>
+          <div class="net-row" id="net-met-row" style="display:none;">
+            <span class="net-lbl">💤 Metabolismo base <button class="met-info-btn" id="met-info-btn" title="Info">ⓘ</button></span>
+            <span class="net-val net-burned" id="net-met">-0 kcal</span>
+          </div>
           <div class="net-row net-final">
-            <span class="net-lbl">Bilancio netto</span>
+            <span class="net-lbl" id="net-final-label">Bilancio netto</span>
             <span class="net-val" id="net-result">0 kcal</span>
           </div>
         </div>
@@ -2935,7 +2996,7 @@ const ACTIVITIES = [
 ];
 
 // ========== APP VERSION ==========
-const APP_VERSION = '1.1.3';
+const APP_VERSION = '1.1.4';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
@@ -2952,6 +3013,15 @@ let state = {
     saturated: 20,
     fiber: 30
   },
+  profile: {
+    heightCm: 180,
+    age: 49,           // calc dinamicamente dal birthdate sotto
+    birthYear: 1976,
+    birthMonth: 12,
+    birthDay: 24,
+    sex: 'male'
+  },
+  showMetabolism: false, // toggle nascosto
   currentDate: todayISO(),
   selectedMeal: 'Colazione',
   weightRange: 90, // days; 0 = all
@@ -3008,6 +3078,16 @@ async function loadState() {
     if (a) state.activities = JSON.parse(a);
   } catch (e) { state.activities = {}; }
 
+  // Profile (height, age, sex)
+  try {
+    const p = localStorage.getItem(KEY_PREFIX + 'profile');
+    if (p) state.profile = { ...state.profile, ...JSON.parse(p) };
+  } catch (e) { /* keep defaults */ }
+
+  // Show metabolism toggle
+  const sm = localStorage.getItem(KEY_PREFIX + 'showMetabolism');
+  state.showMetabolism = sm === 'true';
+
   // Backup tracking
   const lb = localStorage.getItem(KEY_PREFIX + 'lastBackup');
   if (lb) lastBackupTime = parseInt(lb);
@@ -3063,6 +3143,10 @@ async function saveActivities() {
   try { localStorage.setItem(KEY_PREFIX + 'activities', JSON.stringify(state.activities)); markUnbackedChange(); }
   catch (e) { console.error('save activities', e); }
 }
+async function saveProfile() {
+  try { localStorage.setItem(KEY_PREFIX + 'profile', JSON.stringify(state.profile)); markUnbackedChange(); }
+  catch (e) { console.error('save profile', e); }
+}
 
 // ========== ACTIVITY HELPERS ==========
 function findActivity(id) { return ACTIVITIES.find(a => a.id === id); }
@@ -3092,6 +3176,61 @@ function getCurrentWeightKg() {
   const dates = Object.keys(state.weights).sort();
   if (dates.length === 0) return 78; // fallback
   return state.weights[dates[dates.length - 1]];
+}
+
+// Get weight active on a specific date (most recent measurement up to that date)
+function getWeightOnDate(dateKey) {
+  const dates = Object.keys(state.weights).filter(d => d <= dateKey).sort();
+  if (dates.length === 0) {
+    // No prior weight — use earliest available, or fallback
+    const all = Object.keys(state.weights).sort();
+    return all.length > 0 ? state.weights[all[0]] : 78;
+  }
+  return state.weights[dates[dates.length - 1]];
+}
+
+// Compute age at a given date (for accurate historical BMR)
+function getAgeOnDate(dateKey) {
+  const p = state.profile;
+  const target = new Date(dateKey);
+  const birth = new Date(p.birthYear, (p.birthMonth || 1) - 1, p.birthDay || 1);
+  let age = target.getFullYear() - birth.getFullYear();
+  const m = target.getMonth() - birth.getMonth();
+  if (m < 0 || (m === 0 && target.getDate() < birth.getDate())) age--;
+  return age;
+}
+
+// Mifflin-St Jeor BMR formula (kcal/day)
+function computeBMR(weightKg, heightCm, age, sex) {
+  if (sex === 'female') {
+    return 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
+  }
+  return 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
+}
+
+// Sedentary TDEE: BMR × 1.2 for the proportion of day NOT spent in tracked activity
+// Returns the sedentary metabolism for hours-not-in-activity portion of the day
+function computeSedentaryKcal(dateKey) {
+  const p = state.profile;
+  const weight = getWeightOnDate(dateKey);
+  const age = getAgeOnDate(dateKey);
+  const bmr = computeBMR(weight, p.heightCm, age, p.sex);
+
+  // Hours of tracked activity that day
+  const activityTotals = dayActivityTotals(dateKey);
+  const activityHours = Math.min(activityTotals.minutes / 60, 24);
+  const sedentaryHours = Math.max(24 - activityHours, 0);
+
+  // Sedentary multiplier 1.2 applied only to the non-activity portion of the day
+  // (during activity, the MET calculation already includes basal metabolism)
+  const sedentaryKcal = bmr * 1.2 * (sedentaryHours / 24);
+  return {
+    bmr: bmr,
+    sedentaryKcal: sedentaryKcal,
+    weightUsed: weight,
+    ageUsed: age,
+    activityHours: activityHours
+  };
 }
 
 // ========== DATA HELPERS ==========
@@ -3404,16 +3543,53 @@ function renderTotals() {
   else if (delta > 50) { deltaEl.textContent = `+${fmt(delta)} kcal`; deltaEl.className = 'delta over'; }
   else { deltaEl.textContent = `${delta >= 0 ? '+':''}${fmt(delta)} kcal`; deltaEl.className = 'delta'; }
 
-  // Net balance — only show if there are activities today
+  // Net balance — show if there are activities OR if user enabled metabolism display
   const activityTotals = dayActivityTotals(state.currentDate);
   const netBox = document.getElementById('net-balance');
-  if (activityTotals.count > 0) {
+  const showMet = state.showMetabolism;
+  const hasActivity = activityTotals.count > 0;
+
+  // Update the toggle button label/icon
+  const togLabel = document.getElementById('met-toggle-label');
+  const togIcon = document.getElementById('met-toggle-icon');
+  if (togLabel) {
+    togLabel.textContent = showMet ? 'Nascondi bilancio dettagliato' : 'Mostra bilancio dettagliato';
+  }
+  if (togIcon) togIcon.textContent = showMet ? '👁‍🗨' : '👁';
+
+  if (hasActivity || showMet) {
     netBox.style.display = 'block';
     const burned = Math.round(activityTotals.kcal);
-    const net = t.kcal - burned;
     document.getElementById('net-in').textContent = `${fmt(t.kcal)} kcal`;
-    document.getElementById('net-out').textContent = `-${burned} kcal`;
-    document.getElementById('net-result').textContent = `${fmt(net)} kcal`;
+
+    // Activity row
+    const outRow = document.getElementById('net-out-row');
+    if (hasActivity) {
+      outRow.style.display = 'flex';
+      document.getElementById('net-out').textContent = `-${burned} kcal`;
+    } else {
+      outRow.style.display = 'none';
+    }
+
+    // Metabolism row (only when user toggled it on)
+    const metRow = document.getElementById('net-met-row');
+    let metKcal = 0;
+    if (showMet) {
+      const metInfo = computeSedentaryKcal(state.currentDate);
+      metKcal = Math.round(metInfo.sedentaryKcal);
+      metRow.style.display = 'flex';
+      document.getElementById('net-met').textContent = `-${metKcal} kcal`;
+    } else {
+      metRow.style.display = 'none';
+    }
+
+    // Final balance
+    const net = t.kcal - burned - metKcal;
+    document.getElementById('net-final-label').textContent = showMet ? 'Bilancio energetico' : 'Bilancio netto';
+    const netEl = document.getElementById('net-result');
+    netEl.textContent = `${net >= 0 ? '+' : ''}${fmt(net)} kcal`;
+    // Color code: green if negative (deficit), red if positive (surplus)
+    netEl.className = 'net-val ' + (showMet ? (net < -100 ? 'net-deficit' : (net > 100 ? 'net-surplus' : 'net-balanced')) : '');
   } else {
     netBox.style.display = 'none';
   }
@@ -4710,7 +4886,8 @@ function getAllData() {
       customFoods: state.customFoods,
       weights: state.weights,
       activities: state.activities,
-      targets: state.targets
+      targets: state.targets,
+      profile: state.profile
     }
   };
 }
@@ -4829,11 +5006,13 @@ document.getElementById('backup-file-input').addEventListener('change', async (e
     if (d.weights) state.weights = d.weights;
     if (d.activities) state.activities = d.activities;
     if (d.targets) state.targets = d.targets;
+    if (d.profile) state.profile = { ...state.profile, ...d.profile };
     await saveDiary();
     await saveCustomFoods();
     await saveWeights();
     await saveActivities();
     await saveTargets();
+    await saveProfile();
     // Reset backup badge (just restored, equivalent to fresh state)
     lastBackupTime = Date.now();
     unbackedChanges = 0;
@@ -5403,12 +5582,52 @@ function initVersionBadge() {
   });
 }
 
+// Initialize the metabolism toggle (the 'eye' button) and the info button
+function initMetabolismToggle() {
+  const toggleBtn = document.getElementById('metabolism-toggle');
+  if (toggleBtn && !toggleBtn.dataset.bound) {
+    toggleBtn.dataset.bound = 'true';
+    toggleBtn.addEventListener('click', async () => {
+      state.showMetabolism = !state.showMetabolism;
+      try { localStorage.setItem(KEY_PREFIX + 'showMetabolism', String(state.showMetabolism)); } catch (e) {}
+      renderTotals();
+    });
+  }
+  const infoBtn = document.getElementById('met-info-btn');
+  if (infoBtn && !infoBtn.dataset.bound) {
+    infoBtn.dataset.bound = 'true';
+    infoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const info = computeSedentaryKcal(state.currentDate);
+      const msg = [
+        '💤 Metabolismo basale (BMR)',
+        '',
+        `Formula: Mifflin-St Jeor`,
+        `Peso usato: ${info.weightUsed.toFixed(1)} kg`,
+        `Altezza: ${state.profile.heightCm} cm`,
+        `Età: ${info.ageUsed} anni`,
+        `BMR: ${Math.round(info.bmr)} kcal/giorno`,
+        '',
+        `Ore di attività registrate oggi: ${info.activityHours.toFixed(1)} h`,
+        `Ore "sedentarie": ${(24 - info.activityHours).toFixed(1)} h`,
+        '',
+        `Stima sedentaria (BMR × 1.2 × frazione sedentaria):`,
+        `${Math.round(info.sedentaryKcal)} kcal`,
+        '',
+        `NB: il consumo durante l'attività è già incluso nelle "kcal bruciate" sopra, calcolate coi METs.`
+      ].join('\n');
+      alert(msg);
+    });
+  }
+}
+
 // ========== INIT ==========
 (async () => {
   initVersionBadge();
   await loadState();
   renderAll();
   initRangeSelector();
+  initMetabolismToggle();
 })();
 </script>
 </body>

@@ -1,6 +1,6 @@
 // Health Diary - Service Worker
 // Update the version number when you change app code to force refresh
-const CACHE_NAME = 'diario-v1.1.3';
+const CACHE_NAME = 'diario-v1.1.4';
 const ASSETS = [
   './',
   './index.html',
