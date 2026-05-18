@@ -467,9 +467,26 @@
     display: flex;
     align-items: center;
     padding: 8px 0;
-    gap: 12px;
+    gap: 4px;
+    border-radius: 6px;
+    transition: background 0.15s;
   }
-  .item:hover .delete-btn { opacity: 1; }
+  .item:hover .delete-btn, .item:hover .edit-btn {
+    opacity: 1;
+  }
+  .item-tap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 4px 6px;
+    border-radius: 6px;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.1s;
+    min-height: 36px;
+  }
+  .item-tap:active { background: var(--bg-soft); }
   .item-name {
     flex: 1;
     font-size: 14px;
@@ -487,15 +504,35 @@
     white-space: nowrap;
   }
   .item-macros .kcal { color: var(--ink); font-weight: 600; }
+  .edit-btn {
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.4;
+    transition: opacity 0.15s, color 0.15s;
+    padding: 6px 8px;
+    min-width: 36px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .edit-btn:active, .edit-btn:hover { color: var(--accent); opacity: 1; }
   .delete-btn {
     background: none;
     border: none;
     color: var(--danger);
     cursor: pointer;
     font-size: 14px;
-    opacity: 0;
+    opacity: 0.4;
     transition: opacity 0.15s;
-    padding: 2px 6px;
+    padding: 6px 8px;
+    min-width: 36px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .delete-btn:active, .delete-btn:hover { opacity: 1; }
+  /* On mobile, always show buttons (no hover) */
+  @media (hover: none) {
+    .edit-btn, .delete-btn { opacity: 0.6; }
   }
   .empty-meal {
     color: var(--ink-faint);
@@ -2039,7 +2076,7 @@ const FOODS = [
 ];
 
 // ========== APP VERSION ==========
-const APP_VERSION = '6.0';
+const APP_VERSION = '7.0';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
@@ -2264,8 +2301,11 @@ function renderMeals() {
         itemDiv.className = 'item';
         const qtyStr = item.unit === 'pz' ? `${fmt(item.qty,1)} ${item.qty > 1 ? 'unità' : 'unità'}` : `${fmt(item.qty)} ${item.unit}`;
         itemDiv.innerHTML = `
-          <div class="item-name">${item.name}<span class="qty">${qtyStr}</span></div>
-          <div class="item-macros"><span class="kcal">${fmt(item.kcal)}</span> kcal · ${fmt(item.protein,1)}p / ${fmt(item.carbs,1)}c / ${fmt(item.fat,1)}g</div>
+          <div class="item-tap" data-meal="${mealName}" data-idx="${idx}">
+            <div class="item-name">${item.name}<span class="qty">${qtyStr}</span></div>
+            <div class="item-macros"><span class="kcal">${fmt(item.kcal)}</span> kcal · ${fmt(item.protein,1)}p / ${fmt(item.carbs,1)}c / ${fmt(item.fat,1)}g</div>
+          </div>
+          <button class="edit-btn" data-meal="${mealName}" data-idx="${idx}" title="Modifica">✎</button>
           <button class="delete-btn" data-meal="${mealName}" data-idx="${idx}" title="Rimuovi">✕</button>
         `;
         mealDiv.appendChild(itemDiv);
@@ -2274,9 +2314,29 @@ function renderMeals() {
     container.appendChild(mealDiv);
   });
 
+  // tap-to-edit handlers (on the item content itself, not the buttons)
+  container.querySelectorAll('.item-tap').forEach(el => {
+    el.addEventListener('click', () => {
+      const meal = el.dataset.meal;
+      const idx = parseInt(el.dataset.idx);
+      openEditModal(meal, idx);
+    });
+  });
+
+  // edit button handlers
+  container.querySelectorAll('.edit-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const meal = btn.dataset.meal;
+      const idx = parseInt(btn.dataset.idx);
+      openEditModal(meal, idx);
+    });
+  });
+
   // delete handlers
   container.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
       const meal = btn.dataset.meal;
       const idx = parseInt(btn.dataset.idx);
       state.diary[state.currentDate][meal].splice(idx, 1);
@@ -2456,8 +2516,10 @@ const qtyPreview = document.getElementById('qty-preview');
 const quickPicks = document.getElementById('quick-picks');
 
 let currentFood = null;
+let editMode = null; // null = adding new, {meal, idx} = editing existing
 
 function openQtyModal(food) {
+  editMode = null; // reset to add mode
   currentFood = food;
   qtyFoodName.textContent = food.name;
   const baseLabel = food.unit === 'pz'
@@ -2465,6 +2527,9 @@ function openQtyModal(food) {
     : `${fmt(food.kcal)} kcal · ${fmt(food.protein,1)}g proteine · per 100${food.unit}`;
   qtyFoodBase.textContent = baseLabel;
   qtyUnit.textContent = food.unit;
+
+  // Update button label
+  document.getElementById('qty-add').textContent = 'Aggiungi';
 
   // default quantity
   qtyInput.value = food.defaultQty || (food.unit === 'pz' ? 1 : 100);
@@ -2497,6 +2562,69 @@ function openQtyModal(food) {
   updatePreview();
   qtyModal.classList.add('show');
   setTimeout(() => qtyInput.focus(), 50);
+}
+
+function openEditModal(mealName, idx) {
+  const item = state.diary[state.currentDate][mealName][idx];
+  if (!item) return;
+
+  // Find the underlying food to get the "per 100g" values
+  // We need to reconstruct it from the stored item (which has computed values for the specific quantity)
+  // The base food info is needed for the quick picks and recomputation
+  let baseFood = findFood(item.foodId);
+  if (!baseFood) {
+    // Fallback: derive per-100 values from stored item using its quantity
+    const ratio = item.unit === 'pz' ? (item.qty * 100) : (item.qty || 100);
+    baseFood = {
+      id: item.foodId || 'unknown',
+      name: item.name,
+      unit: item.unit,
+      kcal: (item.kcal * 100) / Math.max(ratio, 0.01),
+      protein: (item.protein * 100) / Math.max(ratio, 0.01),
+      carbs: (item.carbs * 100) / Math.max(ratio, 0.01),
+      sugar: ((item.sugar || 0) * 100) / Math.max(ratio, 0.01),
+      fat: (item.fat * 100) / Math.max(ratio, 0.01),
+      sat: ((item.saturated || 0) * 100) / Math.max(ratio, 0.01),
+      fiber: ((item.fiber || 0) * 100) / Math.max(ratio, 0.01)
+    };
+  }
+
+  editMode = { meal: mealName, idx: idx };
+  currentFood = baseFood;
+  qtyFoodName.textContent = item.name;
+  const baseLabel = item.unit === 'pz'
+    ? `Modifica · 1 unità ≈ ${baseFood.gramsPerUnit || 100}g`
+    : `Modifica · ${fmt(baseFood.kcal)} kcal · ${fmt(baseFood.protein,1)}g prot / 100${item.unit}`;
+  qtyFoodBase.textContent = baseLabel;
+  qtyUnit.textContent = item.unit;
+
+  // Set button label to "Salva modifiche"
+  document.getElementById('qty-add').textContent = 'Salva modifiche';
+
+  // Pre-fill with current quantity
+  qtyInput.value = item.qty;
+
+  // quick picks
+  quickPicks.innerHTML = '';
+  const picks = item.unit === 'pz' ? [1, 2, 3, 4]
+              : item.unit === 'ml' ? [100, 150, 200, 250, 330, 500]
+              : [30, 50, 80, 100, 150, 200, 250];
+  picks.forEach(p => {
+    const btn = document.createElement('button');
+    btn.textContent = `${p}${item.unit}`;
+    btn.addEventListener('click', () => { qtyInput.value = p; updatePreview(); });
+    quickPicks.appendChild(btn);
+  });
+
+  // Pre-select current meal (don't guess by hour)
+  state.selectedMeal = mealName;
+  document.querySelectorAll('.meal-pick').forEach(b => {
+    b.classList.toggle('active', b.dataset.meal === mealName);
+  });
+
+  updatePreview();
+  qtyModal.classList.add('show');
+  setTimeout(() => { qtyInput.focus(); qtyInput.select(); }, 50);
 }
 
 function updatePreview() {
@@ -2533,14 +2661,42 @@ document.getElementById('qty-add').addEventListener('click', async () => {
   const qty = parseFloat(qtyInput.value);
   if (isNaN(qty) || qty <= 0) { qtyInput.focus(); return; }
   const c = compute(currentFood, qty);
-  const day = getDayData(state.currentDate);
-  day[state.selectedMeal].push({
-    foodId: currentFood.id,
-    name: currentFood.name,
-    qty: qty,
-    unit: currentFood.unit,
-    ...c
-  });
+
+  if (editMode) {
+    // EDIT MODE: update existing item, possibly moving between meals
+    const oldMeal = editMode.meal;
+    const oldIdx = editMode.idx;
+    const newMeal = state.selectedMeal;
+    const oldItem = state.diary[state.currentDate][oldMeal][oldIdx];
+    const updatedItem = {
+      foodId: oldItem.foodId,
+      name: oldItem.name,
+      qty: qty,
+      unit: oldItem.unit,
+      ...c
+    };
+
+    if (oldMeal === newMeal) {
+      // Same meal: replace in place
+      state.diary[state.currentDate][oldMeal][oldIdx] = updatedItem;
+    } else {
+      // Different meal: remove from old, add to new
+      state.diary[state.currentDate][oldMeal].splice(oldIdx, 1);
+      state.diary[state.currentDate][newMeal].push(updatedItem);
+    }
+    editMode = null;
+  } else {
+    // ADD MODE: append new item
+    const day = getDayData(state.currentDate);
+    day[state.selectedMeal].push({
+      foodId: currentFood.id,
+      name: currentFood.name,
+      qty: qty,
+      unit: currentFood.unit,
+      ...c
+    });
+  }
+
   await saveDiary();
   qtyModal.classList.remove('show');
   searchInput.value = '';
