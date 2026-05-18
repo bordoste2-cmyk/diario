@@ -1024,6 +1024,231 @@
     height: 1px;
   }
 
+  /* Action button row (scan + search online) */
+  .action-buttons-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+    margin-bottom: 8px;
+  }
+  .action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 10px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .action-btn:active { transform: scale(0.97); }
+  .action-btn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .scan-btn { color: var(--accent); border-color: var(--accent-soft); background: var(--accent-soft); }
+  .scan-btn:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* Scanner modal */
+  .scanner-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.95);
+    display: none;
+    flex-direction: column;
+    z-index: 200;
+  }
+  .scanner-modal-overlay.show { display: flex; }
+  .scanner-header {
+    padding: 16px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(0,0,0,0.6);
+  }
+  .scanner-header h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-weight: 500;
+    margin: 0;
+  }
+  .scanner-close {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .scanner-video-wrap {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #scanner-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .scanner-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+  .scanner-frame {
+    width: 80%;
+    max-width: 320px;
+    aspect-ratio: 1.6 / 1;
+    border: 3px solid white;
+    border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,0.5);
+    position: relative;
+  }
+  .scanner-frame::before, .scanner-frame::after,
+  .scanner-frame-corners::before, .scanner-frame-corners::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border: 4px solid var(--accent);
+  }
+  .scanner-frame::before { top: -2px; left: -2px; border-right: none; border-bottom: none; border-top-left-radius: 12px; }
+  .scanner-frame::after { top: -2px; right: -2px; border-left: none; border-bottom: none; border-top-right-radius: 12px; }
+  .scanner-frame-corners::before { bottom: -2px; left: -2px; border-right: none; border-top: none; border-bottom-left-radius: 12px; }
+  .scanner-frame-corners::after { bottom: -2px; right: -2px; border-left: none; border-top: none; border-bottom-right-radius: 12px; }
+  .scanner-instructions {
+    color: white;
+    text-align: center;
+    padding: 16px;
+    font-size: 14px;
+    background: rgba(0,0,0,0.6);
+  }
+  .scanner-instructions strong { display: block; margin-bottom: 4px; font-size: 16px; color: var(--accent-soft); }
+  .scanner-status {
+    margin-top: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    opacity: 0.7;
+  }
+  .scanner-manual {
+    padding: 16px;
+    background: rgba(0,0,0,0.6);
+  }
+  .scanner-manual input {
+    width: 100%;
+    padding: 12px;
+    font-size: 16px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 6px;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    font-family: 'JetBrains Mono', monospace;
+    text-align: center;
+  }
+  .scanner-manual input::placeholder { color: rgba(255,255,255,0.5); }
+  .scanner-manual button {
+    width: 100%;
+    margin-top: 8px;
+    padding: 12px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .scanner-manual-toggle {
+    color: rgba(255,255,255,0.7);
+    text-decoration: underline;
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 6px;
+  }
+
+  /* Online search modal */
+  .online-search-modal {
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .online-search-input {
+    width: 100%;
+    padding: 12px 14px;
+    font-size: 15px;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-family: inherit;
+  }
+  .online-search-input:focus { outline: none; border-color: var(--accent); }
+  .online-results {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 50vh;
+    margin: 0 -8px;
+  }
+  .online-result-item {
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.1s;
+    border-bottom: 1px solid var(--bg-soft);
+  }
+  .online-result-item:hover, .online-result-item:active { background: var(--bg-soft); }
+  .online-result-item .brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 2px;
+  }
+  .online-result-item .name {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: var(--ink);
+  }
+  .online-result-item .nutri {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .online-result-item .nutri .kcal { color: var(--accent); font-weight: 600; }
+  .online-loading {
+    text-align: center;
+    padding: 24px;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+  .online-empty {
+    text-align: center;
+    padding: 24px;
+    color: var(--ink-soft);
+    font-size: 13px;
+  }
+
   /* Scrollbar */
   ::-webkit-scrollbar { width: 8px; }
   ::-webkit-scrollbar-track { background: var(--bg-soft); }
@@ -1066,10 +1291,20 @@
 
       <!-- SEARCH CARD -->
       <div class="card">
-        <h2>Aggiungi alimento <span class="sub">cerca o aggiungi nuovo</span></h2>
+        <h2>Aggiungi alimento <span class="sub">cerca, scansiona o aggiungi</span></h2>
         <div class="search-wrap">
           <input type="text" class="search-input" id="search" placeholder="Es. pasta, salmone, yogurt greco..." autocomplete="off">
           <div class="results" id="results"></div>
+        </div>
+        <div class="action-buttons-row">
+          <button class="action-btn scan-btn" id="scan-btn">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4 6h2v12H4V6m3 0h1v12H7V6m2 0h2v12H9V6m3 0h2v12h-2V6m3 0h1v12h-1V6m2 0h3v12h-3V6M3 4v16h18V4H3z"/></svg>
+            Scansiona codice
+          </button>
+          <button class="action-btn search-online-btn" id="search-online-btn">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+            Cerca online
+          </button>
         </div>
         <button class="add-custom" id="add-custom-btn">+ Aggiungi un alimento personalizzato</button>
       </div>
@@ -1168,6 +1403,48 @@
 
     <div class="modal-actions">
       <button class="btn-secondary" id="backup-close" style="flex: 1;">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCANNER MODAL -->
+<div class="scanner-modal-overlay" id="scanner-modal">
+  <div class="scanner-header">
+    <h3>Scansiona codice a barre</h3>
+    <button class="scanner-close" id="scanner-close">✕</button>
+  </div>
+  <div class="scanner-video-wrap">
+    <video id="scanner-video" autoplay playsinline muted></video>
+    <div class="scanner-overlay">
+      <div class="scanner-frame"><div class="scanner-frame-corners"></div></div>
+    </div>
+  </div>
+  <div class="scanner-instructions">
+    <strong id="scanner-strong">Inquadra il codice a barre</strong>
+    <span id="scanner-instr-text">Tieni il telefono fermo a 15-20 cm dal prodotto</span>
+    <div class="scanner-status" id="scanner-status">In attesa...</div>
+    <button class="scanner-manual-toggle" id="scanner-manual-toggle">Inserisci il codice manualmente</button>
+  </div>
+  <div class="scanner-manual" id="scanner-manual" style="display:none;">
+    <input type="text" inputmode="numeric" pattern="[0-9]*" id="manual-barcode" placeholder="es. 8076809513388" autocomplete="off">
+    <button id="manual-barcode-submit">Cerca prodotto</button>
+  </div>
+</div>
+
+<!-- ONLINE SEARCH MODAL -->
+<div class="modal-overlay" id="online-search-modal">
+  <div class="modal online-search-modal" style="max-width: 480px;">
+    <h3>Cerca prodotto online</h3>
+    <div class="modal-sub">Database Open Food Facts (oltre 3 milioni di prodotti)</div>
+
+    <input type="text" class="online-search-input" id="online-search-input" placeholder="Es. mulino bianco macine, kinder pinguì, esselunga..." autocomplete="off">
+
+    <div class="online-results" id="online-results">
+      <div class="online-empty">Inizia a digitare per cercare prodotti</div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" id="online-search-close" style="flex: 1;">Chiudi</button>
     </div>
   </div>
 </div>
@@ -2888,6 +3165,342 @@ document.getElementById('backup-file-input').addEventListener('change', async (e
   }
   e.target.value = '';
 });
+
+// ========== OPEN FOOD FACTS INTEGRATION ==========
+const OFF_USER_AGENT = 'DiarioAlimentareStefano/1.0 (personal-use)';
+
+// Map OFF product to our food structure
+function offProductToFood(product) {
+  if (!product || !product.nutriments) return null;
+  const n = product.nutriments;
+  const get = (key) => {
+    const v = n[key];
+    if (v === undefined || v === null || v === '') return 0;
+    return parseFloat(v) || 0;
+  };
+
+  // kcal: prefer energy-kcal_100g, fallback to energy_100g (which is usually in kJ)
+  let kcal = get('energy-kcal_100g');
+  if (!kcal) {
+    const kj = get('energy_100g') || get('energy-kj_100g');
+    if (kj) kcal = kj / 4.184;
+  }
+
+  let name = product.product_name_it || product.product_name || product.generic_name_it || product.generic_name || 'Prodotto senza nome';
+  // Append brand if not already in name
+  const brands = product.brands || '';
+  if (brands && !name.toLowerCase().includes(brands.toLowerCase().split(',')[0].trim().toLowerCase())) {
+    const firstBrand = brands.split(',')[0].trim();
+    if (firstBrand) name = `${name} (${firstBrand})`;
+  }
+  // Truncate very long names
+  if (name.length > 100) name = name.substring(0, 97) + '...';
+
+  return {
+    id: 'off-' + product.code,
+    name: name.trim(),
+    cat: 'Da Open Food Facts',
+    kcal: Math.round(kcal),
+    protein: get('proteins_100g'),
+    carbs: get('carbohydrates_100g'),
+    sugar: get('sugars_100g'),
+    fat: get('fat_100g'),
+    sat: get('saturated-fat_100g'),
+    fiber: get('fiber_100g'),
+    unit: 'g',
+    barcode: product.code
+  };
+}
+
+// Fetch a product by barcode
+async function fetchProductByBarcode(barcode) {
+  try {
+    const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json?fields=code,product_name,product_name_it,generic_name,generic_name_it,brands,nutriments`;
+    const res = await fetch(url, {
+      headers: { 'Accept': 'application/json' }
+      // Note: User-Agent can't be set in browser fetch; OFF accepts requests without it
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    if (data.status !== 1 || !data.product) return null;
+    return offProductToFood(data.product);
+  } catch (err) {
+    console.error('OFF fetch error:', err);
+    return null;
+  }
+}
+
+// Search products by text
+async function searchProductsByText(query) {
+  try {
+    // Use v1 search (only v1 supports full text)
+    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=20&fields=code,product_name,product_name_it,brands,nutriments&countries_tags=italy`;
+    const res = await fetch(url);
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!data.products) return [];
+    return data.products.map(offProductToFood).filter(p => p && p.kcal > 0);
+  } catch (err) {
+    console.error('OFF search error:', err);
+    return [];
+  }
+}
+
+// Save fetched product as custom food (for re-use)
+async function saveOffProductAsCustom(food) {
+  // Avoid duplicates
+  if (state.customFoods.some(f => f.id === food.id || (food.barcode && f.barcode === food.barcode))) {
+    return state.customFoods.find(f => f.id === food.id || (food.barcode && f.barcode === food.barcode));
+  }
+  state.customFoods.push(food);
+  await saveCustomFoods();
+  return food;
+}
+
+// ========== BARCODE SCANNER ==========
+const scannerModal = document.getElementById('scanner-modal');
+const scannerVideo = document.getElementById('scanner-video');
+const scannerStatus = document.getElementById('scanner-status');
+const scannerStrong = document.getElementById('scanner-strong');
+const scannerInstrText = document.getElementById('scanner-instr-text');
+
+let scannerStream = null;
+let scannerReader = null;
+let scannerLibLoaded = false;
+let scanCooldown = false;
+
+async function loadScannerLib() {
+  if (scannerLibLoaded) return true;
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js';
+    script.onload = () => { scannerLibLoaded = true; resolve(true); };
+    script.onerror = () => { resolve(false); };
+    document.head.appendChild(script);
+  });
+}
+
+async function startScanner() {
+  scannerModal.classList.add('show');
+  scannerStatus.textContent = 'Caricamento scanner...';
+  scannerStrong.textContent = 'Inquadra il codice a barre';
+  scannerInstrText.textContent = 'Tieni il telefono fermo a 15-20 cm dal prodotto';
+  document.getElementById('scanner-manual').style.display = 'none';
+
+  const ok = await loadScannerLib();
+  if (!ok) {
+    scannerStatus.textContent = 'Errore: impossibile caricare lo scanner. Sei online?';
+    return;
+  }
+
+  if (!window.ZXing) {
+    scannerStatus.textContent = 'Errore: libreria scanner non disponibile.';
+    return;
+  }
+
+  try {
+    scannerStatus.textContent = 'Richiesta permesso fotocamera...';
+    const hints = new Map();
+    const formats = [
+      ZXing.BarcodeFormat.EAN_13,
+      ZXing.BarcodeFormat.EAN_8,
+      ZXing.BarcodeFormat.UPC_A,
+      ZXing.BarcodeFormat.UPC_E,
+      ZXing.BarcodeFormat.CODE_128,
+      ZXing.BarcodeFormat.CODE_39
+    ];
+    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, formats);
+    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+
+    scannerReader = new ZXing.BrowserMultiFormatReader(hints);
+
+    // Get back camera if available
+    const devices = await scannerReader.listVideoInputDevices();
+    let deviceId = undefined;
+    if (devices.length > 0) {
+      const back = devices.find(d => /back|rear|environment/i.test(d.label));
+      deviceId = back ? back.deviceId : devices[devices.length - 1].deviceId;
+    }
+
+    scannerStatus.textContent = 'Scanner pronto. Inquadra il codice.';
+    scanCooldown = false;
+
+    await scannerReader.decodeFromVideoDevice(deviceId, scannerVideo, async (result, err) => {
+      if (result && !scanCooldown) {
+        scanCooldown = true;
+        const barcode = result.getText();
+        // Validate barcode (8, 12, 13, or 14 digits typical)
+        if (!/^\d{6,14}$/.test(barcode)) {
+          scanCooldown = false;
+          return;
+        }
+        await handleBarcodeFound(barcode);
+        // Re-arm after short delay
+        setTimeout(() => { scanCooldown = false; }, 2000);
+      }
+    });
+  } catch (err) {
+    console.error('Scanner error:', err);
+    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+      scannerStatus.textContent = 'Permesso fotocamera negato. Concedi l\'accesso dalle impostazioni del browser.';
+    } else if (err.name === 'NotFoundError') {
+      scannerStatus.textContent = 'Nessuna fotocamera trovata.';
+    } else {
+      scannerStatus.textContent = 'Errore fotocamera: ' + (err.message || err.name);
+    }
+  }
+}
+
+function stopScanner() {
+  if (scannerReader) {
+    try { scannerReader.reset(); } catch (e) {}
+    scannerReader = null;
+  }
+  if (scannerStream) {
+    scannerStream.getTracks().forEach(t => t.stop());
+    scannerStream = null;
+  }
+  if (scannerVideo.srcObject) {
+    const tracks = scannerVideo.srcObject.getTracks ? scannerVideo.srcObject.getTracks() : [];
+    tracks.forEach(t => t.stop());
+    scannerVideo.srcObject = null;
+  }
+}
+
+async function handleBarcodeFound(barcode) {
+  // Vibrate if available
+  if (navigator.vibrate) navigator.vibrate(100);
+
+  scannerStrong.textContent = `Codice letto: ${barcode}`;
+  scannerInstrText.textContent = 'Ricerca prodotto in Open Food Facts...';
+  scannerStatus.textContent = 'Connessione...';
+
+  // First check if we already have this barcode as custom food
+  const existing = state.customFoods.find(f => f.barcode === barcode);
+  if (existing) {
+    scannerStatus.textContent = 'Prodotto già nei tuoi alimenti';
+    stopScanner();
+    scannerModal.classList.remove('show');
+    openQtyModal({...existing, custom: true});
+    return;
+  }
+
+  const food = await fetchProductByBarcode(barcode);
+  if (!food) {
+    scannerStrong.textContent = 'Prodotto non trovato';
+    scannerInstrText.textContent = 'Il codice non è nel database. Aggiungilo manualmente?';
+    scannerStatus.textContent = `Codice: ${barcode}`;
+    // Offer to open custom food form
+    setTimeout(() => {
+      if (confirm(`Prodotto con codice ${barcode} non trovato in Open Food Facts.\n\nVuoi aggiungerlo manualmente?`)) {
+        stopScanner();
+        scannerModal.classList.remove('show');
+        openCustomFoodModal('');
+      } else {
+        // Resume scanning
+        scannerStrong.textContent = 'Inquadra un altro codice';
+        scannerInstrText.textContent = 'Oppure chiudi e riprova';
+      }
+    }, 500);
+    return;
+  }
+
+  // Found - save and open quantity modal
+  scannerStrong.textContent = '✓ Trovato!';
+  scannerInstrText.textContent = food.name;
+  scannerStatus.textContent = `${food.kcal} kcal · ${food.protein.toFixed(1)}g proteine / 100g`;
+
+  await saveOffProductAsCustom(food);
+
+  setTimeout(() => {
+    stopScanner();
+    scannerModal.classList.remove('show');
+    openQtyModal({...food, custom: true});
+  }, 800);
+}
+
+document.getElementById('scan-btn').addEventListener('click', startScanner);
+document.getElementById('scanner-close').addEventListener('click', () => {
+  stopScanner();
+  scannerModal.classList.remove('show');
+});
+
+// Manual barcode entry
+document.getElementById('scanner-manual-toggle').addEventListener('click', () => {
+  const m = document.getElementById('scanner-manual');
+  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+  if (m.style.display === 'block') {
+    document.getElementById('manual-barcode').focus();
+  }
+});
+document.getElementById('manual-barcode-submit').addEventListener('click', () => {
+  const code = document.getElementById('manual-barcode').value.trim();
+  if (/^\d{6,14}$/.test(code)) {
+    handleBarcodeFound(code);
+  } else {
+    alert('Inserisci un codice a barre valido (6-14 cifre)');
+  }
+});
+document.getElementById('manual-barcode').addEventListener('keypress', e => {
+  if (e.key === 'Enter') document.getElementById('manual-barcode-submit').click();
+});
+
+// ========== ONLINE TEXT SEARCH ==========
+const onlineSearchModal = document.getElementById('online-search-modal');
+const onlineSearchInput = document.getElementById('online-search-input');
+const onlineResults = document.getElementById('online-results');
+let onlineSearchTimer = null;
+
+document.getElementById('search-online-btn').addEventListener('click', () => {
+  onlineSearchInput.value = '';
+  onlineResults.innerHTML = '<div class="online-empty">Inizia a digitare per cercare prodotti</div>';
+  onlineSearchModal.classList.add('show');
+  setTimeout(() => onlineSearchInput.focus(), 100);
+});
+document.getElementById('online-search-close').addEventListener('click', () => {
+  onlineSearchModal.classList.remove('show');
+});
+onlineSearchModal.addEventListener('click', e => {
+  if (e.target === onlineSearchModal) onlineSearchModal.classList.remove('show');
+});
+
+onlineSearchInput.addEventListener('input', () => {
+  clearTimeout(onlineSearchTimer);
+  const q = onlineSearchInput.value.trim();
+  if (q.length < 3) {
+    onlineResults.innerHTML = '<div class="online-empty">Scrivi almeno 3 caratteri...</div>';
+    return;
+  }
+  onlineResults.innerHTML = '<div class="online-loading">Ricerca in corso...</div>';
+  onlineSearchTimer = setTimeout(async () => {
+    const products = await searchProductsByText(q);
+    renderOnlineResults(products);
+  }, 400);
+});
+
+function renderOnlineResults(products) {
+  if (products.length === 0) {
+    onlineResults.innerHTML = '<div class="online-empty">Nessun prodotto trovato. Prova con altre parole.</div>';
+    return;
+  }
+  onlineResults.innerHTML = '';
+  products.forEach(p => {
+    const item = document.createElement('div');
+    item.className = 'online-result-item';
+    const brandPart = p.barcode ? `EAN: ${p.barcode}` : '';
+    item.innerHTML = `
+      <div class="brand">${brandPart}</div>
+      <div class="name">${p.name}</div>
+      <div class="nutri"><span class="kcal">${p.kcal}</span> kcal · ${p.protein.toFixed(1)}p / ${p.carbs.toFixed(1)}c / ${p.fat.toFixed(1)}g /100g</div>
+    `;
+    item.addEventListener('click', async () => {
+      await saveOffProductAsCustom(p);
+      onlineSearchModal.classList.remove('show');
+      openQtyModal({...p, custom: true});
+    });
+    onlineResults.appendChild(item);
+  });
+}
 
 // Service worker registration for offline support
 if ('serviceWorker' in navigator) {
