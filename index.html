@@ -3119,7 +3119,7 @@ const ACTIVITIES = [
 ];
 
 // ========== APP VERSION ==========
-const APP_VERSION = '1.1.9';
+const APP_VERSION = '1.1.10';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
@@ -4622,19 +4622,12 @@ function renderActivityWeekChart() {
     });
   }
 
-  // Adaptive scale: zoom into the range [min, max] of weekly totals
-  // We want even base-only days (just BMR) to fill at least ~50% of the bar
+  // Scale: from 0 to max daily total (BMR + activity)
   const totals = days.map(d => d.totalKcal);
-  const maxTotal = Math.max(...totals);
-  const minTotal = Math.min(...totals);
-  const range = Math.max(maxTotal - minTotal, 1);
-  // Strategy: anchor the scale so that the min total sits around 50% of the bar height.
-  // scaleMin = minTotal - range, scaleMax = maxTotal + 10% range
-  // If everyone has the same total (no activity in the week), scale is centered around the value.
-  const scaleMin = Math.max(0, minTotal - range * 1.0);
-  const scaleMax = maxTotal + range * 0.1;
-  // Ensure minimum visual range so single-activity day still stands out
-  const scaleRange = Math.max(scaleMax - scaleMin, 200);
+  const maxTotal = Math.max(100, ...totals);
+  const scaleMin = 0;
+  const scaleMax = maxTotal;
+  const scaleRange = scaleMax;
 
   barsEl.innerHTML = '';
   labelsEl.innerHTML = '';
