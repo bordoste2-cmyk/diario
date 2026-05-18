@@ -229,20 +229,22 @@
     background: var(--accent-soft);
     color: var(--accent-deep);
     border: 1px solid var(--accent);
-    border-radius: 12px;
-    padding: 3px 9px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9.5px;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    font-family: inherit;
+    font-size: 13px;
     font-weight: 600;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    text-transform: lowercase;
-    letter-spacing: 0.04em;
     transition: all 0.15s;
     line-height: 1;
+    align-items: center;
+    justify-content: center;
   }
-  .back-today.show { display: inline-block; }
-  .back-today:active { transform: scale(0.95); }
+  .back-today.show { display: inline-flex; }
+  .back-today:active { transform: scale(0.9); }
   .back-today:hover { background: var(--accent); color: white; }
 
   /* Main grid */
@@ -2581,7 +2583,7 @@
       <div class="date-display">
         <div class="day-num" id="day-num">—</div>
         <div class="day-name" id="day-name">—</div>
-        <button id="back-to-today" class="back-today" title="Torna a oggi">↻ oggi</button>
+        <button id="back-to-today" class="back-today" title="Torna a oggi">↻</button>
       </div>
       <button id="next-day" title="Giorno successivo">›</button>
     </div>
@@ -3616,7 +3618,7 @@ const PRELOADED_LAB = {
 };
 
 // ========== APP VERSION ==========
-const APP_VERSION = '1.2.1';
+const APP_VERSION = '1.2.2';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
