@@ -650,32 +650,30 @@
     white-space: nowrap;
     flex-shrink: 0;
   }
-  /* BOTTOM ROW: nutrition values */
+  /* BOTTOM ROW: nutrition values (icons + numbers only, see legend below) */
   .item-bottom-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-    row-gap: 6px;
+    gap: 14px;
+    flex-wrap: nowrap;
   }
   .nutri-chip {
     display: inline-flex;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    font-weight: 500;
+    font-size: 13px;
+    font-weight: 600;
     line-height: 1;
     white-space: nowrap;
   }
   @media (max-width: 380px) {
-    .item-bottom-row { gap: 6px; }
-    .nutri-chip { font-size: 11px; }
-    .nutri-chip .nutri-unit { display: none; }
+    .item-bottom-row { gap: 10px; }
+    .nutri-chip { font-size: 12px; }
   }
   .nutri-chip .nutri-icon {
-    width: 14px;
-    height: 14px;
+    width: 15px;
+    height: 15px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -686,16 +684,51 @@
     font-weight: 700;
     color: var(--ink);
   }
-  .nutri-chip .nutri-unit {
-    color: var(--ink-soft);
-    font-size: 11px;
-    font-weight: 400;
-    margin-left: 1px;
-  }
   .nutri-kcal { color: var(--tomato); }
   .nutri-prot { color: var(--accent); }
   .nutri-carbs { color: var(--gold); }
   .nutri-fat { color: var(--warm); }
+
+  /* Compact legend at bottom of meals list */
+  .nutri-legend {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 10px 12px;
+    margin-top: 4px;
+    background: var(--bg-soft);
+    border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-soft);
+  }
+  .nutri-legend .legend-title {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+    color: var(--ink-faint);
+    font-size: 9.5px;
+    margin-right: 2px;
+  }
+  .nutri-legend .legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .nutri-legend .legend-icon {
+    width: 13px;
+    height: 13px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .nutri-legend .legend-icon svg { width: 100%; height: 100%; }
+  @media (max-width: 380px) {
+    .nutri-legend { gap: 8px; font-size: 10px; padding: 8px 10px; }
+  }
   /* Action buttons column */
   .item-actions {
     display: flex;
@@ -2356,7 +2389,7 @@ const FOODS = [
 ];
 
 // ========== APP VERSION ==========
-const APP_VERSION = '1.0.6';
+const APP_VERSION = '1.0.7';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
@@ -2660,19 +2693,19 @@ function renderMeals() {
             <div class="item-bottom-row">
               <span class="nutri-chip">
                 <span class="nutri-icon nutri-kcal">${flameSvg}</span>
-                <span class="nutri-val">${fmt(item.kcal)}</span><span class="nutri-unit">kcal</span>
+                <span class="nutri-val">${fmt(item.kcal)}</span>
               </span>
               <span class="nutri-chip">
                 <span class="nutri-icon nutri-prot">${leafSvg}</span>
-                <span class="nutri-val">${fmt(item.protein,1)}</span><span class="nutri-unit">g prot</span>
+                <span class="nutri-val">${fmt(item.protein,1)}</span>
               </span>
               <span class="nutri-chip">
                 <span class="nutri-icon nutri-carbs">${wheatSvg}</span>
-                <span class="nutri-val">${fmt(item.carbs,1)}</span><span class="nutri-unit">g carb</span>
+                <span class="nutri-val">${fmt(item.carbs,1)}</span>
               </span>
               <span class="nutri-chip">
                 <span class="nutri-icon nutri-fat">${dropSvg}</span>
-                <span class="nutri-val">${fmt(item.fat,1)}</span><span class="nutri-unit">g gr</span>
+                <span class="nutri-val">${fmt(item.fat,1)}</span>
               </span>
             </div>
           </div>
@@ -2686,6 +2719,22 @@ function renderMeals() {
     }
     container.appendChild(mealDiv);
   });
+
+  // Compact legend at the bottom of the meals list
+  const legend = document.createElement('div');
+  legend.className = 'nutri-legend';
+  const flameSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>';
+  const leafSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z"/></svg>';
+  const wheatSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 8c0-2.21 1.79-4 4-4 1.74 0 3.21 1.12 3.75 2.67l1.13-.6C13.2 4 11.21 3 9 3 5.69 3 3 5.69 3 9c0 2.21 1 4.2 2.57 5.55l.6-1.13C5 12.21 5 10.74 5 9V8zm14 6c0 2.21-1.79 4-4 4-1.74 0-3.21-1.12-3.75-2.67l-1.13.6C10.8 18 12.79 19 15 19c3.31 0 6-2.69 6-6 0-2.21-1-4.2-2.57-5.55l-.6 1.13C19 11.79 19 13.26 19 15v-1z"/><circle cx="9" cy="9" r="2"/><circle cx="15" cy="15" r="2"/></svg>';
+  const dropSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.1L7.05 8.05a7 7 0 109.9 0L12 3.1zm0 2.83l3.54 3.54a5 5 0 11-7.07 0L12 5.93z"/></svg>';
+  legend.innerHTML = `
+    <span class="legend-title">legenda</span>
+    <span class="legend-item"><span class="legend-icon nutri-kcal">${flameSvg}</span> kcal</span>
+    <span class="legend-item"><span class="legend-icon nutri-prot">${leafSvg}</span> g proteine</span>
+    <span class="legend-item"><span class="legend-icon nutri-carbs">${wheatSvg}</span> g carboidrati</span>
+    <span class="legend-item"><span class="legend-icon nutri-fat">${dropSvg}</span> g grassi</span>
+  `;
+  container.appendChild(legend);
 
   // tap-to-edit handlers (on the item content itself, not the buttons)
   container.querySelectorAll('.item-tap').forEach(el => {
@@ -3444,13 +3493,8 @@ function initRangeSelector() {
     }
     state.weightRange = r;
     try { localStorage.setItem(KEY_PREFIX + 'weightRange', String(r)); } catch(err) {}
-    showDebug('range click → ' + r + ', redrawing...');
     try {
       renderWeight();
-      // Give browser a frame to actually paint, then confirm
-      requestAnimationFrame(() => {
-        showDebug('range ' + r + ' rendered ✓');
-      });
     } catch (err) {
       showDebug('ERR renderWeight: ' + err.message);
       console.error('renderWeight failed:', err);
