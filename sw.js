@@ -1,6 +1,6 @@
 // Diario Alimentare - Service Worker
 // Update the version number when you change app code to force refresh
-const CACHE_NAME = 'diario-v1.0.0';
+const CACHE_NAME = 'diario-v1.0.1';
 const ASSETS = [
   './',
   './index.html',
