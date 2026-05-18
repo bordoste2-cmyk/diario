@@ -358,6 +358,8 @@
     justify-content: center;
     z-index: 100;
     padding: 20px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
   .modal-overlay.show { display: flex; }
   .modal {
@@ -366,7 +368,14 @@
     padding: 28px;
     max-width: 460px;
     width: 100%;
+    max-height: calc(100vh - 40px);
     box-shadow: 0 20px 60px rgba(42,42,38,0.25);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  @media (max-width: 480px) {
+    .modal-overlay { padding: 10px; align-items: flex-start; }
+    .modal { padding: 20px 18px; max-height: calc(100vh - 20px); }
   }
   .modal h3 {
     font-family: 'Fraunces', serif;
@@ -449,6 +458,19 @@
   .modal-actions {
     display: flex;
     gap: 10px;
+    position: sticky;
+    bottom: -28px;
+    margin: 16px -28px -28px;
+    padding: 16px 28px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0) 0%, var(--bg-card) 20%);
+    z-index: 5;
+  }
+  @media (max-width: 480px) {
+    .modal-actions {
+      bottom: -20px;
+      margin: 14px -18px -20px;
+      padding: 14px 18px;
+    }
   }
   .btn-primary, .btn-secondary {
     flex: 1;
@@ -2851,7 +2873,7 @@ const ACTIVITIES = [
 ];
 
 // ========== APP VERSION ==========
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.1.1';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
