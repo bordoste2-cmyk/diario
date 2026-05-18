@@ -472,40 +472,53 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 14px;
+    padding: 8px 12px;
     border-radius: 10px;
     background: linear-gradient(135deg, var(--accent-soft) 0%, rgba(212,235,220,0.4) 100%);
     margin-bottom: 12px;
-    gap: 10px;
-  }
-  .meal-header.emoji-only-pad {
-    padding-left: 10px;
+    gap: 8px;
+    min-width: 0;
   }
   .meal-name {
     font-family: 'Fraunces', serif;
-    font-size: 17px;
+    font-size: 16px;
     font-weight: 500;
     font-style: italic;
     color: var(--accent-deep);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
+    min-width: 0;
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .meal-emoji {
-    font-size: 20px;
+    font-size: 18px;
     filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
+    flex-shrink: 0;
   }
   .meal-totals {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
+    font-size: 10.5px;
     color: var(--accent-deep);
     opacity: 0.85;
     text-align: right;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .meal-totals .kcal-total {
     color: var(--accent-deep);
     font-weight: 700;
     font-size: 13px;
+  }
+  @media (max-width: 380px) {
+    .meal-name { font-size: 14px; }
+    .meal-emoji { font-size: 16px; }
+    .meal-totals { font-size: 10px; }
+    .meal-totals .kcal-total { font-size: 12px; }
+    .meal-header { padding: 7px 10px; }
   }
   .item {
     display: flex;
@@ -527,8 +540,65 @@
   .item::before {
     content: '';
     width: 4px;
-    background: var(--accent);
+    background: var(--line);
     flex-shrink: 0;
+  }
+  /* Category-specific left strips */
+  .item.food-protein-rich {
+    background: linear-gradient(90deg, rgba(212,235,220,0.4) 0%, var(--bg-card) 25%);
+  }
+  .item.food-protein-rich::before {
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent-deep) 100%);
+    width: 5px;
+  }
+  .item.food-bad-trig {
+    background: linear-gradient(90deg, rgba(250,217,213,0.5) 0%, var(--bg-card) 25%);
+  }
+  .item.food-bad-trig::before {
+    background: linear-gradient(180deg, var(--tomato) 0%, #b53a30 100%);
+    width: 5px;
+  }
+  .item.food-caution {
+    background: linear-gradient(90deg, rgba(251,236,201,0.5) 0%, var(--bg-card) 25%);
+  }
+  .item.food-caution::before {
+    background: var(--gold);
+    width: 5px;
+  }
+  /* Food category tags (small badges under name) */
+  .item-tag-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 2px;
+    margin-bottom: -2px;
+  }
+  .food-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 10px;
+    text-transform: lowercase;
+    letter-spacing: 0.02em;
+    line-height: 1.4;
+  }
+  .tag-protein {
+    color: var(--accent-deep);
+    background: var(--accent-soft);
+    border: 1px solid rgba(45,134,89,0.2);
+  }
+  .tag-bad-trig {
+    color: #8b2a20;
+    background: var(--tomato-soft);
+    border: 1px solid rgba(217,74,61,0.25);
+  }
+  .tag-caution {
+    color: #8c5e1d;
+    background: var(--gold-soft);
+    border: 1px solid rgba(232,169,60,0.3);
   }
   .item-tap {
     flex: 1;
@@ -2228,7 +2298,7 @@ const FOODS = [
 ];
 
 // ========== APP VERSION ==========
-const APP_VERSION = '1.0.1';
+const APP_VERSION = '1.0.2';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
@@ -2443,9 +2513,11 @@ function renderMeals() {
     const mt = mealTotals(state.currentDate, mealName);
     const mealDiv = document.createElement('div');
     mealDiv.className = 'meal';
+    // Display short label on narrow screens (data key stays the same)
+    const displayName = mealName === 'Spuntino mattina' ? 'Spuntino' : mealName;
     mealDiv.innerHTML = `
       <div class="meal-header">
-        <div class="meal-name"><span class="meal-emoji">${mealEmojis[mealName]||'🍴'}</span>${mealName}</div>
+        <div class="meal-name"><span class="meal-emoji">${mealEmojis[mealName]||'🍴'}</span>${displayName}</div>
         <div class="meal-totals"><span class="kcal-total">${fmt(mt.kcal)}</span> kcal · ${fmt(mt.protein)} g prot</div>
       </div>
     `;
@@ -2461,18 +2533,67 @@ function renderMeals() {
         const qtyStr = item.unit === 'pz'
           ? `${fmt(item.qty,1)} ${item.qty > 1 ? 'unità' : 'unità'}`
           : `${fmt(item.qty)} ${item.unit}`;
+
+        // Classify food by health profile (using per-100 derived values)
+        // The values in item are already computed for the consumed quantity.
+        // Re-derive per-100 to classify the food (not the portion).
+        const ratio = item.unit === 'pz' ? (item.qty * 100) : (item.qty || 100);
+        const per100 = {
+          protein: (item.protein * 100) / Math.max(ratio, 0.01),
+          kcal: (item.kcal * 100) / Math.max(ratio, 0.01),
+          sugar: ((item.sugar || 0) * 100) / Math.max(ratio, 0.01),
+          sat: ((item.saturated || 0) * 100) / Math.max(ratio, 0.01)
+        };
+
+        // Category logic:
+        // PROTEIN-RICH (green): protein >= 15g/100g AND protein density good
+        // BAD-FOR-TRIG (red): sugar >= 15g/100g OR sat >= 5g/100g
+        // CAUTION (orange): sugar 10-15 OR sat 2.5-5
+        // NEUTRAL (default)
+        let foodCategory = 'neutral';
+        let foodWarning = '';
+        const proteinDensity = per100.kcal > 0 ? per100.protein / per100.kcal : 0;
+        const isProteinRich = per100.protein >= 15 && proteinDensity >= 0.05;
+        const isBadForTrig = per100.sugar >= 15 || per100.sat >= 5;
+        const isCaution = !isBadForTrig && (per100.sugar >= 10 || per100.sat >= 2.5);
+
+        if (isBadForTrig) {
+          foodCategory = 'bad-trig';
+          const reasons = [];
+          if (per100.sugar >= 15) reasons.push('zuccheri alti');
+          if (per100.sat >= 5) reasons.push('saturi alti');
+          foodWarning = reasons.join(', ');
+        } else if (isProteinRich) {
+          foodCategory = 'protein-rich';
+          foodWarning = 'ricco di proteine';
+        } else if (isCaution) {
+          foodCategory = 'caution';
+        }
+
         // SVG icons for each nutrient
         const flameSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>';
         const leafSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z"/></svg>';
         const wheatSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 8c0-2.21 1.79-4 4-4 1.74 0 3.21 1.12 3.75 2.67l1.13-.6C13.2 4 11.21 3 9 3 5.69 3 3 5.69 3 9c0 2.21 1 4.2 2.57 5.55l.6-1.13C5 12.21 5 10.74 5 9V8zm14 6c0 2.21-1.79 4-4 4-1.74 0-3.21-1.12-3.75-2.67l-1.13.6C10.8 18 12.79 19 15 19c3.31 0 6-2.69 6-6 0-2.21-1-4.2-2.57-5.55l-.6 1.13C19 11.79 19 13.26 19 15v-1z"/><circle cx="9" cy="9" r="2"/><circle cx="15" cy="15" r="2"/></svg>';
         const dropSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.1L7.05 8.05a7 7 0 109.9 0L12 3.1zm0 2.83l3.54 3.54a5 5 0 11-7.07 0L12 5.93z"/></svg>';
 
+        // Category-specific tag (the small badge below the name)
+        let categoryTagHtml = '';
+        if (foodCategory === 'protein-rich') {
+          categoryTagHtml = `<span class="food-tag tag-protein" title="Ricco di proteine">🌿 ${foodWarning}</span>`;
+        } else if (foodCategory === 'bad-trig') {
+          categoryTagHtml = `<span class="food-tag tag-bad-trig" title="Da limitare per i trigliceridi">⚠ ${foodWarning}</span>`;
+        } else if (foodCategory === 'caution') {
+          categoryTagHtml = `<span class="food-tag tag-caution" title="Da moderare">● modera</span>`;
+        }
+
+        itemDiv.classList.add(`food-${foodCategory}`);
         itemDiv.innerHTML = `
           <div class="item-tap" data-meal="${mealName}" data-idx="${idx}">
             <div class="item-top-row">
               <span class="item-name">${item.name}</span>
               <span class="item-qty-badge">${qtyStr}</span>
             </div>
+            ${categoryTagHtml ? `<div class="item-tag-row">${categoryTagHtml}</div>` : ''}
             <div class="item-bottom-row">
               <span class="nutri-chip">
                 <span class="nutri-icon nutri-kcal">${flameSvg}</span>
