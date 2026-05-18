@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#3f5c40">
+<meta name="theme-color" content="#2d8659">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Diario">
@@ -16,20 +16,28 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #faf7f2;
+    --bg: #fbf8f3;
     --bg-card: #ffffff;
     --bg-soft: #f3ede3;
     --ink: #2a2a26;
     --ink-soft: #6b6b66;
     --ink-faint: #a8a8a0;
     --line: #e8e1d4;
-    --accent: #3f5c40;
-    --accent-soft: #d8e3d6;
-    --warm: #c66a3f;
-    --warm-soft: #f5e0d4;
-    --gold: #b88a3e;
-    --danger: #b04545;
+    /* Vibrant food-themed palette */
+    --accent: #2d8659;        /* fresh leaf green */
+    --accent-soft: #d4ebdc;
+    --accent-deep: #1f5d3e;
+    --warm: #e07a3c;          /* persimmon orange */
+    --warm-soft: #fbe4d3;
+    --tomato: #d94a3d;        /* ripe tomato */
+    --tomato-soft: #fad9d5;
+    --gold: #e8a93c;          /* honey */
+    --gold-soft: #fbecc9;
+    --berry: #a23866;         /* raspberry */
+    --berry-soft: #f4d8e4;
+    --danger: #c43a3a;
     --shadow: 0 1px 2px rgba(42,42,38,0.04), 0 8px 24px rgba(42,42,38,0.06);
+    --shadow-soft: 0 2px 8px rgba(45,134,89,0.08), 0 4px 16px rgba(42,42,38,0.04);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,8 +48,11 @@
     color: var(--ink);
     line-height: 1.5;
     min-height: 100vh;
-    background-image: radial-gradient(circle at 20% 0%, rgba(216,227,214,0.3) 0%, transparent 40%),
-                      radial-gradient(circle at 100% 100%, rgba(245,224,212,0.25) 0%, transparent 40%);
+    background-image:
+      radial-gradient(circle at 15% 5%, rgba(212,235,220,0.5) 0%, transparent 35%),
+      radial-gradient(circle at 95% 15%, rgba(251,236,201,0.4) 0%, transparent 30%),
+      radial-gradient(circle at 85% 90%, rgba(251,228,211,0.45) 0%, transparent 35%),
+      radial-gradient(circle at 5% 95%, rgba(244,216,228,0.35) 0%, transparent 30%);
     background-attachment: fixed;
   }
 
@@ -82,6 +93,16 @@
     font-style: italic;
     color: var(--accent);
     font-weight: 400;
+  }
+  .title-emoji {
+    display: inline-block;
+    font-size: 26px;
+    margin-right: 6px;
+    transform: translateY(-2px);
+    filter: drop-shadow(0 2px 4px rgba(45,134,89,0.2));
+  }
+  @media (min-width: 700px) {
+    .title-emoji { font-size: 32px; }
   }
   .version-badge {
     display: inline-block;
@@ -437,108 +458,193 @@
 
   /* Meals */
   .meal {
-    margin-bottom: 18px;
+    margin-bottom: 22px;
   }
   .meal-header {
     display: flex;
     justify-content: space-between;
-    align-items: baseline;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--bg-soft);
-    margin-bottom: 8px;
+    align-items: center;
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent-soft) 0%, rgba(212,235,220,0.4) 100%);
+    margin-bottom: 12px;
+    gap: 10px;
+  }
+  .meal-header.emoji-only-pad {
+    padding-left: 10px;
   }
   .meal-name {
     font-family: 'Fraunces', serif;
     font-size: 17px;
     font-weight: 500;
     font-style: italic;
-    color: var(--accent);
+    color: var(--accent-deep);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .meal-emoji {
+    font-size: 20px;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.08));
   }
   .meal-totals {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
-    color: var(--ink-soft);
+    color: var(--accent-deep);
+    opacity: 0.85;
+    text-align: right;
   }
   .meal-totals .kcal-total {
-    color: var(--ink);
-    font-weight: 600;
+    color: var(--accent-deep);
+    font-weight: 700;
+    font-size: 13px;
   }
   .item {
     display: flex;
-    align-items: center;
-    padding: 8px 0;
-    gap: 4px;
-    border-radius: 6px;
+    align-items: stretch;
+    padding: 0;
+    gap: 0;
+    border-radius: 10px;
     transition: background 0.15s;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    margin-bottom: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(42,42,38,0.03);
   }
   .item:hover .delete-btn, .item:hover .edit-btn {
     opacity: 1;
   }
+  /* Decorative left strip — food category color */
+  .item::before {
+    content: '';
+    width: 4px;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
   .item-tap {
     flex: 1;
     display: flex;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    gap: 6px;
     cursor: pointer;
-    padding: 4px 6px;
-    border-radius: 6px;
+    padding: 10px 12px;
     -webkit-tap-highlight-color: transparent;
     transition: background 0.1s;
-    min-height: 36px;
+    min-width: 0; /* allow text truncation */
   }
   .item-tap:active { background: var(--bg-soft); }
+  /* TOP ROW: name + quantity */
+  .item-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+  }
   .item-name {
     flex: 1;
-    font-size: 14px;
-  }
-  .item-name .qty {
-    color: var(--ink-soft);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    margin-left: 6px;
-  }
-  .item-macros {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    color: var(--ink-soft);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .item-macros .kcal { color: var(--ink); font-weight: 600; }
-  .edit-btn {
-    background: none;
-    border: none;
+  .item-qty-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent-deep);
+    background: var(--accent-soft);
+    padding: 3px 9px;
+    border-radius: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  /* BOTTOM ROW: nutrition values */
+  .item-bottom-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .nutri-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+  }
+  .nutri-chip .nutri-icon {
+    width: 14px;
+    height: 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .nutri-chip .nutri-icon svg { width: 100%; height: 100%; }
+  .nutri-chip .nutri-val {
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .nutri-chip .nutri-unit {
     color: var(--ink-soft);
-    cursor: pointer;
-    font-size: 16px;
-    opacity: 0.4;
-    transition: opacity 0.15s, color 0.15s;
-    padding: 6px 8px;
-    min-width: 36px;
-    -webkit-tap-highlight-color: transparent;
+    font-size: 11px;
+    font-weight: 400;
+    margin-left: 1px;
   }
-  .edit-btn:active, .edit-btn:hover { color: var(--accent); opacity: 1; }
-  .delete-btn {
+  .nutri-kcal { color: var(--tomato); }
+  .nutri-prot { color: var(--accent); }
+  .nutri-carbs { color: var(--gold); }
+  .nutri-fat { color: var(--warm); }
+  /* Action buttons column */
+  .item-actions {
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--line);
+  }
+  .edit-btn, .delete-btn {
     background: none;
     border: none;
-    color: var(--danger);
     cursor: pointer;
-    font-size: 14px;
-    opacity: 0.4;
-    transition: opacity 0.15s;
-    padding: 6px 8px;
-    min-width: 36px;
+    font-size: 15px;
+    opacity: 0.5;
+    transition: all 0.15s;
+    width: 40px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     -webkit-tap-highlight-color: transparent;
+    min-height: 38px;
   }
-  .delete-btn:active, .delete-btn:hover { opacity: 1; }
+  .edit-btn {
+    color: var(--ink-soft);
+    border-bottom: 1px solid var(--line);
+  }
+  .edit-btn:active, .edit-btn:hover { color: var(--accent); opacity: 1; background: var(--accent-soft); }
+  .delete-btn {
+    color: var(--danger);
+  }
+  .delete-btn:active, .delete-btn:hover { opacity: 1; background: var(--tomato-soft); }
   /* On mobile, always show buttons (no hover) */
   @media (hover: none) {
-    .edit-btn, .delete-btn { opacity: 0.6; }
+    .edit-btn, .delete-btn { opacity: 0.7; }
   }
   .empty-meal {
     color: var(--ink-faint);
     font-size: 13px;
     font-style: italic;
-    padding: 8px 0;
+    padding: 12px;
+    text-align: center;
+    background: var(--bg-soft);
+    border-radius: 8px;
+    border: 1px dashed var(--line);
   }
 
   /* Add custom food */
@@ -596,6 +702,22 @@
     align-items: baseline;
     gap: 10px;
     margin-bottom: 18px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, var(--accent-soft) 0%, rgba(212,235,220,0.3) 50%, var(--gold-soft) 100%);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+  .summary-totals::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    right: -20px;
+    width: 80px;
+    height: 80px;
+    background: radial-gradient(circle, rgba(232,169,60,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
   }
   .summary-totals .big {
     font-family: 'Fraunces', serif;
@@ -603,31 +725,39 @@
     font-weight: 500;
     line-height: 1;
     letter-spacing: -0.02em;
+    position: relative;
+    z-index: 1;
   }
   .summary-totals .big em {
     font-style: italic;
-    color: var(--accent);
+    color: var(--accent-deep);
   }
   .summary-totals .unit {
     font-family: 'JetBrains Mono', monospace;
     font-size: 12px;
-    color: var(--ink-soft);
+    color: var(--accent-deep);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    opacity: 0.8;
+    position: relative;
+    z-index: 1;
   }
   .summary-totals .target {
     margin-left: auto;
     text-align: right;
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
-    color: var(--ink-soft);
+    color: var(--accent-deep);
+    opacity: 0.85;
+    position: relative;
+    z-index: 1;
   }
   .summary-totals .target .delta {
     font-size: 13px;
-    font-weight: 600;
-    color: var(--ink);
+    font-weight: 700;
+    color: var(--accent-deep);
   }
-  .summary-totals .target .delta.under { color: var(--accent); }
+  .summary-totals .target .delta.under { color: var(--accent-deep); }
   .summary-totals .target .delta.over { color: var(--warm); }
 
   /* Macro bars */
@@ -1333,7 +1463,7 @@
   <!-- HEADER -->
   <div class="top">
     <div class="title">
-      <h1>Diario <em>alimentare</em> <span class="version-badge" id="version-badge">v—</span></h1>
+      <h1><span class="title-emoji">🌿</span>Diario <em>alimentare</em> <span class="version-badge" id="version-badge">v—</span></h1>
       <p id="quick-summary">caricamento...</p>
     </div>
     <div class="date-pick">
@@ -2076,7 +2206,7 @@ const FOODS = [
 ];
 
 // ========== APP VERSION ==========
-const APP_VERSION = '7.0';
+const APP_VERSION = '1.0.0';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
@@ -2273,6 +2403,13 @@ function renderQuickSummary() {
 function renderMeals() {
   const day = getDayData(state.currentDate);
   const meals = ['Colazione','Spuntino mattina','Pranzo','Merenda','Cena'];
+  const mealEmojis = {
+    'Colazione': '🥐',
+    'Spuntino mattina': '🍎',
+    'Pranzo': '🍝',
+    'Merenda': '🥨',
+    'Cena': '🍽️'
+  };
   const container = document.getElementById('meals');
   container.innerHTML = '';
 
@@ -2286,7 +2423,7 @@ function renderMeals() {
     mealDiv.className = 'meal';
     mealDiv.innerHTML = `
       <div class="meal-header">
-        <div class="meal-name">${mealName}</div>
+        <div class="meal-name"><span class="meal-emoji">${mealEmojis[mealName]||'🍴'}</span>${mealName}</div>
         <div class="meal-totals"><span class="kcal-total">${fmt(mt.kcal)}</span> kcal · ${fmt(mt.protein)} g prot</div>
       </div>
     `;
@@ -2299,14 +2436,44 @@ function renderMeals() {
       items.forEach((item, idx) => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'item';
-        const qtyStr = item.unit === 'pz' ? `${fmt(item.qty,1)} ${item.qty > 1 ? 'unità' : 'unità'}` : `${fmt(item.qty)} ${item.unit}`;
+        const qtyStr = item.unit === 'pz'
+          ? `${fmt(item.qty,1)} ${item.qty > 1 ? 'unità' : 'unità'}`
+          : `${fmt(item.qty)} ${item.unit}`;
+        // SVG icons for each nutrient
+        const flameSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67zM11.71 19c-1.78 0-3.22-1.4-3.22-3.14 0-1.62 1.05-2.76 2.81-3.12 1.77-.36 3.6-1.21 4.62-2.58.39 1.29.59 2.65.59 4.04 0 2.65-2.15 4.8-4.8 4.8z"/></svg>';
+        const leafSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z"/></svg>';
+        const wheatSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 8c0-2.21 1.79-4 4-4 1.74 0 3.21 1.12 3.75 2.67l1.13-.6C13.2 4 11.21 3 9 3 5.69 3 3 5.69 3 9c0 2.21 1 4.2 2.57 5.55l.6-1.13C5 12.21 5 10.74 5 9V8zm14 6c0 2.21-1.79 4-4 4-1.74 0-3.21-1.12-3.75-2.67l-1.13.6C10.8 18 12.79 19 15 19c3.31 0 6-2.69 6-6 0-2.21-1-4.2-2.57-5.55l-.6 1.13C19 11.79 19 13.26 19 15v-1z"/><circle cx="9" cy="9" r="2"/><circle cx="15" cy="15" r="2"/></svg>';
+        const dropSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.1L7.05 8.05a7 7 0 109.9 0L12 3.1zm0 2.83l3.54 3.54a5 5 0 11-7.07 0L12 5.93z"/></svg>';
+
         itemDiv.innerHTML = `
           <div class="item-tap" data-meal="${mealName}" data-idx="${idx}">
-            <div class="item-name">${item.name}<span class="qty">${qtyStr}</span></div>
-            <div class="item-macros"><span class="kcal">${fmt(item.kcal)}</span> kcal · ${fmt(item.protein,1)}p / ${fmt(item.carbs,1)}c / ${fmt(item.fat,1)}g</div>
+            <div class="item-top-row">
+              <span class="item-name">${item.name}</span>
+              <span class="item-qty-badge">${qtyStr}</span>
+            </div>
+            <div class="item-bottom-row">
+              <span class="nutri-chip">
+                <span class="nutri-icon nutri-kcal">${flameSvg}</span>
+                <span class="nutri-val">${fmt(item.kcal)}</span><span class="nutri-unit">kcal</span>
+              </span>
+              <span class="nutri-chip">
+                <span class="nutri-icon nutri-prot">${leafSvg}</span>
+                <span class="nutri-val">${fmt(item.protein,1)}</span><span class="nutri-unit">g prot</span>
+              </span>
+              <span class="nutri-chip">
+                <span class="nutri-icon nutri-carbs">${wheatSvg}</span>
+                <span class="nutri-val">${fmt(item.carbs,1)}</span><span class="nutri-unit">g carb</span>
+              </span>
+              <span class="nutri-chip">
+                <span class="nutri-icon nutri-fat">${dropSvg}</span>
+                <span class="nutri-val">${fmt(item.fat,1)}</span><span class="nutri-unit">g gr</span>
+              </span>
+            </div>
           </div>
-          <button class="edit-btn" data-meal="${mealName}" data-idx="${idx}" title="Modifica">✎</button>
-          <button class="delete-btn" data-meal="${mealName}" data-idx="${idx}" title="Rimuovi">✕</button>
+          <div class="item-actions">
+            <button class="edit-btn" data-meal="${mealName}" data-idx="${idx}" title="Modifica">✎</button>
+            <button class="delete-btn" data-meal="${mealName}" data-idx="${idx}" title="Rimuovi">✕</button>
+          </div>
         `;
         mealDiv.appendChild(itemDiv);
       });
