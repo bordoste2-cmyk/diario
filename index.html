@@ -917,6 +917,12 @@
   .activity-chart-legend .leg-bmr {
     background: rgba(45,134,89,0.35);
   }
+  .activity-chart-legend .leg-scale {
+    margin-left: auto;
+    color: var(--ink-faint);
+    font-style: italic;
+    font-size: 9.5px;
+  }
   .add-activity-btn {
     display: flex;
     align-items: center;
@@ -2292,6 +2298,7 @@
         <div class="activity-chart-legend">
           <span class="leg-item"><span class="leg-swatch leg-activity"></span>attività registrata</span>
           <span class="leg-item"><span class="leg-swatch leg-bmr"></span>metabolismo base</span>
+          <span class="leg-item leg-scale" id="week-scale-info">scala: —</span>
         </div>
         <div id="activity-week-summary" style="margin-top:10px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-soft); display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;">
           <span>Attività <strong id="week-tot-kcal-burned" style="color:var(--warm)">—</strong> kcal</span>
@@ -3112,7 +3119,7 @@ const ACTIVITIES = [
 ];
 
 // ========== APP VERSION ==========
-const APP_VERSION = '1.1.7';
+const APP_VERSION = '1.1.8';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
@@ -4610,28 +4617,43 @@ function renderActivityWeekChart() {
       key,
       kcal: tot.kcal,
       min: tot.minutes,
-      bmrKcal: metInfo.sedentaryKcal
+      bmrKcal: metInfo.sedentaryKcal,
+      totalKcal: tot.kcal + metInfo.sedentaryKcal
     });
   }
-  // Scale based on combined max (so bars represent total daily burn)
-  const maxStack = Math.max(100, ...days.map(d => d.kcal + d.bmrKcal));
+
+  // Adaptive scale: zoom into the range [min, max] of weekly totals
+  const totals = days.map(d => d.totalKcal);
+  const maxTotal = Math.max(...totals);
+  const minTotal = Math.min(...totals);
+  const range = maxTotal - minTotal;
+  // Pad bottom: start scale slightly below the min so even the lowest day is visible (~10% of bar)
+  const padding = Math.max(range * 0.15, 100); // at least 100 kcal of headroom
+  const scaleMin = Math.max(0, minTotal - padding);
+  const scaleMax = maxTotal + (range * 0.05); // 5% headroom at top
+  const scaleRange = Math.max(scaleMax - scaleMin, 1);
 
   barsEl.innerHTML = '';
   labelsEl.innerHTML = '';
 
   days.forEach((d) => {
     const isToday = d.key === state.currentDate;
-    const totalKcal = d.kcal + d.bmrKcal;
-    const totalPct = (totalKcal / maxStack) * 100;       // total bar height
-    const bmrPct = totalKcal > 0 ? (d.bmrKcal / totalKcal) * 100 : 0; // portion of total that's BMR (bottom)
-    // activity portion = remainder on top
+    // Total bar height: where d.totalKcal sits within [scaleMin, scaleMax]
+    const totalPct = ((d.totalKcal - scaleMin) / scaleRange) * 100;
+    // Within the total bar, split the visible portion between BMR (bottom) and activity (top)
+    // We need to figure out: of the visible (scaleMin to totalKcal) range, how much is BMR vs activity
+    // Visible BMR = max(0, d.bmrKcal - scaleMin) since the bottom scaleMin of BMR is "off-chart"
+    const visibleBmr = Math.max(0, d.bmrKcal - scaleMin);
+    const visibleAct = d.kcal; // activity sits on top, always visible
+    const visibleTotal = visibleBmr + visibleAct;
+    const bmrPct = visibleTotal > 0 ? (visibleBmr / visibleTotal) * 100 : 0;
+    const actPct = visibleTotal > 0 ? (visibleAct / visibleTotal) * 100 : 0;
 
     const bar = document.createElement('div');
     bar.className = 'week-bar';
     bar.style.cssText = `flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;`;
     bar.dataset.date = d.key;
-    // Stacked bar: BMR (bottom, transparent), activity (top, solid)
-    const bmrColor = isToday ? 'rgba(45,134,89,0.35)' : 'rgba(45,134,89,0.18)';
+    const bmrColor = isToday ? 'rgba(45,134,89,0.4)' : 'rgba(45,134,89,0.2)';
     const actGradient = isToday
       ? 'linear-gradient(180deg, var(--warm) 0%, var(--gold) 100%)'
       : 'linear-gradient(180deg, var(--warm-soft) 0%, var(--gold-soft) 100%)';
@@ -4639,8 +4661,8 @@ function renderActivityWeekChart() {
       <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:${isToday?'var(--warm)':'var(--ink-faint)'}; font-weight:${isToday?'700':'400'};">${d.kcal > 0 ? Math.round(d.kcal) : ''}</div>
       <div class="bar-track" style="width:100%; max-width:32px; height:100%; display:flex; flex-direction:column; justify-content:flex-end; border-radius:4px 4px 0 0; overflow:hidden;">
         <div style="width:100%; height:${totalPct}%; display:flex; flex-direction:column; justify-content:flex-end; transition:height 0.3s;">
-          ${d.kcal > 0 ? `<div style="width:100%; height:${100 - bmrPct}%; background:${actGradient}; min-height:3px;"></div>` : ''}
-          <div style="width:100%; height:${bmrPct}%; background:${bmrColor}; min-height:${d.bmrKcal>0?'3px':'0'};"></div>
+          ${d.kcal > 0 ? `<div style="width:100%; height:${actPct}%; background:${actGradient}; min-height:3px;"></div>` : ''}
+          <div style="width:100%; height:${bmrPct}%; background:${bmrColor}; min-height:${visibleBmr>0?'3px':'0'};"></div>
         </div>
       </div>
     `;
@@ -4667,9 +4689,14 @@ function renderActivityWeekChart() {
   const totBmr = days.reduce((s, d) => s + d.bmrKcal, 0);
   document.getElementById('week-tot-kcal-burned').textContent = Math.round(totKcal);
   document.getElementById('week-tot-min').textContent = totMin;
-  // Update legend label below chart with total BMR
   const bmrLegend = document.getElementById('week-tot-bmr');
   if (bmrLegend) bmrLegend.textContent = Math.round(totBmr);
+
+  // Update the scale indicator below the chart
+  const scaleEl = document.getElementById('week-scale-info');
+  if (scaleEl) {
+    scaleEl.textContent = `scala: ${Math.round(scaleMin)}–${Math.round(scaleMax)} kcal`;
+  }
 }
 
 // ========== ACTIVITY MODAL ==========
