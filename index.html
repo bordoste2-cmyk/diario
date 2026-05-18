@@ -890,6 +890,33 @@
   }
 
   /* Activity Card */
+  .activity-chart-legend {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .activity-chart-legend .leg-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .activity-chart-legend .leg-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    display: inline-block;
+  }
+  .activity-chart-legend .leg-activity {
+    background: linear-gradient(180deg, var(--warm) 0%, var(--gold) 100%);
+  }
+  .activity-chart-legend .leg-bmr {
+    background: rgba(45,134,89,0.35);
+  }
   .add-activity-btn {
     display: flex;
     align-items: center;
@@ -2262,9 +2289,14 @@
           <div class="week-bars" id="activity-week-bars"></div>
           <div class="week-labels" id="activity-week-labels"></div>
         </div>
-        <div id="activity-week-summary" style="margin-top:14px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-soft); display:flex; justify-content:space-between;">
-          <span>Tot. <strong id="week-tot-kcal-burned" style="color:var(--warm)">—</strong> kcal bruciate</span>
-          <span>Tot. <strong id="week-tot-min" style="color:var(--ink)">—</strong> min</span>
+        <div class="activity-chart-legend">
+          <span class="leg-item"><span class="leg-swatch leg-activity"></span>attività registrata</span>
+          <span class="leg-item"><span class="leg-swatch leg-bmr"></span>metabolismo base</span>
+        </div>
+        <div id="activity-week-summary" style="margin-top:10px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-soft); display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+          <span>Attività <strong id="week-tot-kcal-burned" style="color:var(--warm)">—</strong> kcal</span>
+          <span>BMR <strong id="week-tot-bmr" style="color:var(--accent)">—</strong> kcal</span>
+          <span><strong id="week-tot-min" style="color:var(--ink)">—</strong> min</span>
         </div>
       </div>
 
@@ -3080,7 +3112,7 @@ const ACTIVITIES = [
 ];
 
 // ========== APP VERSION ==========
-const APP_VERSION = '1.1.6';
+const APP_VERSION = '1.1.7';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
@@ -4564,7 +4596,7 @@ function renderActivityWeekChart() {
   const labelsEl = document.getElementById('activity-week-labels');
   if (!barsEl) return;
 
-  // Build 7 days (including today)
+  // Build 7 days (including today) with both activity and BMR sedentary kcal
   const today = new Date(state.currentDate);
   const days = [];
   for (let i = 6; i >= 0; i--) {
@@ -4572,24 +4604,44 @@ function renderActivityWeekChart() {
     d.setDate(today.getDate() - i);
     const key = dateKeyISO(d);
     const tot = dayActivityTotals(key);
-    days.push({ date: d, key, kcal: tot.kcal, min: tot.minutes });
+    const metInfo = computeSedentaryKcal(key);
+    days.push({
+      date: d,
+      key,
+      kcal: tot.kcal,
+      min: tot.minutes,
+      bmrKcal: metInfo.sedentaryKcal
+    });
   }
-  const maxKcal = Math.max(100, ...days.map(d => d.kcal));
+  // Scale based on combined max (so bars represent total daily burn)
+  const maxStack = Math.max(100, ...days.map(d => d.kcal + d.bmrKcal));
 
   barsEl.innerHTML = '';
   labelsEl.innerHTML = '';
 
-  days.forEach((d, i) => {
-    const pct = (d.kcal / maxKcal) * 100;
+  days.forEach((d) => {
     const isToday = d.key === state.currentDate;
+    const totalKcal = d.kcal + d.bmrKcal;
+    const totalPct = (totalKcal / maxStack) * 100;       // total bar height
+    const bmrPct = totalKcal > 0 ? (d.bmrKcal / totalKcal) * 100 : 0; // portion of total that's BMR (bottom)
+    // activity portion = remainder on top
+
     const bar = document.createElement('div');
     bar.className = 'week-bar';
     bar.style.cssText = `flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; cursor:pointer;`;
     bar.dataset.date = d.key;
+    // Stacked bar: BMR (bottom, transparent), activity (top, solid)
+    const bmrColor = isToday ? 'rgba(45,134,89,0.35)' : 'rgba(45,134,89,0.18)';
+    const actGradient = isToday
+      ? 'linear-gradient(180deg, var(--warm) 0%, var(--gold) 100%)'
+      : 'linear-gradient(180deg, var(--warm-soft) 0%, var(--gold-soft) 100%)';
     bar.innerHTML = `
       <div style="font-family:'JetBrains Mono', monospace; font-size:9px; color:${isToday?'var(--warm)':'var(--ink-faint)'}; font-weight:${isToday?'700':'400'};">${d.kcal > 0 ? Math.round(d.kcal) : ''}</div>
-      <div style="width:100%; max-width:32px; height:100%; display:flex; align-items:flex-end;">
-        <div style="width:100%; height:${pct}%; min-height:${d.kcal>0?'4px':'0'}; background:${isToday?'linear-gradient(180deg, var(--warm) 0%, var(--gold) 100%)':'linear-gradient(180deg, var(--warm-soft) 0%, var(--gold-soft) 100%)'}; border-radius:4px 4px 0 0; transition:height 0.3s;"></div>
+      <div class="bar-track" style="width:100%; max-width:32px; height:100%; display:flex; flex-direction:column; justify-content:flex-end; border-radius:4px 4px 0 0; overflow:hidden;">
+        <div style="width:100%; height:${totalPct}%; display:flex; flex-direction:column; justify-content:flex-end; transition:height 0.3s;">
+          ${d.kcal > 0 ? `<div style="width:100%; height:${100 - bmrPct}%; background:${actGradient}; min-height:3px;"></div>` : ''}
+          <div style="width:100%; height:${bmrPct}%; background:${bmrColor}; min-height:${d.bmrKcal>0?'3px':'0'};"></div>
+        </div>
       </div>
     `;
     barsEl.appendChild(bar);
@@ -4612,8 +4664,12 @@ function renderActivityWeekChart() {
   // Summary
   const totKcal = days.reduce((s, d) => s + d.kcal, 0);
   const totMin = days.reduce((s, d) => s + d.min, 0);
+  const totBmr = days.reduce((s, d) => s + d.bmrKcal, 0);
   document.getElementById('week-tot-kcal-burned').textContent = Math.round(totKcal);
   document.getElementById('week-tot-min').textContent = totMin;
+  // Update legend label below chart with total BMR
+  const bmrLegend = document.getElementById('week-tot-bmr');
+  if (bmrLegend) bmrLegend.textContent = Math.round(totBmr);
 }
 
 // ========== ACTIVITY MODAL ==========
