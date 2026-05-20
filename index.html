@@ -333,7 +333,7 @@
     flex: 1;
     background: none;
     border: none;
-    padding: 8px 4px 6px;
+    padding: 8px 2px 6px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -344,9 +344,10 @@
     -webkit-tap-highlight-color: transparent;
     font-family: inherit;
     position: relative;
+    min-width: 0;
   }
   .tab-btn .tab-icon {
-    font-size: 20px;
+    font-size: 19px;
     line-height: 1;
     filter: grayscale(0.6);
     opacity: 0.7;
@@ -354,10 +355,40 @@
   }
   .tab-btn .tab-label {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 0.04em;
+    font-size: 9.5px;
+    letter-spacing: 0.03em;
     text-transform: uppercase;
     font-weight: 500;
+    white-space: nowrap;
+  }
+
+  /* Workout placeholder for future use */
+  .workout-placeholder {
+    background: linear-gradient(135deg, var(--bg-soft) 0%, var(--accent-soft) 100%);
+    border: 1px dashed var(--accent);
+  }
+  .placeholder-content {
+    text-align: center;
+    padding: 18px 12px;
+  }
+  .placeholder-icon {
+    font-size: 36px;
+    display: block;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 2px 4px rgba(45,134,89,0.2));
+  }
+  .placeholder-content p {
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.5;
+    margin: 0 0 8px;
+  }
+  .placeholder-content p.muted {
+    color: var(--ink-faint);
+    font-size: 11px;
+    font-style: italic;
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 12px;
   }
   .tab-btn.active {
     color: var(--accent-deep);
@@ -2818,12 +2849,12 @@
           <div class="card">
             <h2>Stato attuale</h2>
             <div class="home-quick-grid">
-              <div class="home-quick-tile" data-go="corpo">
+              <div class="home-quick-tile" data-go="peso">
                 <div class="hqt-label">Peso</div>
                 <div class="hqt-value" id="home-weight-val">— kg</div>
                 <div class="hqt-sub" id="home-weight-delta">—</div>
               </div>
-              <div class="home-quick-tile" data-go="corpo">
+              <div class="home-quick-tile" data-go="attivita">
                 <div class="hqt-label">Attività oggi</div>
                 <div class="hqt-value" id="home-activity-kcal">0 kcal</div>
                 <div class="hqt-sub" id="home-activity-min">0 min</div>
@@ -2941,11 +2972,9 @@
       </div>
     </div>
 
-    <!-- ============== CORPO TAB ============== -->
-    <div class="tab-panel" data-tab="corpo" data-tab-label="💪 Corpo e attività">
+    <!-- ============== ATTIVITÀ TAB ============== -->
+    <div class="tab-panel" data-tab="attivita" data-tab-label="💪 Attività">
       <div class="grid">
-
-        <!-- LEFT: activities -->
         <div>
 
           <!-- ACTIVITIES -->
@@ -2976,9 +3005,23 @@
             </div>
           </div>
 
-        </div>
+          <!-- Placeholder per scheda allenamento futura -->
+          <div class="card workout-placeholder">
+            <h2>Scheda allenamento <span class="sub">prossimamente</span></h2>
+            <div class="placeholder-content">
+              <span class="placeholder-icon">🏋️</span>
+              <p>Qui potrai tracciare i tuoi esercizi, carichi, ripetizioni e seguirne la progressione nel tempo.</p>
+              <p class="muted">In sviluppo nelle prossime versioni.</p>
+            </div>
+          </div>
 
-        <!-- RIGHT: weight -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ============== PESO TAB ============== -->
+    <div class="tab-panel" data-tab="peso" data-tab-label="⚖️ Peso corporeo">
+      <div class="grid">
         <div>
 
           <!-- WEIGHT -->
@@ -3035,9 +3078,13 @@
     <span class="tab-icon">🍽</span>
     <span class="tab-label">Diario</span>
   </button>
-  <button class="tab-btn" data-tab="corpo">
+  <button class="tab-btn" data-tab="attivita">
     <span class="tab-icon">💪</span>
-    <span class="tab-label">Corpo</span>
+    <span class="tab-label">Attività</span>
+  </button>
+  <button class="tab-btn" data-tab="peso">
+    <span class="tab-icon">⚖️</span>
+    <span class="tab-label">Peso</span>
   </button>
   <button class="tab-btn" data-tab="salute">
     <span class="tab-icon">🩺</span>
@@ -4043,7 +4090,7 @@ const PRELOADED_LAB = {
 };
 
 // ========== APP VERSION ==========
-const APP_VERSION = '2.0.0';
+const APP_VERSION = '2.1.0';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
@@ -4072,7 +4119,7 @@ let state = {
   },
   showMetabolism: false, // toggle nascosto
   collapsedMeals: {},    // { 'Colazione': true, 'Pranzo': false, ... } - persists per meal
-  currentTab: 'home',    // 'home' | 'diario' | 'corpo' | 'salute'
+  currentTab: 'home',    // 'home' | 'diario' | 'attivita' | 'peso' | 'salute'
   currentDate: todayISO(),
   selectedMeal: 'Colazione',
   weightRange: 90, // days; 0 = all
@@ -4180,7 +4227,7 @@ async function loadState() {
 
   // Current tab preference
   const ct = localStorage.getItem(KEY_PREFIX + 'currentTab');
-  if (ct && ['home','diario','corpo','salute'].includes(ct)) state.currentTab = ct;
+  if (ct && ['home','diario','attivita','peso','salute'].includes(ct)) state.currentTab = ct;
 }
 
 function markUnbackedChange() {
@@ -5031,7 +5078,7 @@ function renderHome() {
 
 // ========== TAB SWITCHING ==========
 function switchTab(tabName) {
-  if (!['home','diario','corpo','salute'].includes(tabName)) return;
+  if (!['home','diario','attivita','peso','salute'].includes(tabName)) return;
   state.currentTab = tabName;
   try { localStorage.setItem(KEY_PREFIX + 'currentTab', tabName); } catch (e) {}
   // Show/hide panels (only matters on mobile; on desktop CSS shows all)
