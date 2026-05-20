@@ -282,6 +282,167 @@
     .grid { grid-template-columns: 1fr 380px; gap: 28px; }
   }
 
+  /* ===== TAB SYSTEM ===== */
+  .tab-content {
+    /* All panels stacked; only active one is shown */
+  }
+  .tab-panel {
+    display: none;
+  }
+  .tab-panel.active {
+    display: block;
+    animation: fadeInTab 0.2s ease;
+  }
+  @keyframes fadeInTab {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* On desktop ≥1000px: show all tabs at once in extended layout, hide tabbar */
+  @media (min-width: 1000px) {
+    .tab-panel { display: block; margin-bottom: 32px; }
+    .tab-panel::before {
+      content: attr(data-tab-label);
+      display: block;
+      font-family: 'Fraunces', serif;
+      font-size: 22px;
+      font-style: italic;
+      color: var(--accent-deep);
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--accent-soft);
+    }
+    .tabbar { display: none !important; }
+    body { padding-bottom: 0; }
+  }
+
+  /* Bottom tab bar — visible on mobile */
+  .tabbar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border-top: 1px solid var(--line);
+    display: flex;
+    z-index: 90;
+    box-shadow: 0 -4px 12px rgba(42,42,38,0.06);
+    padding: 4px 0 calc(4px + env(safe-area-inset-bottom));
+  }
+  .tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 8px 4px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    cursor: pointer;
+    color: var(--ink-faint);
+    transition: color 0.15s;
+    -webkit-tap-highlight-color: transparent;
+    font-family: inherit;
+    position: relative;
+  }
+  .tab-btn .tab-icon {
+    font-size: 20px;
+    line-height: 1;
+    filter: grayscale(0.6);
+    opacity: 0.7;
+    transition: filter 0.15s, opacity 0.15s, transform 0.15s;
+  }
+  .tab-btn .tab-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .tab-btn.active {
+    color: var(--accent-deep);
+  }
+  .tab-btn.active .tab-icon {
+    filter: grayscale(0);
+    opacity: 1;
+    transform: scale(1.1);
+  }
+  .tab-btn.active .tab-label {
+    font-weight: 700;
+  }
+  .tab-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 0 0 3px 3px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .tab-btn.active::before {
+    opacity: 1;
+  }
+
+  /* Body padding for tabbar (mobile only) */
+  @media (max-width: 999px) {
+    body { padding-bottom: 72px; }
+    .fab-backup { bottom: calc(72px + 16px) !important; }
+  }
+
+  /* HOME tab specific cards */
+  .home-hero .summary-totals {
+    margin-bottom: 16px;
+  }
+  .home-quick-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .home-quick-tile {
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .home-quick-tile:active { transform: scale(0.97); }
+  .home-quick-tile:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+  .hqt-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .hqt-value {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1.1;
+  }
+  .hqt-value.status-ok { color: var(--accent); }
+  .hqt-value.status-borderline { color: #8c5e1d; }
+  .hqt-value.status-bad { color: var(--tomato); }
+  .hqt-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    margin-top: 3px;
+  }
+  .hqt-sub.improving { color: var(--accent); }
+  .hqt-sub.worsening { color: var(--tomato); }
+
   /* Cards */
   .card {
     background: var(--bg-card);
@@ -2614,156 +2775,275 @@
     </div>
   </div>
 
-  <div class="grid">
+  <div class="tab-content">
 
-    <!-- LEFT: input + meals -->
-    <div>
+    <!-- ============== HOME TAB ============== -->
+    <div class="tab-panel" data-tab="home" data-tab-label="🏠 Home">
+      <div class="grid">
+        <div>
 
-      <!-- SEARCH CARD -->
-      <div class="card">
-        <h2>Aggiungi alimento <span class="sub">cerca, scansiona o aggiungi</span></h2>
-        <div class="search-wrap">
-          <input type="text" class="search-input" id="search" placeholder="Es. pasta, salmone, yogurt greco..." autocomplete="off">
-          <div class="results" id="results"></div>
+          <!-- HOME SUMMARY HERO -->
+          <div class="card home-hero">
+            <h2>Riassunto di oggi <button class="settings-toggle" id="home-settings-btn">obiettivi</button></h2>
+            <div class="summary-totals">
+              <span class="big"><em id="home-kcal-now">0</em></span>
+              <span class="unit">kcal<br>oggi</span>
+              <span class="target">
+                target: <span id="home-kcal-target">2100</span><br>
+                <span class="delta" id="home-kcal-delta">—</span>
+              </span>
+            </div>
+            <div class="summary-chips" id="home-summary-chips"></div>
+            <div class="net-balance" id="home-net-balance" style="display:none;">
+              <div class="net-row">
+                <span class="net-lbl">📥 Assunte</span>
+                <span class="net-val" id="home-net-in">0 kcal</span>
+              </div>
+              <div class="net-row" id="home-net-out-row" style="display:none;">
+                <span class="net-lbl">🔥 Attività</span>
+                <span class="net-val net-burned" id="home-net-out">-0 kcal</span>
+              </div>
+              <div class="net-row" id="home-net-met-row">
+                <span class="net-lbl">💤 Metabolismo base</span>
+                <span class="net-val net-burned" id="home-net-met">-0 kcal</span>
+              </div>
+              <div class="net-row net-final">
+                <span class="net-lbl">Bilancio energetico</span>
+                <span class="net-val" id="home-net-result">0 kcal</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- HOME QUICK STATS -->
+          <div class="card">
+            <h2>Stato attuale</h2>
+            <div class="home-quick-grid">
+              <div class="home-quick-tile" data-go="corpo">
+                <div class="hqt-label">Peso</div>
+                <div class="hqt-value" id="home-weight-val">— kg</div>
+                <div class="hqt-sub" id="home-weight-delta">—</div>
+              </div>
+              <div class="home-quick-tile" data-go="corpo">
+                <div class="hqt-label">Attività oggi</div>
+                <div class="hqt-value" id="home-activity-kcal">0 kcal</div>
+                <div class="hqt-sub" id="home-activity-min">0 min</div>
+              </div>
+              <div class="home-quick-tile" data-go="salute">
+                <div class="hqt-label">Colesterolo LDL</div>
+                <div class="hqt-value" id="home-lab-ldl">—</div>
+                <div class="hqt-sub" id="home-lab-ldl-date">—</div>
+              </div>
+              <div class="home-quick-tile" data-go="diario">
+                <div class="hqt-label">Pasti registrati</div>
+                <div class="hqt-value" id="home-meal-count">0</div>
+                <div class="hqt-sub">vai al diario</div>
+              </div>
+            </div>
+          </div>
+
         </div>
-        <div class="action-buttons-row">
-          <button class="action-btn scan-btn" id="scan-btn">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4 6h2v12H4V6m3 0h1v12H7V6m2 0h2v12H9V6m3 0h2v12h-2V6m3 0h1v12h-1V6m2 0h3v12h-3V6M3 4v16h18V4H3z"/></svg>
-            Scansiona codice
-          </button>
-          <button class="action-btn search-online-btn" id="search-online-btn">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-            Cerca online
-          </button>
-        </div>
-        <button class="add-custom" id="add-custom-btn">+ Aggiungi un alimento personalizzato</button>
       </div>
-
-      <!-- MEALS -->
-      <div class="card">
-        <h2>Pasti di oggi <span class="sub" id="meals-sub">—</span><button class="meals-collapse-all" id="meals-collapse-all" title="Comprimi/espandi tutti">⇅</button></h2>
-        <div id="meals"></div>
-      </div>
-
-      <!-- ACTIVITIES -->
-      <div class="card">
-        <h2>Attività di oggi <span class="sub" id="activities-sub">—</span></h2>
-        <button class="add-activity-btn" id="add-activity-btn">
-          <span class="add-icon">+</span> Registra attività
-        </button>
-        <div id="activities-list"></div>
-      </div>
-
     </div>
 
-    <!-- RIGHT: summary -->
-    <div>
+    <!-- ============== DIARIO TAB ============== -->
+    <div class="tab-panel" data-tab="diario" data-tab-label="🍽 Diario alimentare">
+      <div class="grid">
 
-      <!-- TODAY TOTAL -->
-      <div class="card">
-        <h2>Totale giornaliero <button class="settings-toggle" id="settings-btn">obiettivi</button></h2>
-        <div class="summary-totals">
-          <span class="big"><em id="kcal-now">0</em></span>
-          <span class="unit">kcal<br>oggi</span>
-          <span class="target">
-            target: <span id="kcal-target">2100</span><br>
-            <span class="delta" id="kcal-delta">—</span>
-          </span>
-        </div>
-        <div class="summary-chips" id="summary-chips"></div>
+        <!-- LEFT: input + meals -->
+        <div>
 
-        <div class="metabolism-toggle-row">
-          <button class="metabolism-toggle" id="metabolism-toggle">
-            <span class="met-toggle-icon" id="met-toggle-icon">👁</span>
-            <span class="met-toggle-label" id="met-toggle-label">Mostra bilancio dettagliato</span>
-          </button>
-        </div>
-
-        <div class="net-balance" id="net-balance" style="display:none;">
-          <div class="net-row">
-            <span class="net-lbl">📥 Assunte</span>
-            <span class="net-val" id="net-in">0 kcal</span>
+          <!-- SEARCH CARD -->
+          <div class="card">
+            <h2>Aggiungi alimento <span class="sub">cerca, scansiona o aggiungi</span></h2>
+            <div class="search-wrap">
+              <input type="text" class="search-input" id="search" placeholder="Es. pasta, salmone, yogurt greco..." autocomplete="off">
+              <div class="results" id="results"></div>
+            </div>
+            <div class="action-buttons-row">
+              <button class="action-btn scan-btn" id="scan-btn">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4 6h2v12H4V6m3 0h1v12H7V6m2 0h2v12H9V6m3 0h2v12h-2V6m3 0h1v12h-1V6m2 0h3v12h-3V6M3 4v16h18V4H3z"/></svg>
+                Scansiona codice
+              </button>
+              <button class="action-btn search-online-btn" id="search-online-btn">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+                Cerca online
+              </button>
+            </div>
+            <button class="add-custom" id="add-custom-btn">+ Aggiungi un alimento personalizzato</button>
           </div>
-          <div class="net-row" id="net-out-row" style="display:none;">
-            <span class="net-lbl">🔥 Attività</span>
-            <span class="net-val net-burned" id="net-out">-0 kcal</span>
+
+          <!-- MEALS -->
+          <div class="card">
+            <h2>Pasti di oggi <span class="sub" id="meals-sub">—</span><button class="meals-collapse-all" id="meals-collapse-all" title="Comprimi/espandi tutti">⇅</button></h2>
+            <div id="meals"></div>
           </div>
-          <div class="net-row" id="net-met-row" style="display:none;">
-            <span class="net-lbl">💤 Metabolismo base <button class="met-info-btn" id="met-info-btn" title="Info">ⓘ</button></span>
-            <span class="net-val net-burned" id="net-met">-0 kcal</span>
+
+        </div>
+
+        <!-- RIGHT: daily summary + week chart -->
+        <div>
+
+          <!-- TODAY TOTAL -->
+          <div class="card">
+            <h2>Totale giornaliero <button class="settings-toggle" id="settings-btn">obiettivi</button></h2>
+            <div class="summary-totals">
+              <span class="big"><em id="kcal-now">0</em></span>
+              <span class="unit">kcal<br>oggi</span>
+              <span class="target">
+                target: <span id="kcal-target">2100</span><br>
+                <span class="delta" id="kcal-delta">—</span>
+              </span>
+            </div>
+            <div class="summary-chips" id="summary-chips"></div>
+
+            <div class="metabolism-toggle-row">
+              <button class="metabolism-toggle" id="metabolism-toggle">
+                <span class="met-toggle-icon" id="met-toggle-icon">👁</span>
+                <span class="met-toggle-label" id="met-toggle-label">Mostra bilancio dettagliato</span>
+              </button>
+            </div>
+
+            <div class="net-balance" id="net-balance" style="display:none;">
+              <div class="net-row">
+                <span class="net-lbl">📥 Assunte</span>
+                <span class="net-val" id="net-in">0 kcal</span>
+              </div>
+              <div class="net-row" id="net-out-row" style="display:none;">
+                <span class="net-lbl">🔥 Attività</span>
+                <span class="net-val net-burned" id="net-out">-0 kcal</span>
+              </div>
+              <div class="net-row" id="net-met-row" style="display:none;">
+                <span class="net-lbl">💤 Metabolismo base <button class="met-info-btn" id="met-info-btn" title="Info">ⓘ</button></span>
+                <span class="net-val net-burned" id="net-met">-0 kcal</span>
+              </div>
+              <div class="net-row net-final">
+                <span class="net-lbl" id="net-final-label">Bilancio netto</span>
+                <span class="net-val" id="net-result">0 kcal</span>
+              </div>
+            </div>
+            <div id="macros"></div>
           </div>
-          <div class="net-row net-final">
-            <span class="net-lbl" id="net-final-label">Bilancio netto</span>
-            <span class="net-val" id="net-result">0 kcal</span>
+
+          <!-- WEEK -->
+          <div class="card">
+            <h2>Calorie assunte <span class="sub">7 giorni</span></h2>
+            <div class="week-chart">
+              <div class="week-bars" id="week-bars"></div>
+              <div class="week-labels" id="week-labels"></div>
+            </div>
+            <div id="week-summary" style="margin-top:14px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-soft); display:flex; justify-content:space-between;">
+              <span>Media <strong id="week-avg-kcal" style="color:var(--ink)">—</strong> kcal</span>
+              <span>Proteine medie <strong id="week-avg-prot" style="color:var(--accent)">—</strong> g</span>
+            </div>
           </div>
-        </div>
-        <div id="macros"></div>
-      </div>
 
-      <!-- WEEK -->
-      <div class="card">
-        <h2>Calorie assunte <span class="sub">7 giorni</span></h2>
-        <div class="week-chart">
-          <div class="week-bars" id="week-bars"></div>
-          <div class="week-labels" id="week-labels"></div>
-        </div>
-        <div id="week-summary" style="margin-top:14px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-soft); display:flex; justify-content:space-between;">
-          <span>Media <strong id="week-avg-kcal" style="color:var(--ink)">—</strong> kcal</span>
-          <span>Proteine medie <strong id="week-avg-prot" style="color:var(--accent)">—</strong> g</span>
         </div>
       </div>
+    </div>
 
-      <!-- ACTIVITY WEEK -->
-      <div class="card">
-        <h2>Calorie bruciate <span class="sub">7 giorni</span></h2>
-        <div class="week-chart">
-          <div class="week-bars" id="activity-week-bars"></div>
-          <div class="week-labels" id="activity-week-labels"></div>
+    <!-- ============== CORPO TAB ============== -->
+    <div class="tab-panel" data-tab="corpo" data-tab-label="💪 Corpo e attività">
+      <div class="grid">
+
+        <!-- LEFT: activities -->
+        <div>
+
+          <!-- ACTIVITIES -->
+          <div class="card">
+            <h2>Attività di oggi <span class="sub" id="activities-sub">—</span></h2>
+            <button class="add-activity-btn" id="add-activity-btn">
+              <span class="add-icon">+</span> Registra attività
+            </button>
+            <div id="activities-list"></div>
+          </div>
+
+          <!-- ACTIVITY WEEK -->
+          <div class="card">
+            <h2>Calorie bruciate <span class="sub">7 giorni</span></h2>
+            <div class="week-chart">
+              <div class="week-bars" id="activity-week-bars"></div>
+              <div class="week-labels" id="activity-week-labels"></div>
+            </div>
+            <div class="activity-chart-legend">
+              <span class="leg-item"><span class="leg-swatch leg-activity"></span>attività registrata</span>
+              <span class="leg-item"><span class="leg-swatch leg-bmr"></span>metabolismo base</span>
+              <span class="leg-item leg-scale" id="week-scale-info">scala: —</span>
+            </div>
+            <div id="activity-week-summary" style="margin-top:10px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-soft); display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+              <span>Attività <strong id="week-tot-kcal-burned" style="color:var(--warm)">—</strong> kcal</span>
+              <span>BMR <strong id="week-tot-bmr" style="color:var(--accent)">—</strong> kcal</span>
+              <span><strong id="week-tot-min" style="color:var(--ink)">—</strong> min</span>
+            </div>
+          </div>
+
         </div>
-        <div class="activity-chart-legend">
-          <span class="leg-item"><span class="leg-swatch leg-activity"></span>attività registrata</span>
-          <span class="leg-item"><span class="leg-swatch leg-bmr"></span>metabolismo base</span>
-          <span class="leg-item leg-scale" id="week-scale-info">scala: —</span>
-        </div>
-        <div id="activity-week-summary" style="margin-top:10px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-soft); display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;">
-          <span>Attività <strong id="week-tot-kcal-burned" style="color:var(--warm)">—</strong> kcal</span>
-          <span>BMR <strong id="week-tot-bmr" style="color:var(--accent)">—</strong> kcal</span>
-          <span><strong id="week-tot-min" style="color:var(--ink)">—</strong> min</span>
+
+        <!-- RIGHT: weight -->
+        <div>
+
+          <!-- WEIGHT -->
+          <div class="card">
+            <h2>Peso corporeo <span class="sub">mattina, a digiuno</span></h2>
+            <div class="weight-quick">
+              <input type="number" id="weight-input" step="0.1" min="0" placeholder="es. 78.5" inputmode="decimal">
+              <button id="weight-save">Salva oggi</button>
+            </div>
+
+            <div id="weight-content">
+              <div class="empty-weight" id="weight-empty">Nessuna misurazione registrata.<br>Inserisci il peso di oggi o importa il tuo storico.</div>
+            </div>
+
+            <button class="weight-import-link" id="weight-import-btn">⤓ Importa storico (FatSecret, CSV o testo)</button>
+            <button class="show-history-btn" id="show-history-btn" style="display:none;">Mostra tutte le misurazioni</button>
+            <div class="weight-history" id="weight-history" style="display:none;"></div>
+          </div>
+
         </div>
       </div>
+    </div>
 
-      <!-- WEIGHT -->
-      <div class="card">
-        <h2>Peso corporeo <span class="sub">mattina, a digiuno</span></h2>
-        <div class="weight-quick">
-          <input type="number" id="weight-input" step="0.1" min="0" placeholder="es. 78.5" inputmode="decimal">
-          <button id="weight-save">Salva oggi</button>
+    <!-- ============== SALUTE TAB ============== -->
+    <div class="tab-panel" data-tab="salute" data-tab-label="🩺 Salute">
+      <div class="grid">
+        <div>
+
+          <!-- BLOOD TESTS / LABS -->
+          <div class="card">
+            <h2>Esami del sangue <span class="sub" id="labs-sub">—</span></h2>
+            <button class="add-lab-btn" id="add-lab-btn">
+              <span class="add-icon">+</span> Registra esami
+            </button>
+            <div id="labs-content"></div>
+          </div>
+
         </div>
-
-        <div id="weight-content">
-          <div class="empty-weight" id="weight-empty">Nessuna misurazione registrata.<br>Inserisci il peso di oggi o importa il tuo storico.</div>
-        </div>
-
-        <button class="weight-import-link" id="weight-import-btn">⤓ Importa storico (FatSecret, CSV o testo)</button>
-        <button class="show-history-btn" id="show-history-btn" style="display:none;">Mostra tutte le misurazioni</button>
-        <div class="weight-history" id="weight-history" style="display:none;"></div>
       </div>
-
-      <!-- BLOOD TESTS / LABS -->
-      <div class="card">
-        <h2>Esami del sangue <span class="sub" id="labs-sub">—</span></h2>
-        <button class="add-lab-btn" id="add-lab-btn">
-          <span class="add-icon">+</span> Registra esami
-        </button>
-        <div id="labs-content"></div>
-      </div>
-
     </div>
 
   </div>
 
   <p class="footer-note" id="last-backup-note">i tuoi dati sono salvati su questo dispositivo</p>
 </div>
+
+<!-- BOTTOM TAB BAR -->
+<nav class="tabbar" id="tabbar">
+  <button class="tab-btn" data-tab="home">
+    <span class="tab-icon">🏠</span>
+    <span class="tab-label">Home</span>
+  </button>
+  <button class="tab-btn" data-tab="diario">
+    <span class="tab-icon">🍽</span>
+    <span class="tab-label">Diario</span>
+  </button>
+  <button class="tab-btn" data-tab="corpo">
+    <span class="tab-icon">💪</span>
+    <span class="tab-label">Corpo</span>
+  </button>
+  <button class="tab-btn" data-tab="salute">
+    <span class="tab-icon">🩺</span>
+    <span class="tab-label">Salute</span>
+  </button>
+</nav>
 
 <!-- FAB BACKUP BUTTON -->
 <button class="fab-backup" id="fab-backup" title="Backup e ripristino">
@@ -3763,7 +4043,7 @@ const PRELOADED_LAB = {
 };
 
 // ========== APP VERSION ==========
-const APP_VERSION = '1.3.0';
+const APP_VERSION = '2.0.0';
 const APP_BUILD_DATE = '2026-05-18';
 
 // ========== STATE ==========
@@ -3792,6 +4072,7 @@ let state = {
   },
   showMetabolism: false, // toggle nascosto
   collapsedMeals: {},    // { 'Colazione': true, 'Pranzo': false, ... } - persists per meal
+  currentTab: 'home',    // 'home' | 'diario' | 'corpo' | 'salute'
   currentDate: todayISO(),
   selectedMeal: 'Colazione',
   weightRange: 90, // days; 0 = all
@@ -3896,6 +4177,10 @@ async function loadState() {
   // Activity range preference
   const ar = localStorage.getItem(KEY_PREFIX + 'activityRange');
   if (ar !== null) state.activityRange = parseInt(ar);
+
+  // Current tab preference
+  const ct = localStorage.getItem(KEY_PREFIX + 'currentTab');
+  if (ct && ['home','diario','corpo','salute'].includes(ct)) state.currentTab = ct;
 }
 
 function markUnbackedChange() {
@@ -4625,6 +4910,148 @@ function renderAll() {
   renderActivities();
   renderActivityWeekChart();
   renderLabs();
+  renderHome();
+}
+
+// ========== HOME TAB RENDERING ==========
+function renderHome() {
+  const t = dayTotals(state.currentDate);
+  const tg = state.targets;
+
+  // KCal big number
+  const kEl = document.getElementById('home-kcal-now');
+  if (!kEl) return; // Home tab not in DOM
+  kEl.textContent = fmt(t.kcal);
+  document.getElementById('home-kcal-target').textContent = fmt(tg.kcal);
+  const delta = t.kcal - tg.kcal;
+  const deltaEl = document.getElementById('home-kcal-delta');
+  if (delta < -50) { deltaEl.textContent = `${fmt(delta)} kcal`; deltaEl.className = 'delta under'; }
+  else if (delta > 50) { deltaEl.textContent = `+${fmt(delta)} kcal`; deltaEl.className = 'delta over'; }
+  else { deltaEl.textContent = `${delta >= 0 ? '+':''}${fmt(delta)} kcal`; deltaEl.className = 'delta'; }
+
+  // Summary chips (macros)
+  const flameSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5.67z"/></svg>';
+  const leafSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z"/></svg>';
+  const wheatSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 8c0-2.21 1.79-4 4-4 1.74 0 3.21 1.12 3.75 2.67l1.13-.6C13.2 4 11.21 3 9 3 5.69 3 3 5.69 3 9c0 2.21 1 4.2 2.57 5.55l.6-1.13C5 12.21 5 10.74 5 9V8zm14 6c0 2.21-1.79 4-4 4-1.74 0-3.21-1.12-3.75-2.67l-1.13.6C10.8 18 12.79 19 15 19c3.31 0 6-2.69 6-6 0-2.21-1-4.2-2.57-5.55l-.6 1.13C19 11.79 19 13.26 19 15v-1z"/></svg>';
+  const dropSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.1L7.05 8.05a7 7 0 109.9 0L12 3.1z"/></svg>';
+  document.getElementById('home-summary-chips').innerHTML = `
+    <span class="nutri-chip"><span class="nutri-icon nutri-prot">${leafSvg}</span><span class="nutri-val">${fmt(t.protein,1)}</span><span class="chip-target">/ ${fmt(tg.protein)}</span></span>
+    <span class="nutri-chip"><span class="nutri-icon nutri-carbs">${wheatSvg}</span><span class="nutri-val">${fmt(t.carbs,1)}</span><span class="chip-target">/ ${fmt(tg.carbs)}</span></span>
+    <span class="nutri-chip"><span class="nutri-icon nutri-fat">${dropSvg}</span><span class="nutri-val">${fmt(t.fat,1)}</span><span class="chip-target">/ ${fmt(tg.fat)}</span></span>
+  `;
+
+  // Net balance (always shown on Home, includes metabolism)
+  const actTot = dayActivityTotals(state.currentDate);
+  const metInfo = computeSedentaryKcal(state.currentDate);
+  const burned = Math.round(actTot.kcal);
+  const bmr = Math.round(metInfo.sedentaryKcal);
+  const net = t.kcal - burned - bmr;
+  document.getElementById('home-net-balance').style.display = 'block';
+  document.getElementById('home-net-in').textContent = `${fmt(t.kcal)} kcal`;
+  const outRow = document.getElementById('home-net-out-row');
+  if (actTot.count > 0) {
+    outRow.style.display = 'flex';
+    document.getElementById('home-net-out').textContent = `-${burned} kcal`;
+  } else {
+    outRow.style.display = 'none';
+  }
+  document.getElementById('home-net-met').textContent = `-${bmr} kcal`;
+  const netEl = document.getElementById('home-net-result');
+  netEl.textContent = `${net >= 0 ? '+' : ''}${fmt(net)} kcal`;
+  netEl.className = 'net-val ' + (net < -100 ? 'net-deficit' : (net > 100 ? 'net-surplus' : 'net-balanced'));
+
+  // Quick stats tiles
+  // Weight
+  const weights = state.weights || {};
+  const wDates = Object.keys(weights).sort();
+  const wEl = document.getElementById('home-weight-val');
+  const wDelta = document.getElementById('home-weight-delta');
+  if (wDates.length > 0) {
+    const currentW = weights[wDates[wDates.length - 1]];
+    wEl.textContent = `${currentW.toFixed(1)} kg`;
+    // Compute weekly delta
+    const today = new Date(wDates[wDates.length - 1]);
+    const sevenAgo = new Date(today);
+    sevenAgo.setDate(today.getDate() - 7);
+    const sevenAgoStr = dateKeyISO(sevenAgo);
+    const refs = wDates.filter(d => d <= sevenAgoStr);
+    if (refs.length > 0) {
+      const ref = weights[refs[refs.length - 1]];
+      const wd = currentW - ref;
+      wDelta.textContent = `${wd > 0 ? '+' : ''}${wd.toFixed(1)} kg in 7g`;
+      wDelta.className = 'hqt-sub ' + (wd < -0.05 ? 'improving' : (wd > 0.05 ? 'worsening' : ''));
+    } else {
+      wDelta.textContent = '—';
+      wDelta.className = 'hqt-sub';
+    }
+  } else {
+    wEl.textContent = '— kg';
+    wDelta.textContent = 'nessuna misurazione';
+    wDelta.className = 'hqt-sub';
+  }
+
+  // Activity today
+  document.getElementById('home-activity-kcal').textContent = burned > 0 ? `${burned} kcal` : '0 kcal';
+  document.getElementById('home-activity-min').textContent = `${actTot.minutes} min · ${actTot.count} attività`;
+
+  // Last lab (LDL)
+  const ldlLast = lastLabValue('ldl');
+  const ldlEl = document.getElementById('home-lab-ldl');
+  const ldlDate = document.getElementById('home-lab-ldl-date');
+  if (ldlLast) {
+    const param = findLabParam('ldl').param;
+    const status = classifyLabValue(param, ldlLast.value);
+    ldlEl.textContent = `${ldlLast.value} mg/dL`;
+    ldlEl.className = 'hqt-value status-' + status;
+    const labDate = new Date(ldlLast.date).toLocaleDateString('it-IT', {day:'numeric', month:'short'});
+    ldlDate.textContent = `del ${labDate}`;
+    ldlDate.className = 'hqt-sub';
+  } else {
+    ldlEl.textContent = '—';
+    ldlEl.className = 'hqt-value';
+    ldlDate.textContent = 'nessun esame';
+  }
+
+  // Meals count
+  const day = state.diary[state.currentDate] || {};
+  let mealCount = 0;
+  Object.values(day).forEach(items => { mealCount += items.length; });
+  document.getElementById('home-meal-count').textContent = mealCount;
+
+  // Tile click handlers
+  document.querySelectorAll('.home-quick-tile').forEach(tile => {
+    if (tile.dataset.boundClick) return;
+    tile.dataset.boundClick = 'true';
+    tile.addEventListener('click', () => {
+      const goto = tile.dataset.go;
+      if (goto) switchTab(goto);
+    });
+  });
+}
+
+// ========== TAB SWITCHING ==========
+function switchTab(tabName) {
+  if (!['home','diario','corpo','salute'].includes(tabName)) return;
+  state.currentTab = tabName;
+  try { localStorage.setItem(KEY_PREFIX + 'currentTab', tabName); } catch (e) {}
+  // Show/hide panels (only matters on mobile; on desktop CSS shows all)
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.dataset.tab === tabName);
+  });
+  // Update tabbar buttons
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === tabName);
+  });
+  // Scroll to top when changing tab
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function initTabbar() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+  // Activate initial tab
+  switchTab(state.currentTab || 'home');
 }
 
 // ========== SEARCH ==========
@@ -6885,6 +7312,18 @@ function initCollapseAllButton() {
   });
 }
 
+function initHomeSettingsBtn() {
+  // Home tab "obiettivi" button reuses the same modal as Diario tab's
+  const btn = document.getElementById('home-settings-btn');
+  if (btn && !btn.dataset.bound) {
+    btn.dataset.bound = 'true';
+    btn.addEventListener('click', () => {
+      // Trigger the existing settings button's click
+      document.getElementById('settings-btn').click();
+    });
+  }
+}
+
 // ========== INIT ==========
 (async () => {
   initVersionBadge();
@@ -6893,6 +7332,8 @@ function initCollapseAllButton() {
   initRangeSelector();
   initMetabolismToggle();
   initCollapseAllButton();
+  initTabbar();
+  initHomeSettingsBtn();
 })();
 </script>
 </body>
