@@ -641,12 +641,53 @@
     margin-bottom: 6px;
     padding-bottom: 10px;
     border-bottom: 1px solid var(--line);
+    /* Sticky so the timer stays visible while scrolling exercises */
+    position: sticky;
+    top: -28px;
+    background: var(--bg-card);
+    z-index: 20;
+    margin-left: -28px;
+    margin-right: -28px;
+    margin-top: -28px;
+    padding-left: 28px;
+    padding-right: 28px;
+    padding-top: 28px;
+  }
+  @media (max-width: 480px) {
+    .workout-modal-header {
+      margin-left: -18px;
+      margin-right: -18px;
+      margin-top: -20px;
+      padding-left: 18px;
+      padding-right: 18px;
+      padding-top: 20px;
+      top: -20px;
+    }
   }
   .workout-modal-header h3 { margin: 0; }
   .workout-modal-meta {
     display: flex;
     align-items: center;
     gap: 10px;
+  }
+  /* When workout active, timer becomes a big prominent bar */
+  #workout-modal.started-mode .workout-modal-header {
+    background: var(--accent-soft);
+    border-bottom: 2px solid var(--accent);
+  }
+  #workout-modal.started-mode .workout-modal-header h3 {
+    font-size: 16px;
+  }
+  #workout-modal.started-mode #workout-modal-time {
+    font-size: 26px;
+    padding: 8px 18px;
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 2px 8px rgba(45,134,89,0.3);
+  }
+  #workout-modal.started-mode #workout-modal-time.paused {
+    background: var(--gold);
+    color: white;
   }
   #workout-modal-time {
     font-family: 'JetBrains Mono', monospace;
@@ -807,6 +848,30 @@
   }
   .workout-set-row:last-child { border-bottom: none; }
   .workout-set-row.done { background: var(--accent-soft); }
+
+  /* Preview vs started mode visibility */
+  .workout-preview-actions, .workout-started-actions { display: none; }
+  #workout-modal.preview-mode .workout-preview-actions { display: flex; }
+  #workout-modal.preview-mode .workout-preview-hint { display: block; }
+  #workout-modal.started-mode .workout-started-actions { display: flex; }
+  #workout-modal.started-mode .workout-preview-hint { display: none; }
+  .workout-preview-hint { display: none; }
+  /* Hide the ✓ buttons and timer pause hint during preview */
+  #workout-modal.preview-mode .workout-set-done { visibility: hidden; }
+  #workout-modal.preview-mode #workout-modal-time { display: none; }
+  .workout-preview-hint {
+    background: var(--gold-soft);
+    color: #8c5e1d;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    margin: 14px 0 6px;
+  }
+  .ws-go-btn {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+  }
   .workout-set-row.next-set {
     background: var(--gold-soft);
     box-shadow: inset 3px 0 0 var(--gold);
@@ -3949,7 +4014,17 @@
     <!-- Exercise list with set tracking -->
     <div id="workout-exercises-list"></div>
 
-    <div class="modal-actions">
+    <!-- Preview-mode footer: read the card, then start -->
+    <div class="workout-preview-hint" id="workout-preview-hint">
+      📋 Controlla la scheda e i carichi. Quando sei pronto, dai il via: parte il cronometro e potrai spuntare le serie.
+    </div>
+    <div class="modal-actions workout-preview-actions" id="workout-preview-actions">
+      <button class="btn-danger" id="workout-cancel-preview">Annulla</button>
+      <button class="btn-primary ws-go-btn" id="workout-go">▶ Via! Inizia l'allenamento</button>
+    </div>
+
+    <!-- Started-mode footer -->
+    <div class="modal-actions workout-started-actions" id="workout-started-actions">
       <button class="btn-danger" id="workout-cancel">Annulla sessione</button>
       <button class="btn-primary" id="workout-finish">✓ Termina e salva</button>
     </div>
@@ -5178,7 +5253,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.3.0';
+const APP_VERSION = '3.4.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -8053,6 +8128,7 @@ let workoutTimerInterval = null;
 let workoutElapsedSec = 0;      // accumulated seconds (survives pauses)
 let workoutPaused = false;
 let workoutSegmentStart = 0;    // when the current running segment started
+let workoutStarted = false;     // false = preview/read mode, true = active workout
 
 function openWorkoutModal(sessionId) {
   const session = WORKOUT_SESSIONS[sessionId];
@@ -8157,6 +8233,7 @@ function openWorkoutModal(sessionId) {
         if (!isNaN(v)) workoutSession.exercises[exIdx].sets[sIdx].reps = v;
       });
       doneBtn.addEventListener('click', () => {
+        if (!workoutStarted) return; // ignore in preview mode
         const exObj = workoutSession.exercises[exIdx];
         const set = exObj.sets[sIdx];
         const repsVal = parseInt(repsIn.value);
@@ -8206,29 +8283,53 @@ function openWorkoutModal(sessionId) {
     });
   });
 
-  // Start timer
+  // ===== PREVIEW MODE: timer NOT started yet =====
+  workoutStarted = false;
+  if (workoutTimerInterval) { clearInterval(workoutTimerInterval); workoutTimerInterval = null; }
+  const timerEl = document.getElementById('workout-modal-time');
+  if (timerEl) timerEl.textContent = '00:00';
+  // Toggle modal into preview state (CSS hides ✓ buttons, shows "Via" button)
+  workoutModal.classList.add('preview-mode');
+  workoutModal.classList.remove('started-mode');
+
+  workoutModal.classList.add('show');
+}
+
+// Called when user taps "Via! Inizia l'allenamento"
+function startWorkout() {
+  if (!workoutSession || workoutStarted) return;
+  workoutStarted = true;
+  workoutStartTime = Date.now();
+  workoutElapsedSec = 0;
+  workoutPaused = false;
+  workoutSegmentStart = Date.now();
+
+  workoutModal.classList.remove('preview-mode');
+  workoutModal.classList.add('started-mode');
+
+  // Start session timer
   if (workoutTimerInterval) clearInterval(workoutTimerInterval);
   workoutTimerInterval = setInterval(() => {
     if (!workoutPaused) {
       const total = workoutElapsedSec + Math.floor((Date.now() - workoutSegmentStart) / 1000);
       const min = Math.floor(total / 60);
       const sec = total % 60;
-      const timerEl = document.getElementById('workout-modal-time');
-      if (timerEl) timerEl.textContent = `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+      const tEl = document.getElementById('workout-modal-time');
+      if (tEl) tEl.textContent = `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
     }
   }, 1000);
 
-  // Request wake lock to keep screen on during workout
+  // Wake lock + highlight first set
   requestWakeLock();
-  // Highlight the first set to do
   updateNextSetHighlight();
-
-  workoutModal.classList.add('show');
+  // Scroll back to top so user starts at first exercise
+  const listEl = document.getElementById('workout-exercises-list');
+  if (listEl) listEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // ===== PAUSE TOGGLE =====
 function toggleWorkoutPause() {
-  if (!workoutSession) return;
+  if (!workoutSession || !workoutStarted) return;
   const timerEl = document.getElementById('workout-modal-time');
   const overlay = document.getElementById('workout-pause-overlay');
   if (!workoutPaused) {
@@ -8400,7 +8501,7 @@ function playBeep() {
 }
 
 function closeWorkoutModal(saved) {
-  workoutModal.classList.remove('show');
+  workoutModal.classList.remove('show', 'preview-mode', 'started-mode');
   if (workoutTimerInterval) {
     clearInterval(workoutTimerInterval);
     workoutTimerInterval = null;
@@ -8408,6 +8509,7 @@ function closeWorkoutModal(saved) {
   stopRestTimer();
   releaseWakeLock();
   workoutPaused = false;
+  workoutStarted = false;
   restWasPausedWithSession = false;
   const timerEl = document.getElementById('workout-modal-time');
   if (timerEl) timerEl.classList.remove('paused');
@@ -8524,24 +8626,23 @@ function initWorkoutHandlers() {
     const other = nextSessionId === 'A' ? 'B' : 'A';
     openWorkoutModal(other);
   });
-  // Modal close/cancel
-  document.getElementById('workout-modal-close').addEventListener('click', () => {
-    if (!workoutSession || confirm('Uscire senza salvare la sessione in corso?')) {
+  // Modal close/cancel — only confirm if workout has actually started with progress
+  const maybeClose = () => {
+    const hasProgress = workoutStarted && workoutSession &&
+      workoutSession.exercises.some(ex => ex.sets.some(s => s.done));
+    if (!hasProgress || confirm('Uscire senza salvare la sessione in corso?')) {
       closeWorkoutModal(false);
     }
-  });
-  document.getElementById('workout-cancel').addEventListener('click', () => {
-    if (!workoutSession || confirm('Uscire senza salvare la sessione in corso?')) {
-      closeWorkoutModal(false);
-    }
-  });
+  };
+  document.getElementById('workout-modal-close').addEventListener('click', maybeClose);
+  document.getElementById('workout-cancel').addEventListener('click', maybeClose);
+  // Preview cancel — no confirmation needed (nothing logged yet)
+  document.getElementById('workout-cancel-preview').addEventListener('click', () => closeWorkoutModal(false));
+  // Via! Start the actual workout
+  document.getElementById('workout-go').addEventListener('click', startWorkout);
   document.getElementById('workout-finish').addEventListener('click', finishWorkoutSession);
   workoutModal.addEventListener('click', (e) => {
-    if (e.target === workoutModal) {
-      if (!workoutSession || confirm('Uscire senza salvare la sessione in corso?')) {
-        closeWorkoutModal(false);
-      }
-    }
+    if (e.target === workoutModal) maybeClose();
   });
 
   // Pause toggle (tap on timer)
