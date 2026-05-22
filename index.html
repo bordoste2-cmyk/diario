@@ -438,10 +438,10 @@
   }
   .cal-day:not(.empty):active { transform: scale(0.92); }
   .cal-day.level-0 { background: var(--bg-soft); }
-  .cal-day.level-1 { background: #d4ebdc; }
-  .cal-day.level-2 { background: #a8d8bc; }
-  .cal-day.level-3 { background: #6fbf95; }
-  .cal-day.level-4 { background: #2d8659; }
+  .cal-day.level-1 { background: #ffe9b8; }
+  .cal-day.level-2 { background: #ffc874; }
+  .cal-day.level-3 { background: #ff9a3c; }
+  .cal-day.level-4 { background: #e8602c; }
   .cal-day-num {
     font-family: 'JetBrains Mono', monospace;
     font-size: 10px;
@@ -459,7 +459,7 @@
     justify-content: center;
     align-items: center;
     line-height: 1;
-    font-size: 11px;
+    font-size: 17px;
   }
   .cal-day-more {
     font-family: 'JetBrains Mono', monospace;
@@ -473,11 +473,11 @@
     position: absolute;
     bottom: 2px;
     right: 2px;
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    background: var(--warm);
-    border: 1px solid white;
+    background: var(--berry);
+    border: 1.5px solid white;
   }
   .cal-legend {
     display: flex;
@@ -498,10 +498,10 @@
     border-radius: 3px;
   }
   .cal-legend-swatch[data-level="0"] { background: var(--bg-soft); }
-  .cal-legend-swatch[data-level="1"] { background: #d4ebdc; }
-  .cal-legend-swatch[data-level="2"] { background: #a8d8bc; }
-  .cal-legend-swatch[data-level="3"] { background: #6fbf95; }
-  .cal-legend-swatch[data-level="4"] { background: #2d8659; }
+  .cal-legend-swatch[data-level="1"] { background: #ffe9b8; }
+  .cal-legend-swatch[data-level="2"] { background: #ffc874; }
+  .cal-legend-swatch[data-level="3"] { background: #ff9a3c; }
+  .cal-legend-swatch[data-level="4"] { background: #e8602c; }
   .cal-day-activity-row {
     display: flex;
     align-items: center;
@@ -4971,7 +4971,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.1.0';
+const APP_VERSION = '3.1.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
