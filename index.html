@@ -536,6 +536,52 @@
   }
 
   /* ===== WORKOUT / SCHEDA ALLENAMENTO ===== */
+  .intensity-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 16px 0;
+  }
+  .intensity-opt {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: "emoji name kcal" "emoji desc kcal";
+    gap: 2px 12px;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--bg-soft);
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    transition: all 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .intensity-opt:active { transform: scale(0.98); }
+  .intensity-opt:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .intensity-emoji { grid-area: emoji; font-size: 24px; }
+  .intensity-name {
+    grid-area: name;
+    font-family: 'Fraunces', serif;
+    font-size: 16px;
+    font-style: italic;
+    color: var(--ink);
+  }
+  .intensity-desc {
+    grid-area: desc;
+    font-size: 11px;
+    color: var(--ink-soft);
+    line-height: 1.3;
+  }
+  .intensity-kcal {
+    grid-area: kcal;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--warm);
+    white-space: nowrap;
+  }
   .workout-card {
     background: linear-gradient(135deg, var(--accent-soft) 0%, var(--bg-card) 100%);
   }
@@ -4058,6 +4104,37 @@
   </div>
 </div>
 
+<!-- WORKOUT INTENSITY MODAL — asked at finish -->
+<div class="modal-overlay" id="intensity-modal">
+  <div class="modal" style="max-width: 420px;">
+    <h3>Com'è andata?</h3>
+    <div class="modal-sub">Scegli l'intensità della sessione per stimare le calorie bruciate.</div>
+    <div class="intensity-options">
+      <button class="intensity-opt" data-intensity="light">
+        <span class="intensity-emoji">🟢</span>
+        <span class="intensity-name">Leggera</span>
+        <span class="intensity-desc">scarico, molto recupero, esercizi protettivi</span>
+        <span class="intensity-kcal" id="int-kcal-light">— kcal</span>
+      </button>
+      <button class="intensity-opt" data-intensity="medium">
+        <span class="intensity-emoji">🟠</span>
+        <span class="intensity-name">Media</span>
+        <span class="intensity-desc">allenamento normale</span>
+        <span class="intensity-kcal" id="int-kcal-medium">— kcal</span>
+      </button>
+      <button class="intensity-opt" data-intensity="intense">
+        <span class="intensity-emoji">🔴</span>
+        <span class="intensity-name">Intensa</span>
+        <span class="intensity-desc">poco recupero, spinta massima</span>
+        <span class="intensity-kcal" id="int-kcal-intense">— kcal</span>
+      </button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="intensity-cancel">Annulla</button>
+    </div>
+  </div>
+</div>
+
 <!-- WORKOUT HISTORY DETAIL MODAL -->
 <div class="modal-overlay" id="workout-detail-modal">
   <div class="modal" style="max-width: 480px;">
@@ -5253,7 +5330,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.4.1';
+const APP_VERSION = '3.5.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -5528,12 +5605,22 @@ function getDayActivities(dateKey) {
 
 function dayActivityTotals(dateKey) {
   const items = state.activities[dateKey] || [];
-  return items.reduce((acc, it) => {
+  const totals = items.reduce((acc, it) => {
     acc.kcal += it.kcalBurned || 0;
     acc.minutes += it.durationMin || 0;
     acc.count += 1;
     return acc;
   }, { kcal: 0, minutes: 0, count: 0 });
+
+  // Add strength-training sessions logged that day
+  const workouts = (state.workoutLogs || []).filter(w => w.date === dateKey);
+  workouts.forEach(w => {
+    totals.kcal += workoutKcal(w);
+    totals.minutes += w.durationMin || 0;
+    totals.count += 1;
+  });
+
+  return totals;
 }
 
 function getCurrentWeightKg() {
@@ -5571,6 +5658,19 @@ function computeBMR(weightKg, heightCm, age, sex) {
     return 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
   }
   return 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
+}
+
+// Resistance-training MET values by self-reported intensity (Compendium of Physical Activities)
+const WORKOUT_METS = { light: 3.0, medium: 4.5, intense: 6.0 };
+const WORKOUT_INTENSITY_LABELS = { light: 'Leggera', medium: 'Media', intense: 'Intensa' };
+
+// Estimate kcal burned for a workout log (METs × weight × hours)
+function workoutKcal(log) {
+  if (!log) return 0;
+  const mets = WORKOUT_METS[log.intensity] || WORKOUT_METS.medium;
+  const weight = getWeightOnDate(log.date);
+  const hours = (log.durationMin || 0) / 60;
+  return mets * weight * hours;
 }
 
 // Sedentary TDEE: BMR × 1.2 for the proportion of day NOT spent in tracked activity
@@ -7744,8 +7844,7 @@ function dayMovement(dateKey) {
   const workouts = (state.workoutLogs || []).filter(w => w.date === dateKey);
   let kcal = 0;
   activities.forEach(a => kcal += a.kcalBurned || 0);
-  // Workouts don't track kcal directly; estimate ~5 kcal/min as a rough movement signal
-  workouts.forEach(w => kcal += (w.durationMin || 0) * 5);
+  workouts.forEach(w => kcal += workoutKcal(w));
   return { activities, workouts, kcal };
 }
 
@@ -7960,8 +8059,8 @@ function renderWorkout() {
         <div class="ws-stat-value" style="font-size:14px;">${lastDateLabel}</div>
       </div>
       <div class="workout-stat">
-        <div class="ws-stat-label">Volume totale</div>
-        <div class="ws-stat-value" style="font-size:14px;">${computeTotalVolume()} kg</div>
+        <div class="ws-stat-label">kcal totali stimate</div>
+        <div class="ws-stat-value" style="font-size:14px;">${computeTotalWorkoutKcal()} kcal</div>
       </div>
     `;
   }
@@ -7984,11 +8083,12 @@ function renderWorkout() {
         div.className = 'workout-history-entry session-' + log.sessionId.toLowerCase();
         const dateLabel = new Date(log.date).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'long' });
         const totSets = log.exercises.reduce((s, e) => s + (e.sets || []).filter(x => x.done).length, 0);
-        const totVolume = log.exercises.reduce((s, e) => s + (e.sets || []).reduce((ss, x) => ss + (x.weight || 0) * (x.reps || 0), 0), 0);
+        const estKcal = Math.round(workoutKcal(log));
+        const intLabel = log.intensity ? WORKOUT_INTENSITY_LABELS[log.intensity] : '';
         div.innerHTML = `
           <div class="workout-history-info">
             <div class="workout-history-date">${dateLabel}</div>
-            <div class="workout-history-meta">${totSets} serie · ${Math.round(totVolume)} kg vol · ${log.durationMin || '—'} min</div>
+            <div class="workout-history-meta">${totSets} serie · ${estKcal} kcal${intLabel ? ' · ' + intLabel.toLowerCase() : ''} · ${log.durationMin || '—'} min</div>
           </div>
           <span class="workout-history-badge">${log.sessionId}</span>
         `;
@@ -8054,6 +8154,12 @@ function computeTotalVolume() {
       });
     });
   });
+  return Math.round(tot);
+}
+
+function computeTotalWorkoutKcal() {
+  let tot = 0;
+  (state.workoutLogs || []).forEach(log => { tot += workoutKcal(log); });
   return Math.round(tot);
 }
 
@@ -8511,12 +8617,17 @@ function closeWorkoutModal(saved) {
   workoutPaused = false;
   workoutStarted = false;
   restWasPausedWithSession = false;
+  pendingWorkoutLog = null;
+  const intensityModal = document.getElementById('intensity-modal');
+  if (intensityModal) intensityModal.classList.remove('show');
   const timerEl = document.getElementById('workout-modal-time');
   if (timerEl) timerEl.classList.remove('paused');
   const overlay = document.getElementById('workout-pause-overlay');
   if (overlay) overlay.classList.remove('show');
   if (!saved) workoutSession = null;
 }
+
+let pendingWorkoutLog = null;
 
 async function finishWorkoutSession() {
   if (!workoutSession) return;
@@ -8526,11 +8637,13 @@ async function finishWorkoutSession() {
     if (!confirm('Nessun set completato. Salvare comunque?')) return;
   }
   const durationMin = Math.max(1, Math.round(currentWorkoutElapsedSec() / 60));
-  const log = {
+  // Build the log but defer saving until intensity is chosen
+  pendingWorkoutLog = {
     ts: workoutStartTime,
     date: todayISO(),
     sessionId: workoutSession.sessionId,
     durationMin: durationMin,
+    intensity: null, // set by intensity modal
     exercises: workoutSession.exercises.map(ex => ({
       exerciseId: ex.exerciseId,
       name: ex.name,
@@ -8544,8 +8657,32 @@ async function finishWorkoutSession() {
       notes: ex.notes
     }))
   };
-  state.workoutLogs.push(log);
+
+  // Pause the running timer while choosing intensity (don't keep counting)
+  if (!workoutPaused) {
+    workoutElapsedSec += Math.floor((Date.now() - workoutSegmentStart) / 1000);
+  }
+  if (workoutTimerInterval) { clearInterval(workoutTimerInterval); workoutTimerInterval = null; }
+
+  // Compute kcal preview for each intensity, using duration + current weight
+  const weight = getWeightOnDate(pendingWorkoutLog.date);
+  const hours = durationMin / 60;
+  ['light','medium','intense'].forEach(level => {
+    const kcal = Math.round(WORKOUT_METS[level] * weight * hours);
+    const el = document.getElementById('int-kcal-' + level);
+    if (el) el.textContent = `~${kcal} kcal`;
+  });
+
+  document.getElementById('intensity-modal').classList.add('show');
+}
+
+async function saveWorkoutWithIntensity(intensity) {
+  if (!pendingWorkoutLog) return;
+  pendingWorkoutLog.intensity = intensity;
+  state.workoutLogs.push(pendingWorkoutLog);
   await saveWorkoutLogs();
+  pendingWorkoutLog = null;
+  document.getElementById('intensity-modal').classList.remove('show');
   closeWorkoutModal(true);
   workoutSession = null;
   renderAll();
@@ -8687,6 +8824,29 @@ function initWorkoutHandlers() {
   // Exercise info modal
   document.getElementById('exercise-info-close').addEventListener('click', () => exerciseInfoModal.classList.remove('show'));
   exerciseInfoModal.addEventListener('click', (e) => { if (e.target === exerciseInfoModal) exerciseInfoModal.classList.remove('show'); });
+
+  // Intensity modal
+  const intensityModal = document.getElementById('intensity-modal');
+  intensityModal.querySelectorAll('.intensity-opt').forEach(opt => {
+    opt.addEventListener('click', () => saveWorkoutWithIntensity(opt.dataset.intensity));
+  });
+  document.getElementById('intensity-cancel').addEventListener('click', () => {
+    // Cancel finishing — go back to the workout, resume timer
+    intensityModal.classList.remove('show');
+    pendingWorkoutLog = null;
+    if (workoutStarted && !workoutPaused) {
+      workoutSegmentStart = Date.now();
+      workoutTimerInterval = setInterval(() => {
+        if (!workoutPaused) {
+          const total = workoutElapsedSec + Math.floor((Date.now() - workoutSegmentStart) / 1000);
+          const min = Math.floor(total / 60);
+          const sec = total % 60;
+          const tEl = document.getElementById('workout-modal-time');
+          if (tEl) tEl.textContent = `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+        }
+      }, 1000);
+    }
+  });
 }
 
 // ========== BACKUP & RESTORE ==========
