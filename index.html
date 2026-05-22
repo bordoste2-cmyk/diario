@@ -467,6 +467,37 @@
     color: var(--ink-soft);
     font-weight: 700;
   }
+  /* ===== HOME CALENDAR — bigger cells, max 2 emoji ===== */
+  #home-cal-grid {
+    gap: 5px;
+  }
+  #home-cal-grid .cal-day {
+    aspect-ratio: 0.82;          /* taller than square = more room */
+    border-radius: 10px;
+    padding: 5px 3px 4px;
+    justify-content: space-between;
+  }
+  #home-cal-grid .cal-day-num {
+    font-size: 13px;
+    align-self: flex-start;
+    margin-left: 3px;
+    margin-bottom: 0;
+  }
+  #home-cal-grid .cal-day-icons {
+    font-size: 21px;
+    gap: 2px;
+    flex: 1;
+    align-items: center;
+    padding-bottom: 3px;
+  }
+  #home-cal-grid .cal-day-more {
+    font-size: 10px;
+  }
+  /* On smaller phones keep emoji from overflowing */
+  @media (max-width: 380px) {
+    #home-cal-grid .cal-day-icons { font-size: 18px; }
+    #home-cal-grid .cal-day-num { font-size: 12px; }
+  }
   .cal-day.level-3 .cal-day-more,
   .cal-day.level-4 .cal-day-more { color: white; }
   .cal-day-workout-letter {
@@ -5475,7 +5506,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.6.0';
+const APP_VERSION = '3.6.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -8273,7 +8304,14 @@ function renderHomeCalendar() {
     cell.dataset.date = dk;
 
     const emojis = dayEmojiList(dk);
-    const emojiHtml = emojis.map(o => o.e).join('');
+    // Home calendar: show max 2 emoji (priority: workout, then activity, then manual — already ordered)
+    let emojiHtml = '';
+    if (emojis.length > 0) {
+      const shown = emojis.slice(0, 2);
+      emojiHtml = shown.map(o => o.e).join('');
+      const extra = emojis.length - shown.length;
+      if (extra > 0) emojiHtml += `<span class="cal-day-more">+${extra}</span>`;
+    }
 
     cell.innerHTML = `
       <span class="cal-day-num">${d}</span>
