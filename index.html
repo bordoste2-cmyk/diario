@@ -484,18 +484,23 @@
     margin-bottom: 0;
   }
   #home-cal-grid .cal-day-icons {
-    font-size: 21px;
-    gap: 2px;
+    font-size: 15px;
+    gap: 1px;
     flex: 1;
     align-items: center;
+    justify-content: center;
     padding-bottom: 3px;
+    flex-wrap: nowrap;        /* keep both emoji on one line */
+    white-space: nowrap;
+    max-width: 100%;
+    overflow: hidden;
   }
   #home-cal-grid .cal-day-more {
-    font-size: 10px;
+    font-size: 9px;
   }
   /* On smaller phones keep emoji from overflowing */
   @media (max-width: 380px) {
-    #home-cal-grid .cal-day-icons { font-size: 18px; }
+    #home-cal-grid .cal-day-icons { font-size: 13px; }
     #home-cal-grid .cal-day-num { font-size: 12px; }
   }
   .cal-day.level-3 .cal-day-more,
@@ -5506,7 +5511,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.6.1';
+const APP_VERSION = '3.6.2';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
