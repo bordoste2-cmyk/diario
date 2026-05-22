@@ -656,7 +656,73 @@
     background: var(--accent-soft);
     padding: 4px 10px;
     border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.15s;
+    position: relative;
   }
+  #workout-modal-time::before {
+    content: '⏸';
+    font-size: 9px;
+    margin-right: 4px;
+    opacity: 0.6;
+  }
+  #workout-modal-time:active { transform: scale(0.95); }
+  #workout-modal-time.paused {
+    background: var(--gold-soft);
+    color: #8c5e1d;
+    border-color: var(--gold);
+  }
+  #workout-modal-time.paused::before {
+    content: '▶';
+  }
+  .workout-pause-overlay {
+    display: none;
+    position: absolute;
+    inset: 0;
+    background: rgba(42,42,38,0.55);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    z-index: 70;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+  }
+  .workout-pause-overlay.show { display: flex; }
+  .workout-pause-card {
+    background: var(--bg-card);
+    border-radius: 18px;
+    padding: 28px 32px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  }
+  .workout-pause-icon {
+    font-size: 44px;
+    margin-bottom: 8px;
+  }
+  .workout-pause-title {
+    font-family: 'Fraunces', serif;
+    font-size: 18px;
+    font-style: italic;
+    color: var(--ink);
+    margin-bottom: 16px;
+  }
+  .workout-pause-resume {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.15s;
+  }
+  .workout-pause-resume:active { transform: scale(0.96); }
+  .workout-pause-resume:hover { background: var(--accent-deep); }
   .workout-modal-close {
     background: none;
     border: 1px solid var(--line);
@@ -3875,7 +3941,7 @@
     <div class="workout-modal-header">
       <h3 id="workout-modal-title">Sessione</h3>
       <div class="workout-modal-meta">
-        <span id="workout-modal-time">00:00</span>
+        <button id="workout-modal-time" title="Tocca per pausa/riprendi">00:00</button>
         <button class="workout-modal-close" id="workout-modal-close" title="Chiudi senza salvare">✕</button>
       </div>
     </div>
@@ -3884,8 +3950,17 @@
     <div id="workout-exercises-list"></div>
 
     <div class="modal-actions">
-      <button class="btn-secondary" id="workout-cancel">Annulla</button>
+      <button class="btn-danger" id="workout-cancel">Annulla sessione</button>
       <button class="btn-primary" id="workout-finish">✓ Termina e salva</button>
+    </div>
+  </div>
+
+  <!-- Pause overlay (anchored to the full-screen overlay, not the scrolling modal) -->
+  <div class="workout-pause-overlay" id="workout-pause-overlay">
+    <div class="workout-pause-card">
+      <div class="workout-pause-icon">⏸</div>
+      <div class="workout-pause-title">Sessione in pausa</div>
+      <button class="workout-pause-resume" id="workout-pause-resume">▶ Riprendi</button>
     </div>
   </div>
 
@@ -5103,7 +5178,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.2.0';
+const APP_VERSION = '3.3.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -7975,6 +8050,9 @@ const exerciseInfoModal = document.getElementById('exercise-info-modal');
 
 let workoutStartTime = 0;
 let workoutTimerInterval = null;
+let workoutElapsedSec = 0;      // accumulated seconds (survives pauses)
+let workoutPaused = false;
+let workoutSegmentStart = 0;    // when the current running segment started
 
 function openWorkoutModal(sessionId) {
   const session = WORKOUT_SESSIONS[sessionId];
@@ -8012,6 +8090,9 @@ function openWorkoutModal(sessionId) {
   };
   workoutSession = workoutData;
   workoutStartTime = Date.now();
+  workoutElapsedSec = 0;
+  workoutPaused = false;
+  workoutSegmentStart = Date.now();
 
   document.getElementById('workout-modal-title').textContent = `${session.emoji} ${session.name}`;
 
@@ -8128,11 +8209,13 @@ function openWorkoutModal(sessionId) {
   // Start timer
   if (workoutTimerInterval) clearInterval(workoutTimerInterval);
   workoutTimerInterval = setInterval(() => {
-    const elapsed = Math.floor((Date.now() - workoutStartTime) / 1000);
-    const min = Math.floor(elapsed / 60);
-    const sec = elapsed % 60;
-    const timerEl = document.getElementById('workout-modal-time');
-    if (timerEl) timerEl.textContent = `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+    if (!workoutPaused) {
+      const total = workoutElapsedSec + Math.floor((Date.now() - workoutSegmentStart) / 1000);
+      const min = Math.floor(total / 60);
+      const sec = total % 60;
+      const timerEl = document.getElementById('workout-modal-time');
+      if (timerEl) timerEl.textContent = `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
+    }
   }, 1000);
 
   // Request wake lock to keep screen on during workout
@@ -8141,6 +8224,49 @@ function openWorkoutModal(sessionId) {
   updateNextSetHighlight();
 
   workoutModal.classList.add('show');
+}
+
+// ===== PAUSE TOGGLE =====
+function toggleWorkoutPause() {
+  if (!workoutSession) return;
+  const timerEl = document.getElementById('workout-modal-time');
+  const overlay = document.getElementById('workout-pause-overlay');
+  if (!workoutPaused) {
+    // Pausing — accumulate the running segment
+    workoutElapsedSec += Math.floor((Date.now() - workoutSegmentStart) / 1000);
+    workoutPaused = true;
+    if (timerEl) timerEl.classList.add('paused');
+    if (overlay) overlay.classList.add('show');
+    // Also pause the rest timer if running
+    if (restTimerInterval) {
+      clearInterval(restTimerInterval);
+      restTimerInterval = null;
+      restWasPausedWithSession = true;
+    }
+    releaseWakeLock();
+  } else {
+    // Resuming
+    workoutSegmentStart = Date.now();
+    workoutPaused = false;
+    if (timerEl) timerEl.classList.remove('paused');
+    if (overlay) overlay.classList.remove('show');
+    // Resume rest timer if it was active
+    if (restWasPausedWithSession && restTimerRemaining > 0) {
+      restWasPausedWithSession = false;
+      restTimerInterval = setInterval(() => {
+        restTimerRemaining--;
+        updateRestDisplay();
+        if (restTimerRemaining <= 0) finishRestTimer();
+      }, 1000);
+    }
+    requestWakeLock();
+  }
+}
+let restWasPausedWithSession = false;
+
+function currentWorkoutElapsedSec() {
+  if (workoutPaused) return workoutElapsedSec;
+  return workoutElapsedSec + Math.floor((Date.now() - workoutSegmentStart) / 1000);
 }
 
 // ===== WAKE LOCK (keep screen on) =====
@@ -8281,6 +8407,12 @@ function closeWorkoutModal(saved) {
   }
   stopRestTimer();
   releaseWakeLock();
+  workoutPaused = false;
+  restWasPausedWithSession = false;
+  const timerEl = document.getElementById('workout-modal-time');
+  if (timerEl) timerEl.classList.remove('paused');
+  const overlay = document.getElementById('workout-pause-overlay');
+  if (overlay) overlay.classList.remove('show');
   if (!saved) workoutSession = null;
 }
 
@@ -8291,7 +8423,7 @@ async function finishWorkoutSession() {
   if (totalDone === 0) {
     if (!confirm('Nessun set completato. Salvare comunque?')) return;
   }
-  const durationMin = Math.round((Date.now() - workoutStartTime) / 60000);
+  const durationMin = Math.max(1, Math.round(currentWorkoutElapsedSec() / 60));
   const log = {
     ts: workoutStartTime,
     date: todayISO(),
@@ -8411,6 +8543,12 @@ function initWorkoutHandlers() {
       }
     }
   });
+
+  // Pause toggle (tap on timer)
+  const timeBtn = document.getElementById('workout-modal-time');
+  if (timeBtn) timeBtn.addEventListener('click', toggleWorkoutPause);
+  const pauseResume = document.getElementById('workout-pause-resume');
+  if (pauseResume) pauseResume.addEventListener('click', toggleWorkoutPause);
 
   // Rest timer controls
   const restMinus = document.getElementById('rest-minus');
