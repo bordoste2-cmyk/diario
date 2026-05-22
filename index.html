@@ -630,6 +630,32 @@
   .emoji-palette button:active { transform: scale(0.88); }
   .emoji-palette button:hover { background: var(--accent-soft); border-color: var(--accent); }
   .emoji-palette button:disabled { opacity: 0.3; cursor: not-allowed; }
+  .emoji-more-btn {
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    background: var(--bg-soft);
+    border: 1px dashed var(--accent);
+    border-radius: 10px;
+    color: var(--accent-deep);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.15s;
+  }
+  .emoji-more-btn:active { transform: scale(0.98); }
+  .emoji-more-btn:hover { background: var(--accent-soft); }
+  .emoji-more-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .emoji-keyboard-input {
+    position: absolute;
+    opacity: 0;
+    height: 1px;
+    width: 1px;
+    pointer-events: none;
+    left: -9999px;
+  }
   .home-cal-day-summary {
     background: var(--bg-soft);
     border-radius: 10px;
@@ -4205,6 +4231,8 @@
       <div class="step-label">Emoji del giorno <span id="emoji-count-label">(0/4)</span></div>
       <div class="emoji-selected" id="emoji-selected"></div>
       <div class="emoji-palette" id="emoji-palette"></div>
+      <button class="emoji-more-btn" id="emoji-more-btn">➕ Altra emoji (tastiera)</button>
+      <input type="text" id="emoji-keyboard-input" class="emoji-keyboard-input" inputmode="text" autocomplete="off" maxlength="8" aria-hidden="true">
     </div>
 
     <div class="modal-actions">
@@ -5511,7 +5539,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.6.2';
+const APP_VERSION = '3.7.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -8426,6 +8454,44 @@ function renderEmojiSection(dateKey) {
     if (alreadyManual) btn.style.background = 'var(--accent-soft)';
     palEl.appendChild(btn);
   });
+
+  // "Altra emoji" button — disabled when full
+  const moreBtn = document.getElementById('emoji-more-btn');
+  if (moreBtn) moreBtn.disabled = isFull;
+}
+
+// Add a manual emoji to a day (used by both palette and keyboard input)
+function addManualEmoji(dateKey, emoji) {
+  if (!emoji) return false;
+  const cur = state.dayEmojis[dateKey] || [];
+  if (cur.includes(emoji)) return false; // already there
+  const autoNow = dayEmojiList(dateKey).filter(o => o.auto).length;
+  if (autoNow + cur.length >= 4) return false; // no room
+  state.dayEmojis[dateKey] = [...cur, emoji];
+  saveDayEmojis();
+  renderEmojiSection(dateKey);
+  renderHomeCalendar();
+  return true;
+}
+
+// Extract the first emoji grapheme from an arbitrary string
+function firstEmoji(str) {
+  if (!str) return null;
+  // Use Intl.Segmenter if available for accurate grapheme splitting
+  try {
+    if (typeof Intl !== 'undefined' && Intl.Segmenter) {
+      const seg = new Intl.Segmenter('it', { granularity: 'grapheme' });
+      for (const s of seg.segment(str)) {
+        const ch = s.segment.trim();
+        // Skip plain ASCII/whitespace; accept anything with a non-ASCII codepoint (emoji/symbol)
+        if (ch && /[^\u0000-\u007F]/.test(ch)) return ch;
+      }
+      return null;
+    }
+  } catch (e) {}
+  // Fallback: match common emoji ranges
+  const m = str.match(/(\p{Extended_Pictographic}(\u200d\p{Extended_Pictographic})*[\uFE0F\u20E3]*)/u);
+  return m ? m[0] : null;
 }
 
 function initHomeCalendar() {
@@ -8455,6 +8521,36 @@ function initHomeCalendar() {
       renderAll();
     }
   });
+
+  // "Altra emoji" — open the device keyboard via a hidden input
+  const moreBtn = document.getElementById('emoji-more-btn');
+  const kbInput = document.getElementById('emoji-keyboard-input');
+  if (moreBtn && kbInput) {
+    moreBtn.addEventListener('click', () => {
+      kbInput.value = '';
+      kbInput.focus();
+      // On some devices we must click after focus to bring up the keyboard
+      kbInput.click();
+    });
+    const handleEmojiInput = () => {
+      const val = kbInput.value;
+      const em = firstEmoji(val);
+      kbInput.value = '';
+      if (!em) return;
+      if (!homeCalSelectedDate) return;
+      const ok = addManualEmoji(homeCalSelectedDate, em);
+      if (!ok) {
+        // Either full or duplicate — give gentle feedback
+        if ((state.dayEmojis[homeCalSelectedDate] || []).includes(em)) {
+          // duplicate, ignore silently
+        } else {
+          alert('Hai già 4 emoji per questo giorno. Rimuovine una per aggiungerne un\'altra.');
+        }
+      }
+      kbInput.blur();
+    };
+    kbInput.addEventListener('input', handleEmojiInput);
+  }
 }
 
 // ========== WORKOUT / SCHEDA ALLENAMENTO ==========
