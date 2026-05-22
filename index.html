@@ -469,15 +469,21 @@
   }
   .cal-day.level-3 .cal-day-more,
   .cal-day.level-4 .cal-day-more { color: white; }
-  .cal-day-workout-dot {
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--berry);
-    border: 1.5px solid white;
+  .cal-day-workout-letter {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 700;
+    font-style: italic;
+    line-height: 1;
+    color: var(--accent-deep);
+  }
+  .cal-day-workout-letter.session-b {
+    color: #a04a1f;
+  }
+  /* On dark heatmap cells, keep letters readable */
+  .cal-day.level-3 .cal-day-workout-letter,
+  .cal-day.level-4 .cal-day-workout-letter {
+    color: white;
   }
   .cal-legend {
     display: flex;
@@ -5330,7 +5336,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.5.0';
+const APP_VERSION = '3.5.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -7917,11 +7923,23 @@ function renderActivityCalendar() {
     });
     const hasWorkout = mv.workouts.length > 0;
 
-    // Build icons display: max 2 icons, then +N
-    let iconsHtml = '';
+    // Workout session letters (A / B) shown as big badges, like an icon
+    let workoutBadges = '';
+    if (hasWorkout) {
+      const seenSessions = new Set();
+      mv.workouts.forEach(w => {
+        if (!seenSessions.has(w.sessionId)) {
+          seenSessions.add(w.sessionId);
+          workoutBadges += `<span class="cal-day-workout-letter session-${w.sessionId.toLowerCase()}">${w.sessionId}</span>`;
+        }
+      });
+    }
+
+    // Build icons display: workout letters first, then activity emojis (max 2 emojis), then +N
+    let iconsHtml = workoutBadges;
     if (icons.length > 0) {
       const shown = icons.slice(0, 2);
-      iconsHtml = shown.join('');
+      iconsHtml += shown.join('');
       const extra = icons.length - shown.length;
       if (extra > 0) iconsHtml += `<span class="cal-day-more">+${extra}</span>`;
     }
@@ -7929,7 +7947,6 @@ function renderActivityCalendar() {
     cell.innerHTML = `
       <span class="cal-day-num">${d}</span>
       <span class="cal-day-icons">${iconsHtml}</span>
-      ${hasWorkout ? '<span class="cal-day-workout-dot" title="sessione allenamento"></span>' : ''}
     `;
 
     if (hasActivity) {
