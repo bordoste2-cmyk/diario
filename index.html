@@ -741,6 +741,120 @@
   }
   .workout-set-row:last-child { border-bottom: none; }
   .workout-set-row.done { background: var(--accent-soft); }
+  .workout-set-row.next-set {
+    background: var(--gold-soft);
+    box-shadow: inset 3px 0 0 var(--gold);
+    animation: nextSetPulse 2s ease-in-out infinite;
+  }
+  @keyframes nextSetPulse {
+    0%, 100% { background: var(--gold-soft); }
+    50% { background: #fdf3dc; }
+  }
+
+  /* ===== REST TIMER OVERLAY ===== */
+  .rest-timer {
+    display: none;
+    position: absolute;
+    left: 50%;
+    bottom: 90px;
+    transform: translateX(-50%);
+    background: var(--bg-card);
+    border: 2px solid var(--accent);
+    border-radius: 18px;
+    padding: 16px 20px;
+    box-shadow: 0 10px 40px rgba(42,42,38,0.3);
+    z-index: 60;
+    width: 240px;
+    text-align: center;
+    animation: restPop 0.25s ease;
+  }
+  @keyframes restPop {
+    from { opacity: 0; transform: translate(-50%, 10px) scale(0.95); }
+    to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  }
+  .rest-timer.show { display: block; }
+  .rest-timer.finishing {
+    border-color: var(--accent);
+    animation: restFlash 0.5s ease 3;
+  }
+  @keyframes restFlash {
+    0%, 100% { background: var(--bg-card); }
+    50% { background: var(--accent-soft); }
+  }
+  .rest-timer-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .rest-timer-count {
+    font-family: 'Fraunces', serif;
+    font-size: 40px;
+    font-weight: 600;
+    color: var(--accent-deep);
+    line-height: 1.1;
+    margin: 2px 0;
+  }
+  .rest-timer-ring-wrap {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+  }
+  .rest-timer-ring {
+    width: 36px;
+    height: 36px;
+    transform: rotate(-90deg);
+  }
+  .rest-ring-bg {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 8;
+  }
+  .rest-ring-fg {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 339.292;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear;
+  }
+  .rest-timer-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: center;
+    margin-top: 8px;
+  }
+  .rest-timer-btn {
+    flex: 1;
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.12s;
+  }
+  .rest-timer-btn:active { transform: scale(0.94); }
+  .rest-timer-btn.rest-skip {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+  .rest-timer-next {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    margin-top: 8px;
+    line-height: 1.3;
+  }
   .workout-set-label {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
@@ -3774,6 +3888,24 @@
       <button class="btn-primary" id="workout-finish">✓ Termina e salva</button>
     </div>
   </div>
+
+  <!-- REST TIMER OVERLAY -->
+  <div class="rest-timer" id="rest-timer">
+    <div class="rest-timer-label">Riposo</div>
+    <div class="rest-timer-count" id="rest-timer-count">0:60</div>
+    <div class="rest-timer-ring-wrap">
+      <svg class="rest-timer-ring" viewBox="0 0 120 120">
+        <circle class="rest-ring-bg" cx="60" cy="60" r="54"></circle>
+        <circle class="rest-ring-fg" id="rest-ring-fg" cx="60" cy="60" r="54"></circle>
+      </svg>
+    </div>
+    <div class="rest-timer-actions">
+      <button class="rest-timer-btn" id="rest-minus">−15s</button>
+      <button class="rest-timer-btn rest-skip" id="rest-skip">salta ▶</button>
+      <button class="rest-timer-btn" id="rest-plus">+15s</button>
+    </div>
+    <div class="rest-timer-next" id="rest-timer-next">—</div>
+  </div>
 </div>
 
 <!-- WORKOUT HISTORY DETAIL MODAL -->
@@ -4971,7 +5103,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.1.1';
+const APP_VERSION = '3.2.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -7944,19 +8076,39 @@ function openWorkoutModal(sessionId) {
         if (!isNaN(v)) workoutSession.exercises[exIdx].sets[sIdx].reps = v;
       });
       doneBtn.addEventListener('click', () => {
-        const set = workoutSession.exercises[exIdx].sets[sIdx];
+        const exObj = workoutSession.exercises[exIdx];
+        const set = exObj.sets[sIdx];
         const repsVal = parseInt(repsIn.value);
         const weightVal = parseFloat(weightIn.value);
         if (isNaN(repsVal) || repsVal <= 0) {
           // Pre-fill with target if user hasn't typed
-          repsIn.value = workoutSession.exercises[exIdx].targetReps;
-          set.reps = workoutSession.exercises[exIdx].targetReps;
+          repsIn.value = exObj.targetReps;
+          set.reps = exObj.targetReps;
         }
-        set.weight = isNaN(weightVal) ? workoutSession.exercises[exIdx].targetWeight : weightVal;
+        set.weight = isNaN(weightVal) ? exObj.targetWeight : weightVal;
         set.done = !set.done;
         row.classList.toggle('done', set.done);
         // Light haptic if available
         if (set.done && navigator.vibrate) navigator.vibrate(40);
+
+        if (set.done) {
+          // Start rest timer (unless this was the last set of the last exercise)
+          const isLastSetOfExercise = sIdx === exObj.sets.length - 1;
+          const restSec = exObj.restSec || 60;
+          // Only start rest if there's a next set somewhere
+          if (!isLastSetOfExercise) {
+            startRestTimer(restSec, `Prossima: ${exObj.name} — serie ${sIdx + 2}`);
+          } else {
+            // Last set of this exercise — suggest next exercise if any
+            const nextEx = workoutSession.exercises[exIdx + 1];
+            if (nextEx) {
+              startRestTimer(restSec, `Prossimo esercizio: ${nextEx.name}`);
+            } else {
+              stopRestTimer();
+            }
+          }
+        }
+        updateNextSetHighlight();
       });
     });
     const notesArea = card.querySelector('.ex-notes');
@@ -7983,7 +8135,142 @@ function openWorkoutModal(sessionId) {
     if (timerEl) timerEl.textContent = `${min.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
   }, 1000);
 
+  // Request wake lock to keep screen on during workout
+  requestWakeLock();
+  // Highlight the first set to do
+  updateNextSetHighlight();
+
   workoutModal.classList.add('show');
+}
+
+// ===== WAKE LOCK (keep screen on) =====
+let wakeLock = null;
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      // Re-acquire if page becomes visible again
+      document.addEventListener('visibilitychange', handleVisibilityForWakeLock);
+    }
+  } catch (e) { /* not supported or denied — degrade silently */ }
+}
+async function handleVisibilityForWakeLock() {
+  if (wakeLock !== null && document.visibilityState === 'visible' && workoutSession) {
+    try { wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+  }
+}
+function releaseWakeLock() {
+  try {
+    if (wakeLock) { wakeLock.release(); wakeLock = null; }
+    document.removeEventListener('visibilitychange', handleVisibilityForWakeLock);
+  } catch (e) {}
+}
+
+// ===== NEXT SET HIGHLIGHT =====
+function updateNextSetHighlight() {
+  if (!workoutSession) return;
+  const listEl = document.getElementById('workout-exercises-list');
+  if (!listEl) return;
+  // Clear all
+  listEl.querySelectorAll('.workout-set-row.next-set').forEach(r => r.classList.remove('next-set'));
+  // Find first not-done set, scanning exercises in order
+  for (let exIdx = 0; exIdx < workoutSession.exercises.length; exIdx++) {
+    const ex = workoutSession.exercises[exIdx];
+    for (let sIdx = 0; sIdx < ex.sets.length; sIdx++) {
+      if (!ex.sets[sIdx].done) {
+        const card = listEl.querySelector(`.workout-ex-card[data-exidx="${exIdx}"]`);
+        if (card) {
+          const row = card.querySelector(`.workout-set-row[data-setidx="${sIdx}"]`);
+          if (row) row.classList.add('next-set');
+        }
+        return;
+      }
+    }
+  }
+}
+
+// ===== REST TIMER =====
+let restTimerInterval = null;
+let restTimerRemaining = 0;
+let restTimerTotal = 0;
+let audioCtx = null;
+
+function startRestTimer(seconds, nextLabel) {
+  restTimerTotal = seconds;
+  restTimerRemaining = seconds;
+  const timerEl = document.getElementById('rest-timer');
+  const nextEl = document.getElementById('rest-timer-next');
+  if (nextEl) nextEl.textContent = nextLabel || '';
+  timerEl.classList.add('show');
+  timerEl.classList.remove('finishing');
+  updateRestDisplay();
+
+  if (restTimerInterval) clearInterval(restTimerInterval);
+  restTimerInterval = setInterval(() => {
+    restTimerRemaining--;
+    updateRestDisplay();
+    if (restTimerRemaining <= 0) {
+      finishRestTimer();
+    }
+  }, 1000);
+}
+
+function updateRestDisplay() {
+  const countEl = document.getElementById('rest-timer-count');
+  const ringEl = document.getElementById('rest-ring-fg');
+  const m = Math.floor(Math.max(0, restTimerRemaining) / 60);
+  const s = Math.max(0, restTimerRemaining) % 60;
+  if (countEl) countEl.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+  if (ringEl) {
+    const circumference = 339.292; // 2 * PI * 54
+    const ratio = restTimerTotal > 0 ? Math.max(0, restTimerRemaining) / restTimerTotal : 0;
+    ringEl.style.strokeDashoffset = (circumference * (1 - ratio)).toFixed(1);
+  }
+}
+
+function finishRestTimer() {
+  if (restTimerInterval) { clearInterval(restTimerInterval); restTimerInterval = null; }
+  const timerEl = document.getElementById('rest-timer');
+  // Beep + vibrate
+  playBeep();
+  if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+  // Visual flash
+  if (timerEl) {
+    timerEl.classList.add('finishing');
+    const countEl = document.getElementById('rest-timer-count');
+    if (countEl) countEl.textContent = 'Vai! 💪';
+  }
+  // Auto-hide after 2.5s
+  setTimeout(() => { stopRestTimer(); }, 2500);
+}
+
+function stopRestTimer() {
+  if (restTimerInterval) { clearInterval(restTimerInterval); restTimerInterval = null; }
+  const timerEl = document.getElementById('rest-timer');
+  if (timerEl) { timerEl.classList.remove('show', 'finishing'); }
+}
+
+function playBeep() {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Two quick beeps
+    const beepAt = (startTime, freq) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.0001, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.3, startTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.18);
+      osc.start(startTime);
+      osc.stop(startTime + 0.2);
+    };
+    const now = audioCtx.currentTime;
+    beepAt(now, 880);
+    beepAt(now + 0.25, 1175);
+  } catch (e) { /* audio not available — vibration still fires */ }
 }
 
 function closeWorkoutModal(saved) {
@@ -7992,6 +8279,8 @@ function closeWorkoutModal(saved) {
     clearInterval(workoutTimerInterval);
     workoutTimerInterval = null;
   }
+  stopRestTimer();
+  releaseWakeLock();
   if (!saved) workoutSession = null;
 }
 
@@ -8121,6 +8410,27 @@ function initWorkoutHandlers() {
         closeWorkoutModal(false);
       }
     }
+  });
+
+  // Rest timer controls
+  const restMinus = document.getElementById('rest-minus');
+  const restPlus = document.getElementById('rest-plus');
+  const restSkip = document.getElementById('rest-skip');
+  if (restMinus) restMinus.addEventListener('click', (e) => {
+    e.stopPropagation();
+    restTimerRemaining = Math.max(1, restTimerRemaining - 15);
+    if (restTimerRemaining > restTimerTotal) restTimerTotal = restTimerRemaining;
+    updateRestDisplay();
+  });
+  if (restPlus) restPlus.addEventListener('click', (e) => {
+    e.stopPropagation();
+    restTimerRemaining += 15;
+    if (restTimerRemaining > restTimerTotal) restTimerTotal = restTimerRemaining;
+    updateRestDisplay();
+  });
+  if (restSkip) restSkip.addEventListener('click', (e) => {
+    e.stopPropagation();
+    stopRestTimer();
   });
 
   // Detail modal
