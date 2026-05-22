@@ -508,6 +508,102 @@
   .cal-legend-swatch[data-level="2"] { background: #ffc874; }
   .cal-legend-swatch[data-level="3"] { background: #ff9a3c; }
   .cal-legend-swatch[data-level="4"] { background: #e8602c; }
+  /* Home calendar — proximity-to-target diverging scale (green good, red far) */
+  .cal-day.ktarget-0 { background: #6fbf95; }   /* on target — green */
+  .cal-day.ktarget-1 { background: #c4e3b0; }   /* slightly off — light green */
+  .cal-day.ktarget-2 { background: #ffe08a; }   /* moderate — yellow */
+  .cal-day.ktarget-3 { background: #ffb05c; }   /* far — orange */
+  .cal-day.ktarget-4 { background: #ec6a4a; }   /* very far — red */
+  .cal-day.ktarget-none { background: var(--bg-soft); } /* no data */
+  .cal-day.ktarget-0 .cal-day-num,
+  .cal-day.ktarget-3 .cal-day-num,
+  .cal-day.ktarget-4 .cal-day-num { color: white; }
+  .home-cal-sw[data-klevel="0"] { background: #6fbf95; }
+  .home-cal-sw[data-klevel="2"] { background: #ffe08a; }
+  .home-cal-sw[data-klevel="4"] { background: #ec6a4a; }
+  .home-cal-legend-note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    color: var(--ink-faint);
+    text-align: center;
+    margin-top: 8px;
+    line-height: 1.4;
+  }
+  /* Emoji palette in day modal */
+  .emoji-section { margin: 14px 0; }
+  .emoji-selected {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-height: 40px;
+    padding: 8px;
+    background: var(--bg-soft);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+  }
+  .emoji-selected:empty::before {
+    content: 'nessuna emoji — toccane una sotto';
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-style: italic;
+  }
+  .emoji-selected .emoji-chip {
+    font-size: 24px;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .emoji-selected .emoji-chip.auto {
+    opacity: 0.85;
+    cursor: default;
+  }
+  .emoji-selected .emoji-chip:not(.auto):active { transform: scale(0.85); }
+  .emoji-selected .emoji-chip:not(.auto)::after {
+    content: '×';
+    position: absolute;
+    top: -4px;
+    right: -6px;
+    background: var(--tomato);
+    color: white;
+    font-size: 10px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: sans-serif;
+  }
+  .emoji-palette {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+  }
+  .emoji-palette button {
+    font-size: 22px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 0;
+    cursor: pointer;
+    transition: all 0.12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .emoji-palette button:active { transform: scale(0.88); }
+  .emoji-palette button:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .emoji-palette button:disabled { opacity: 0.3; cursor: not-allowed; }
+  .home-cal-day-summary {
+    background: var(--bg-soft);
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+  }
   .cal-day-activity-row {
     display: flex;
     align-items: center;
@@ -3692,6 +3788,28 @@
             </div>
           </div>
 
+          <!-- HOME CALENDAR -->
+          <div class="card">
+            <h2>Calendario <span class="sub" id="home-cal-sub">calorie & attività</span></h2>
+            <div class="cal-nav">
+              <button class="cal-nav-btn" id="home-cal-prev">‹</button>
+              <span class="cal-month-label" id="home-cal-month-label">—</span>
+              <button class="cal-nav-btn" id="home-cal-next">›</button>
+            </div>
+            <div class="cal-weekdays">
+              <span>L</span><span>M</span><span>M</span><span>G</span><span>V</span><span>S</span><span>D</span>
+            </div>
+            <div class="cal-grid" id="home-cal-grid"></div>
+            <div class="cal-legend">
+              <span class="cal-legend-label">lontano</span>
+              <span class="cal-legend-swatch home-cal-sw" data-klevel="4"></span>
+              <span class="cal-legend-swatch home-cal-sw" data-klevel="2"></span>
+              <span class="cal-legend-swatch home-cal-sw" data-klevel="0"></span>
+              <span class="cal-legend-label">target ✓</span>
+            </div>
+            <div class="home-cal-legend-note">verde = vicino al target · giallo/rosso = lontano dal target</div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -4035,6 +4153,27 @@
 
     <div class="modal-actions">
       <button class="btn-secondary" id="online-search-close" style="flex: 1;">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOME CALENDAR DAY MODAL (with emoji palette) -->
+<div class="modal-overlay" id="home-cal-day-modal">
+  <div class="modal" style="max-width: 440px;">
+    <h3 id="home-cal-day-title">Giorno</h3>
+    <div class="modal-sub" id="home-cal-day-sub">—</div>
+
+    <div class="home-cal-day-summary" id="home-cal-day-summary"></div>
+
+    <div class="emoji-section">
+      <div class="step-label">Emoji del giorno <span id="emoji-count-label">(0/4)</span></div>
+      <div class="emoji-selected" id="emoji-selected"></div>
+      <div class="emoji-palette" id="emoji-palette"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" id="home-cal-day-close">Chiudi</button>
+      <button class="btn-primary" id="home-cal-day-goto">Vai a questo giorno</button>
     </div>
   </div>
 </div>
@@ -5336,7 +5475,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.5.1';
+const APP_VERSION = '3.6.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -5347,6 +5486,7 @@ let state = {
   activities: {},  // { 'YYYY-MM-DD': [{activityId, name, emoji, level, mets, durationMin, weightKg, kcalBurned, ts}] }
   labs: [],        // [{ts, date, values: {paramId: number, ...}, notes}] - sorted by ts asc
   workoutLogs: [], // [{ts, date, sessionId: 'A'|'B', durationMin, exercises: [{exerciseId, targetSets, targetReps, targetWeight, restSec, tempoSec, lever, sets: [{reps, weight, done}], notes}]}]
+  dayEmojis: {},   // { 'YYYY-MM-DD': ['😴','🍕'] } — manual emoji tags per day (max 4 incl. auto)
   collapsedLabGroups: {}, // { lipids: false, glucose: false, pressure: false }
   targets: {
     kcal: 2100,
@@ -5447,6 +5587,12 @@ async function loadState() {
     if (wl) state.workoutLogs = JSON.parse(wl);
   } catch (e) { state.workoutLogs = []; }
 
+  // Day emojis (manual tags)
+  try {
+    const de = localStorage.getItem(KEY_PREFIX + 'dayEmojis');
+    if (de) state.dayEmojis = JSON.parse(de);
+  } catch (e) { state.dayEmojis = {}; }
+
   // Profile (height, age, sex)
   try {
     const p = localStorage.getItem(KEY_PREFIX + 'profile');
@@ -5540,6 +5686,12 @@ async function saveWorkoutLogs() {
     localStorage.setItem(KEY_PREFIX + 'workoutLogs', JSON.stringify(state.workoutLogs));
     markUnbackedChange();
   } catch (e) { console.error('save workout logs', e); }
+}
+async function saveDayEmojis() {
+  try {
+    localStorage.setItem(KEY_PREFIX + 'dayEmojis', JSON.stringify(state.dayEmojis));
+    markUnbackedChange();
+  } catch (e) { console.error('save day emojis', e); }
 }
 
 // ========== LAB HELPERS ==========
@@ -6243,6 +6395,7 @@ function renderAll() {
   renderHome();
   renderWorkout();
   renderActivityCalendar();
+  renderHomeCalendar();
 }
 
 // ========== HOME TAB RENDERING ==========
@@ -8037,6 +8190,230 @@ function initCalendar() {
   });
 }
 
+// ========== HOME CALENDAR (calories + emoji) ==========
+let homeCalYear = new Date().getFullYear();
+let homeCalMonth = new Date().getMonth();
+
+// Emoji palette for manual day tags
+const EMOJI_PALETTE = ['😴','💪','🤒','🍕','🍷','🎉','🏖️','😰','😋','🚫','❤️','🌟','🤢','💊','🚴','😤'];
+
+// Classify how close intake was to the kcal target — returns level 0 (on target) to 4 (very far), or 'none'
+function kcalTargetLevel(dateKey) {
+  const day = state.diary[dateKey];
+  if (!day || Object.keys(day).length === 0) return 'none';
+  const t = dayTotals(dateKey);
+  if (t.kcal === 0) return 'none';
+  const target = state.targets.kcal || 2100;
+  const diff = Math.abs(t.kcal - target);
+  const pct = diff / target;
+  if (pct <= 0.07) return 0;   // within 7%
+  if (pct <= 0.15) return 1;   // within 15%
+  if (pct <= 0.25) return 2;   // within 25%
+  if (pct <= 0.40) return 3;   // within 40%
+  return 4;                    // way off
+}
+
+// Build emoji list for a day: auto (workout A/B + activities) + manual, capped at 4
+function dayEmojiList(dateKey) {
+  const auto = [];
+  // Workout sessions first
+  const workouts = (state.workoutLogs || []).filter(w => w.date === dateKey);
+  const seenSess = new Set();
+  workouts.forEach(w => {
+    if (!seenSess.has(w.sessionId)) { seenSess.add(w.sessionId); auto.push({ e: w.sessionId === 'A' ? '🅰️' : '🅱️', auto: true }); }
+  });
+  // Activity emojis
+  const acts = state.activities[dateKey] || [];
+  const seenEm = new Set();
+  acts.forEach(a => {
+    const em = a.emoji || activityEmoji(a.activityId);
+    if (!seenEm.has(em)) { seenEm.add(em); auto.push({ e: em, auto: true }); }
+  });
+  // Manual emojis
+  const manual = (state.dayEmojis[dateKey] || []).map(e => ({ e, auto: false }));
+  // Combine, cap at 4
+  return [...auto, ...manual].slice(0, 4);
+}
+
+function renderHomeCalendar() {
+  const grid = document.getElementById('home-cal-grid');
+  if (!grid) return;
+
+  const monthLabel = document.getElementById('home-cal-month-label');
+  const monthDate = new Date(homeCalYear, homeCalMonth, 1);
+  monthLabel.textContent = monthDate.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+
+  const daysInMonth = new Date(homeCalYear, homeCalMonth + 1, 0).getDate();
+  let firstDow = monthDate.getDay();
+  firstDow = (firstDow === 0) ? 6 : firstDow - 1;
+
+  // Count logged days
+  let loggedDays = 0;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dk = `${homeCalYear}-${String(homeCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    if (kcalTargetLevel(dk) !== 'none') loggedDays++;
+  }
+  const sub = document.getElementById('home-cal-sub');
+  if (sub) sub.textContent = loggedDays === 0 ? 'nessun giorno registrato' : `${loggedDays} giorni con pasti`;
+
+  grid.innerHTML = '';
+  for (let i = 0; i < firstDow; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'cal-day empty';
+    grid.appendChild(empty);
+  }
+
+  const todayKey = todayISO();
+  for (let d = 1; d <= daysInMonth; d++) {
+    const dk = `${homeCalYear}-${String(homeCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const level = kcalTargetLevel(dk);
+    const cell = document.createElement('div');
+    cell.className = `cal-day ktarget-${level}`;
+    if (dk === todayKey) cell.classList.add('today');
+    cell.dataset.date = dk;
+
+    const emojis = dayEmojiList(dk);
+    const emojiHtml = emojis.map(o => o.e).join('');
+
+    cell.innerHTML = `
+      <span class="cal-day-num">${d}</span>
+      <span class="cal-day-icons">${emojiHtml}</span>
+    `;
+    cell.addEventListener('click', () => openHomeCalDayModal(dk));
+    grid.appendChild(cell);
+  }
+}
+
+let homeCalSelectedDate = null;
+function openHomeCalDayModal(dateKey) {
+  homeCalSelectedDate = dateKey;
+  const dateObj = new Date(dateKey);
+  document.getElementById('home-cal-day-title').textContent = dateObj.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  // Summary: kcal vs target, activities
+  const t = dayTotals(dateKey);
+  const target = state.targets.kcal || 2100;
+  const mv = dayMovement(dateKey);
+  const burned = Math.round(mv.kcal);
+  const level = kcalTargetLevel(dateKey);
+  let kcalStatus = '';
+  if (level === 'none') kcalStatus = 'nessun pasto registrato';
+  else {
+    const diff = t.kcal - target;
+    kcalStatus = `${Math.round(t.kcal)} / ${target} kcal (${diff >= 0 ? '+' : ''}${Math.round(diff)})`;
+  }
+  document.getElementById('home-cal-day-sub').textContent = kcalStatus;
+
+  const summary = document.getElementById('home-cal-day-summary');
+  let summaryHtml = '';
+  if (level !== 'none') {
+    summaryHtml += `🍽 Assunte: <strong>${Math.round(t.kcal)}</strong> kcal · P ${Math.round(t.protein)}g · C ${Math.round(t.carbs)}g · G ${Math.round(t.fat)}g<br>`;
+  }
+  if (burned > 0) summaryHtml += `🔥 Bruciate (attività): <strong>${burned}</strong> kcal<br>`;
+  if (mv.workouts.length > 0) {
+    summaryHtml += mv.workouts.map(w => `💪 Allenamento ${w.sessionId}`).join(' · ') + '<br>';
+  }
+  if (mv.activities.length > 0) {
+    summaryHtml += mv.activities.map(a => `${a.emoji || activityEmoji(a.activityId)} ${a.name}`).join(' · ');
+  }
+  if (!summaryHtml) summaryHtml = 'Nessun dato registrato per questo giorno.';
+  summary.innerHTML = summaryHtml;
+
+  renderEmojiSection(dateKey);
+  document.getElementById('home-cal-day-goto').dataset.date = dateKey;
+  document.getElementById('home-cal-day-modal').classList.add('show');
+}
+
+function renderEmojiSection(dateKey) {
+  // Count auto emojis (these occupy slots but can't be removed)
+  const allEmojis = dayEmojiList(dateKey);
+  const autoCount = allEmojis.filter(o => o.auto).length;
+  const manual = state.dayEmojis[dateKey] || [];
+  const totalUsed = Math.min(autoCount + manual.length, 4);
+
+  document.getElementById('emoji-count-label').textContent = `(${totalUsed}/4)`;
+
+  // Selected emojis display
+  const selEl = document.getElementById('emoji-selected');
+  selEl.innerHTML = '';
+  allEmojis.forEach(o => {
+    const span = document.createElement('span');
+    span.className = 'emoji-chip' + (o.auto ? ' auto' : '');
+    span.textContent = o.e;
+    if (o.auto) {
+      span.title = 'Automatica (attività/allenamento)';
+    } else {
+      span.title = 'Tocca per rimuovere';
+      span.addEventListener('click', () => {
+        state.dayEmojis[dateKey] = (state.dayEmojis[dateKey] || []).filter(e => e !== o.e);
+        if (state.dayEmojis[dateKey].length === 0) delete state.dayEmojis[dateKey];
+        saveDayEmojis();
+        renderEmojiSection(dateKey);
+        renderHomeCalendar();
+      });
+    }
+    selEl.appendChild(span);
+  });
+
+  // Palette
+  const palEl = document.getElementById('emoji-palette');
+  const isFull = totalUsed >= 4;
+  palEl.innerHTML = '';
+  EMOJI_PALETTE.forEach(em => {
+    const btn = document.createElement('button');
+    btn.textContent = em;
+    const alreadyManual = manual.includes(em);
+    if (isFull && !alreadyManual) btn.disabled = true;
+    btn.addEventListener('click', () => {
+      const cur = state.dayEmojis[dateKey] || [];
+      if (cur.includes(em)) {
+        // toggle off
+        state.dayEmojis[dateKey] = cur.filter(e => e !== em);
+        if (state.dayEmojis[dateKey].length === 0) delete state.dayEmojis[dateKey];
+      } else {
+        // add if room
+        const autoNow = dayEmojiList(dateKey).filter(o => o.auto).length;
+        if (autoNow + cur.length >= 4) return;
+        state.dayEmojis[dateKey] = [...cur, em];
+      }
+      saveDayEmojis();
+      renderEmojiSection(dateKey);
+      renderHomeCalendar();
+    });
+    if (alreadyManual) btn.style.background = 'var(--accent-soft)';
+    palEl.appendChild(btn);
+  });
+}
+
+function initHomeCalendar() {
+  const prevBtn = document.getElementById('home-cal-prev');
+  const nextBtn = document.getElementById('home-cal-next');
+  if (prevBtn) prevBtn.addEventListener('click', () => {
+    homeCalMonth--;
+    if (homeCalMonth < 0) { homeCalMonth = 11; homeCalYear--; }
+    renderHomeCalendar();
+  });
+  if (nextBtn) nextBtn.addEventListener('click', () => {
+    homeCalMonth++;
+    if (homeCalMonth > 11) { homeCalMonth = 0; homeCalYear++; }
+    renderHomeCalendar();
+  });
+  const dayModal = document.getElementById('home-cal-day-modal');
+  const closeBtn = document.getElementById('home-cal-day-close');
+  const gotoBtn = document.getElementById('home-cal-day-goto');
+  if (closeBtn) closeBtn.addEventListener('click', () => dayModal.classList.remove('show'));
+  if (dayModal) dayModal.addEventListener('click', (e) => { if (e.target === dayModal) dayModal.classList.remove('show'); });
+  if (gotoBtn) gotoBtn.addEventListener('click', () => {
+    const dk = gotoBtn.dataset.date;
+    if (dk) {
+      state.currentDate = dk;
+      dayModal.classList.remove('show');
+      switchTab('diario');
+      renderAll();
+    }
+  });
+}
+
 // ========== WORKOUT / SCHEDA ALLENAMENTO ==========
 let workoutSession = null; // active session object during workout
 
@@ -8872,7 +9249,7 @@ const fabBackup = document.getElementById('fab-backup');
 
 function getAllData() {
   return {
-    version: 4,
+    version: 5,
     exportedAt: new Date().toISOString(),
     appName: 'Health Diary',
     data: {
@@ -8882,6 +9259,7 @@ function getAllData() {
       activities: state.activities,
       labs: state.labs,
       workoutLogs: state.workoutLogs,
+      dayEmojis: state.dayEmojis,
       targets: state.targets,
       profile: state.profile
     }
@@ -9007,6 +9385,7 @@ document.getElementById('backup-file-input').addEventListener('change', async (e
     if (d.activities) state.activities = d.activities;
     if (d.labs) state.labs = d.labs;
     if (d.workoutLogs) state.workoutLogs = d.workoutLogs;
+    if (d.dayEmojis) state.dayEmojis = d.dayEmojis;
     if (d.targets) state.targets = d.targets;
     if (d.profile) state.profile = { ...state.profile, ...d.profile };
     await saveDiary();
@@ -9015,6 +9394,7 @@ document.getElementById('backup-file-input').addEventListener('change', async (e
     await saveActivities();
     await saveLabs();
     await saveWorkoutLogs();
+    await saveDayEmojis();
     await saveTargets();
     await saveProfile();
     // Reset backup badge (just restored, equivalent to fresh state)
@@ -9705,6 +10085,7 @@ function initHomeSettingsBtn() {
   initHomeSettingsBtn();
   initWorkoutHandlers();
   initCalendar();
+  initHomeCalendar();
 })();
 </script>
 </body>
