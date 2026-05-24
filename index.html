@@ -1530,6 +1530,31 @@
     display: none;
   }
   .results.show { display: block; }
+  .suggest-header {
+    padding: 8px 14px 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent-deep);
+    background: var(--accent-soft);
+    font-weight: 700;
+  }
+  .suggest-item .suggest-qty {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-left: 8px;
+    background: var(--bg-soft);
+    padding: 1px 6px;
+    border-radius: 6px;
+  }
+  .suggest-item .suggest-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 700;
+  }
   .result-item {
     padding: 11px 14px;
     cursor: pointer;
@@ -5541,7 +5566,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.7.1';
+const APP_VERSION = '3.8.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -6616,7 +6641,7 @@ function normalize(s) {
 }
 
 function renderResults(query) {
-  if (!query) { resultsBox.classList.remove('show'); return; }
+  if (!query) { renderMealSuggestions(); return; }
   const q = normalize(query);
   const matches = allFoods().filter(f =>
     normalize(f.name).includes(q) ||
@@ -6651,8 +6676,98 @@ function renderResults(query) {
   resultsBox.classList.add('show');
 }
 
+// Guess current meal from the hour (same logic as openQtyModal)
+function guessCurrentMeal() {
+  const hour = new Date().getHours();
+  if (hour < 10) return 'Colazione';
+  if (hour < 12) return 'Spuntino mattina';
+  if (hour < 15) return 'Pranzo';
+  if (hour < 18) return 'Merenda';
+  return 'Cena';
+}
+
+// Compute suggested foods for a meal: frequent first, then recent (deduplicated)
+// Returns [{ foodId, name, count, lastQty, habitualQty, unit }]
+function mealFoodSuggestions(mealName, limit = 6) {
+  const freq = {};   // foodId -> { count, name, qtys: {qty: count}, lastTs, unit }
+  const dates = Object.keys(state.diary).sort(); // ascending
+  dates.forEach((dk, di) => {
+    const meal = state.diary[dk] && state.diary[dk][mealName];
+    if (!meal) return;
+    meal.forEach(item => {
+      const id = item.foodId != null ? item.foodId : item.name;
+      if (!freq[id]) freq[id] = { count: 0, name: item.name, qtys: {}, lastTs: 0, unit: item.unit || 'g', foodId: item.foodId, item };
+      freq[id].count++;
+      const q = item.qty || 100;
+      freq[id].qtys[q] = (freq[id].qtys[q] || 0) + 1;
+      // Use date index as a proxy for recency ordering
+      if (di >= freq[id].lastTs) { freq[id].lastTs = di; freq[id].lastItem = item; }
+    });
+  });
+
+  const entries = Object.values(freq);
+  if (entries.length === 0) return [];
+
+  // Habitual qty = most frequent qty for that food
+  entries.forEach(e => {
+    let best = null, bestC = 0;
+    for (const q in e.qtys) {
+      if (e.qtys[q] > bestC) { bestC = e.qtys[q]; best = parseFloat(q); }
+    }
+    e.habitualQty = best || 100;
+  });
+
+  // Sort: frequency desc, then recency desc
+  entries.sort((a, b) => {
+    if (b.count !== a.count) return b.count - a.count;
+    return b.lastTs - a.lastTs;
+  });
+
+  return entries.slice(0, limit);
+}
+
+// Render the empty-state suggestions ("Di solito a Colazione")
+function renderMealSuggestions() {
+  const meal = guessCurrentMeal();
+  const suggestions = mealFoodSuggestions(meal, 6);
+  resultsBox.innerHTML = '';
+
+  if (suggestions.length === 0) {
+    // Nothing logged yet — keep dropdown hidden
+    resultsBox.classList.remove('show');
+    return;
+  }
+
+  const mealLabel = meal === 'Spuntino mattina' ? 'Spuntino' : meal;
+  const header = document.createElement('div');
+  header.className = 'suggest-header';
+  header.textContent = `Di solito a ${mealLabel}`;
+  resultsBox.appendChild(header);
+
+  suggestions.forEach(s => {
+    // Find the full food object to open qty modal properly
+    const food = allFoods().find(f => (f.id != null && f.id === s.foodId)) ||
+                 allFoods().find(f => f.name === s.name);
+    const item = document.createElement('div');
+    item.className = 'result-item suggest-item';
+    const qtyLabel = `${fmt(s.habitualQty)}${s.unit}`;
+    item.innerHTML = `
+      <span class="name">${s.name}<span class="suggest-qty">${qtyLabel}</span></span>
+      <span class="macros suggest-count">${s.count}×</span>
+    `;
+    item.addEventListener('click', () => {
+      if (food) {
+        openQtyModal(food, s.habitualQty, meal);
+      }
+    });
+    resultsBox.appendChild(item);
+  });
+
+  resultsBox.classList.add('show');
+}
+
 searchInput.addEventListener('input', e => renderResults(e.target.value));
-searchInput.addEventListener('focus', e => { if (e.target.value) renderResults(e.target.value); });
+searchInput.addEventListener('focus', e => renderResults(e.target.value));
 document.addEventListener('click', e => {
   if (!e.target.closest('.search-wrap')) resultsBox.classList.remove('show');
 });
@@ -6669,7 +6784,7 @@ const quickPicks = document.getElementById('quick-picks');
 let currentFood = null;
 let editMode = null; // null = adding new, {meal, idx} = editing existing
 
-function openQtyModal(food) {
+function openQtyModal(food, prefillQty, mealOverride) {
   editMode = null; // reset to add mode
   currentFood = food;
   qtyFoodName.textContent = food.name;
@@ -6682,8 +6797,8 @@ function openQtyModal(food) {
   // Update button label
   document.getElementById('qty-add').textContent = 'Aggiungi';
 
-  // default quantity
-  qtyInput.value = food.defaultQty || (food.unit === 'pz' ? 1 : 100);
+  // default quantity — use prefill (habitual) if provided
+  qtyInput.value = prefillQty != null ? prefillQty : (food.defaultQty || (food.unit === 'pz' ? 1 : 100));
 
   // quick picks
   quickPicks.innerHTML = '';
@@ -6697,14 +6812,8 @@ function openQtyModal(food) {
     quickPicks.appendChild(btn);
   });
 
-  // meal default: try to guess from hour
-  const hour = new Date().getHours();
-  let defaultMeal = 'Pranzo';
-  if (hour < 10) defaultMeal = 'Colazione';
-  else if (hour < 12) defaultMeal = 'Spuntino mattina';
-  else if (hour < 15) defaultMeal = 'Pranzo';
-  else if (hour < 18) defaultMeal = 'Merenda';
-  else defaultMeal = 'Cena';
+  // meal default: use override if given, else guess from hour
+  let defaultMeal = mealOverride || guessCurrentMeal();
   state.selectedMeal = defaultMeal;
   document.querySelectorAll('.meal-pick').forEach(b => {
     b.classList.toggle('active', b.dataset.meal === defaultMeal);
