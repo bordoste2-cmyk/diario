@@ -1060,7 +1060,9 @@
   .workout-set-row.done { background: var(--accent-soft); }
 
   /* Preview vs started mode visibility */
-  .workout-preview-actions, .workout-started-actions { display: none; }
+  /* Preview vs started mode visibility — high specificity to override base .modal-actions */
+  #workout-modal .workout-preview-actions,
+  #workout-modal .workout-started-actions { display: none; }
   #workout-modal.preview-mode .workout-preview-actions { display: flex; }
   #workout-modal.preview-mode .workout-preview-hint { display: block; }
   #workout-modal.started-mode .workout-started-actions { display: flex; }
@@ -5539,7 +5541,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.7.0';
+const APP_VERSION = '3.7.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
