@@ -5566,7 +5566,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.8.1';
+const APP_VERSION = '3.8.2';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -6741,6 +6741,12 @@ function renderMealSuggestions() {
   const header = document.createElement('div');
   header.className = 'suggest-header';
   header.textContent = `Di solito a ${mealLabel}`;
+  // Diagnostic: long-press / double-tap header to see how many distinct foods were found
+  header.addEventListener('dblclick', () => {
+    const all = mealFoodSuggestions(meal, 999);
+    const lines = all.map(s => `${s.name} — ${s.count}× (${s.foodId != null ? s.foodId : 'no-id'})`);
+    alert(`DIAGNOSTICA ${meal}\nAlimenti distinti trovati: ${all.length}\n\n${lines.join('\n')}`);
+  });
   resultsBox.appendChild(header);
 
   suggestions.forEach(s => {
@@ -6757,12 +6763,46 @@ function renderMealSuggestions() {
     item.addEventListener('click', () => {
       if (food) {
         openQtyModal(food, s.habitualQty, meal);
+      } else {
+        // Food not in DB (e.g. online food not saved) — open a minimal qty modal from stored item
+        const stored = findStoredItem(meal, s);
+        if (stored) openQtyModal(storedItemToFood(stored), s.habitualQty, meal);
       }
     });
     resultsBox.appendChild(item);
   });
 
   resultsBox.classList.add('show');
+}
+
+// Find a stored diary item matching a suggestion (to reconstruct a food object)
+function findStoredItem(mealName, suggestion) {
+  const dates = Object.keys(state.diary).sort().reverse();
+  for (const dk of dates) {
+    const meal = state.diary[dk] && state.diary[dk][mealName];
+    if (!meal) continue;
+    const found = meal.find(it => (it.foodId != null ? it.foodId : it.name) === (suggestion.foodId != null ? suggestion.foodId : suggestion.name));
+    if (found) return found;
+  }
+  return null;
+}
+
+// Reconstruct a food-like object from a stored diary item (per-100 values)
+function storedItemToFood(item) {
+  const q = item.qty || 100;
+  const factor = q > 0 ? 100 / q : 1;
+  return {
+    id: item.foodId,
+    name: item.name,
+    unit: item.unit || 'g',
+    kcal: Math.round((item.kcal || 0) * factor),
+    protein: +((item.protein || 0) * factor).toFixed(1),
+    carbs: +((item.carbs || 0) * factor).toFixed(1),
+    sugar: +((item.sugar || 0) * factor).toFixed(1),
+    fat: +((item.fat || 0) * factor).toFixed(1),
+    saturated: +((item.saturated || 0) * factor).toFixed(1),
+    fiber: +((item.fiber || 0) * factor).toFixed(1)
+  };
 }
 
 searchInput.addEventListener('input', e => renderResults(e.target.value));
