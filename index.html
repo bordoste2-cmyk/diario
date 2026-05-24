@@ -1523,6 +1523,12 @@
     background: var(--bg-card);
   }
   .search-input::placeholder { color: var(--ink-faint); }
+  /* Inside the search modal, results flow inline (not absolute) so they don't cover the cart */
+  #search-modal .results {
+    position: static;
+    margin-top: 8px;
+    max-height: 320px;
+  }
   .results {
     position: absolute;
     top: calc(100% + 6px);
@@ -5704,7 +5710,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.10.0';
+const APP_VERSION = '3.10.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
