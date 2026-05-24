@@ -1794,6 +1794,32 @@
   }
   .meal-header:active { background: linear-gradient(135deg, rgba(45,134,89,0.18) 0%, rgba(212,235,220,0.6) 100%); }
   .meal-header.collapsed { margin-bottom: 8px; }
+  .meal-add-btn {
+    width: 100%;
+    margin-top: 8px;
+    padding: 10px;
+    background: var(--bg-soft);
+    border: 1px dashed var(--accent);
+    border-radius: 8px;
+    color: var(--accent-deep);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .meal-add-btn:active { transform: scale(0.98); }
+  .meal-add-btn:hover { background: var(--accent-soft); }
+  .meal-add-icon {
+    font-size: 17px;
+    line-height: 1;
+    font-weight: 400;
+  }
   .meal-header-top {
     display: flex;
     justify-content: space-between;
@@ -3918,26 +3944,6 @@
         <!-- LEFT: input + meals -->
         <div>
 
-          <!-- SEARCH CARD -->
-          <div class="card search-card">
-            <h2>Aggiungi alimento <span class="sub">cerca, scansiona o aggiungi</span></h2>
-            <div class="search-wrap">
-              <input type="text" class="search-input" id="search" placeholder="Es. pasta, salmone, yogurt greco..." autocomplete="off">
-              <div class="results" id="results"></div>
-            </div>
-            <div class="action-buttons-row">
-              <button class="action-btn scan-btn" id="scan-btn">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4 6h2v12H4V6m3 0h1v12H7V6m2 0h2v12H9V6m3 0h2v12h-2V6m3 0h1v12h-1V6m2 0h3v12h-3V6M3 4v16h18V4H3z"/></svg>
-                Scansiona codice
-              </button>
-              <button class="action-btn search-online-btn" id="search-online-btn">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-                Cerca online
-              </button>
-            </div>
-            <button class="add-custom" id="add-custom-btn">+ Aggiungi un alimento personalizzato</button>
-          </div>
-
           <!-- MEALS -->
           <div class="card">
             <h2>Pasti di oggi <span class="sub" id="meals-sub">—</span><button class="meals-collapse-all" id="meals-collapse-all" title="Comprimi/espandi tutti">⇅</button></h2>
@@ -4495,6 +4501,32 @@
 </div>
 
 <!-- QUANTITY MODAL -->
+<!-- ADD FOOD (SEARCH) MODAL -->
+<div class="modal-overlay" id="search-modal">
+  <div class="modal" style="max-width: 520px;">
+    <h3 id="search-modal-title">Aggiungi a Colazione</h3>
+    <div class="modal-sub">cerca, scansiona o aggiungi un alimento</div>
+    <div class="search-wrap">
+      <input type="text" class="search-input" id="search" placeholder="Es. pasta, salmone, yogurt greco..." autocomplete="off">
+      <div class="results" id="results"></div>
+    </div>
+    <div class="action-buttons-row">
+      <button class="action-btn scan-btn" id="scan-btn">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M4 6h2v12H4V6m3 0h1v12H7V6m2 0h2v12H9V6m3 0h2v12h-2V6m3 0h1v12h-1V6m2 0h3v12h-3V6M3 4v16h18V4H3z"/></svg>
+        Scansiona codice
+      </button>
+      <button class="action-btn search-online-btn" id="search-online-btn">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        Cerca online
+      </button>
+    </div>
+    <button class="add-custom" id="add-custom-btn">+ Aggiungi un alimento personalizzato</button>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="search-modal-close" style="flex:1;">Chiudi</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="qty-modal">
   <div class="modal">
     <h3 id="qty-food-name">Alimento</h3>
@@ -5574,7 +5606,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.8.4';
+const APP_VERSION = '3.9.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -6236,6 +6268,17 @@ function renderMeals() {
         mealDiv.querySelector('.meal-body').appendChild(itemDiv);
       });
     }
+    // "+" add button at the bottom of each meal body
+    const addBtn = document.createElement('button');
+    addBtn.className = 'meal-add-btn';
+    addBtn.dataset.meal = mealName;
+    addBtn.innerHTML = `<span class="meal-add-icon">+</span> Aggiungi a ${displayName.toLowerCase()}`;
+    addBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openSearchModal(mealName);
+    });
+    mealDiv.querySelector('.meal-body').appendChild(addBtn);
+
     container.appendChild(mealDiv);
   });
 
@@ -6641,6 +6684,28 @@ function initTabbar() {
 // ========== SEARCH ==========
 const searchInput = document.getElementById('search');
 const resultsBox = document.getElementById('results');
+const searchModal = document.getElementById('search-modal');
+
+// Which meal the search modal is adding to (set when opening)
+let searchTargetMeal = 'Colazione';
+
+function openSearchModal(mealName) {
+  searchTargetMeal = mealName;
+  const displayName = mealName === 'Spuntino mattina' ? 'Spuntino' : mealName;
+  document.getElementById('search-modal-title').textContent = `Aggiungi a ${displayName}`;
+  searchInput.value = '';
+  resultsBox.classList.remove('show');
+  searchModal.classList.add('show');
+  // Show suggestions for this meal immediately, then focus
+  renderMealSuggestions();
+  setTimeout(() => searchInput.focus(), 100);
+}
+
+function closeSearchModal() {
+  searchModal.classList.remove('show');
+  resultsBox.classList.remove('show');
+  searchInput.value = '';
+}
 
 function normalize(s) {
   return s.toLowerCase()
@@ -6735,7 +6800,7 @@ function mealFoodSuggestions(mealName, limit = 8) {
 
 // Render the empty-state suggestions ("Di solito a Colazione")
 function renderMealSuggestions() {
-  const meal = guessCurrentMeal();
+  const meal = searchTargetMeal || guessCurrentMeal();
   const suggestions = mealFoodSuggestions(meal, 8);
   resultsBox.innerHTML = '';
 
@@ -6813,6 +6878,12 @@ document.addEventListener('click', e => {
   if (!e.target.closest('.search-wrap')) resultsBox.classList.remove('show');
 });
 
+// Search modal close
+document.getElementById('search-modal-close').addEventListener('click', closeSearchModal);
+searchModal.addEventListener('click', e => {
+  if (e.target === searchModal) closeSearchModal();
+});
+
 // ========== QUANTITY MODAL ==========
 const qtyModal = document.getElementById('qty-modal');
 const qtyInput = document.getElementById('qty-input');
@@ -6853,8 +6924,8 @@ function openQtyModal(food, prefillQty, mealOverride) {
     quickPicks.appendChild(btn);
   });
 
-  // meal default: use override if given, else guess from hour
-  let defaultMeal = mealOverride || guessCurrentMeal();
+  // meal default: use override if given, else the meal the search modal targets
+  let defaultMeal = mealOverride || searchTargetMeal || guessCurrentMeal();
   state.selectedMeal = defaultMeal;
   document.querySelectorAll('.meal-pick').forEach(b => {
     b.classList.toggle('active', b.dataset.meal === defaultMeal);
@@ -7002,6 +7073,7 @@ document.getElementById('qty-add').addEventListener('click', async () => {
   qtyModal.classList.remove('show');
   searchInput.value = '';
   resultsBox.classList.remove('show');
+  closeSearchModal();
   renderAll();
 });
 
