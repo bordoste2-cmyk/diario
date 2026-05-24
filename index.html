@@ -1496,6 +1496,14 @@
   /* Search */
   .search-wrap {
     position: relative;
+    z-index: 30;
+  }
+  /* The card containing the search must not clip the results dropdown */
+  .card:has(.search-wrap) {
+    overflow: visible;
+  }
+  .card.search-card {
+    overflow: visible;
   }
   .search-input {
     width: 100%;
@@ -3911,7 +3919,7 @@
         <div>
 
           <!-- SEARCH CARD -->
-          <div class="card">
+          <div class="card search-card">
             <h2>Aggiungi alimento <span class="sub">cerca, scansiona o aggiungi</span></h2>
             <div class="search-wrap">
               <input type="text" class="search-input" id="search" placeholder="Es. pasta, salmone, yogurt greco..." autocomplete="off">
@@ -5566,7 +5574,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.8.3';
+const APP_VERSION = '3.8.4';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -10267,18 +10275,6 @@ function initVersionBadge() {
     lines.push(`Misurazioni peso: ${Object.keys(state.weights).length}`);
     lines.push(`Alimenti personalizzati: ${state.customFoods.length}`);
     lines.push(`Database alimenti: ${FOODS.length}`);
-
-    lines.push('');
-    lines.push('— SUGGERIMENTI PASTI —');
-    ['Colazione','Spuntino mattina','Pranzo','Merenda','Cena'].forEach(m => {
-      const sug = mealFoodSuggestions(m, 999);
-      lines.push(`${m}: ${sug.length} alimenti distinti`);
-      if (m === 'Colazione' && sug.length > 0) {
-        sug.slice(0, 12).forEach(s => {
-          lines.push(`  • ${s.name} ${s.count}× id:${s.foodId != null ? s.foodId : 'NESSUNO'}`);
-        });
-      }
-    });
 
     lines.push('');
     lines.push('— PWA —');
