@@ -1,7 +1,7 @@
 {
-  "name": "Diario Alimentare",
-  "short_name": "Diario",
-  "description": "Tracker personale di calorie, macronutrienti e peso",
+  "name": "Health Diary",
+  "short_name": "Health Diary",
+  "description": "Personal tracker for calories, macros and weight",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
