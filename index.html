@@ -5566,7 +5566,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.8.2';
+const APP_VERSION = '3.8.3';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -6741,12 +6741,6 @@ function renderMealSuggestions() {
   const header = document.createElement('div');
   header.className = 'suggest-header';
   header.textContent = `Di solito a ${mealLabel}`;
-  // Diagnostic: long-press / double-tap header to see how many distinct foods were found
-  header.addEventListener('dblclick', () => {
-    const all = mealFoodSuggestions(meal, 999);
-    const lines = all.map(s => `${s.name} — ${s.count}× (${s.foodId != null ? s.foodId : 'no-id'})`);
-    alert(`DIAGNOSTICA ${meal}\nAlimenti distinti trovati: ${all.length}\n\n${lines.join('\n')}`);
-  });
   resultsBox.appendChild(header);
 
   suggestions.forEach(s => {
@@ -10273,6 +10267,18 @@ function initVersionBadge() {
     lines.push(`Misurazioni peso: ${Object.keys(state.weights).length}`);
     lines.push(`Alimenti personalizzati: ${state.customFoods.length}`);
     lines.push(`Database alimenti: ${FOODS.length}`);
+
+    lines.push('');
+    lines.push('— SUGGERIMENTI PASTI —');
+    ['Colazione','Spuntino mattina','Pranzo','Merenda','Cena'].forEach(m => {
+      const sug = mealFoodSuggestions(m, 999);
+      lines.push(`${m}: ${sug.length} alimenti distinti`);
+      if (m === 'Colazione' && sug.length > 0) {
+        sug.slice(0, 12).forEach(s => {
+          lines.push(`  • ${s.name} ${s.count}× id:${s.foodId != null ? s.foodId : 'NESSUNO'}`);
+        });
+      }
+    });
 
     lines.push('');
     lines.push('— PWA —');
