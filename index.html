@@ -5566,7 +5566,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.8.0';
+const APP_VERSION = '3.8.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -6687,40 +6687,39 @@ function guessCurrentMeal() {
 }
 
 // Compute suggested foods for a meal: frequent first, then recent (deduplicated)
-// Returns [{ foodId, name, count, lastQty, habitualQty, unit }]
-function mealFoodSuggestions(mealName, limit = 6) {
-  const freq = {};   // foodId -> { count, name, qtys: {qty: count}, lastTs, unit }
-  const dates = Object.keys(state.diary).sort(); // ascending
-  dates.forEach((dk, di) => {
+// Returns [{ foodId, name, count, habitualQty, unit }]
+function mealFoodSuggestions(mealName, limit = 8) {
+  const freq = {};   // key -> { count, name, lastQty, lastOrder, unit, foodId }
+  const dates = Object.keys(state.diary).sort(); // ascending (oldest first)
+  let order = 0;
+  dates.forEach(dk => {
     const meal = state.diary[dk] && state.diary[dk][mealName];
     if (!meal) return;
     meal.forEach(item => {
+      order++; // increasing => later entries have higher order
       const id = item.foodId != null ? item.foodId : item.name;
-      if (!freq[id]) freq[id] = { count: 0, name: item.name, qtys: {}, lastTs: 0, unit: item.unit || 'g', foodId: item.foodId, item };
+      if (!freq[id]) freq[id] = { count: 0, name: item.name, lastQty: item.qty || 100, lastOrder: 0, unit: item.unit || 'g', foodId: item.foodId };
       freq[id].count++;
-      const q = item.qty || 100;
-      freq[id].qtys[q] = (freq[id].qtys[q] || 0) + 1;
-      // Use date index as a proxy for recency ordering
-      if (di >= freq[id].lastTs) { freq[id].lastTs = di; freq[id].lastItem = item; }
+      // Track the most recent quantity used (highest order wins)
+      if (order >= freq[id].lastOrder) {
+        freq[id].lastOrder = order;
+        freq[id].lastQty = item.qty || 100;
+        freq[id].name = item.name;
+        freq[id].unit = item.unit || 'g';
+      }
     });
   });
 
   const entries = Object.values(freq);
   if (entries.length === 0) return [];
 
-  // Habitual qty = most frequent qty for that food
-  entries.forEach(e => {
-    let best = null, bestC = 0;
-    for (const q in e.qtys) {
-      if (e.qtys[q] > bestC) { bestC = e.qtys[q]; best = parseFloat(q); }
-    }
-    e.habitualQty = best || 100;
-  });
+  // Habitual qty = the LAST quantity used for that food in this meal
+  entries.forEach(e => { e.habitualQty = e.lastQty; });
 
   // Sort: frequency desc, then recency desc
   entries.sort((a, b) => {
     if (b.count !== a.count) return b.count - a.count;
-    return b.lastTs - a.lastTs;
+    return b.lastOrder - a.lastOrder;
   });
 
   return entries.slice(0, limit);
@@ -6729,7 +6728,7 @@ function mealFoodSuggestions(mealName, limit = 6) {
 // Render the empty-state suggestions ("Di solito a Colazione")
 function renderMealSuggestions() {
   const meal = guessCurrentMeal();
-  const suggestions = mealFoodSuggestions(meal, 6);
+  const suggestions = mealFoodSuggestions(meal, 8);
   resultsBox.innerHTML = '';
 
   if (suggestions.length === 0) {
