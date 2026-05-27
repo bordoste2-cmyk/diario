@@ -2266,6 +2266,115 @@
   }
 
   /* Lab / Blood test card */
+  /* ===== MEDS ===== */
+  #add-med-btn {
+    background: linear-gradient(135deg, var(--accent-soft) 0%, var(--gold-soft) 100%);
+    border-color: rgba(45,134,89,0.3);
+    color: var(--accent-deep);
+  }
+  .med-fields-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  @media (max-width: 480px) {
+    .med-fields-grid { grid-template-columns: 1fr 1fr; }
+    .med-fields-grid > div:first-child { grid-column: 1 / -1; }
+  }
+  .med-search-wrap { position: relative; margin-bottom: 4px; }
+  #med-results { background: var(--bg-card); border: 1px solid var(--line); border-radius: 8px; overflow-y: auto; }
+  #med-results.show { display: block !important; }
+  .med-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    background: var(--bg-card);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.12s;
+  }
+  .med-entry:hover { background: var(--bg-soft); }
+  .med-entry-icon { font-size: 22px; line-height: 1; flex-shrink: 0; margin-top: 1px; }
+  .med-entry-body { flex: 1; min-width: 0; }
+  .med-entry-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 2px;
+  }
+  .med-entry-name {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .med-entry-dose {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent-deep);
+    background: var(--accent-soft);
+    padding: 1px 7px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .med-entry-when {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    margin-bottom: 2px;
+  }
+  .med-entry-reason { font-size: 12px; color: var(--ink); margin-top: 3px; }
+  .med-entry-effects {
+    font-size: 11px;
+    color: var(--ink-soft);
+    font-style: italic;
+    margin-top: 3px;
+    line-height: 1.4;
+  }
+  .med-empty {
+    text-align: center;
+    color: var(--ink-faint);
+    font-style: italic;
+    padding: 18px 12px;
+    font-size: 13px;
+  }
+  .med-result-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--bg-soft);
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.1s;
+  }
+  .med-result-item:last-child { border-bottom: none; }
+  .med-result-item:hover { background: var(--bg-soft); }
+  .med-result-name { font-size: 14px; color: var(--ink); }
+  .med-result-cat {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    margin-left: 8px;
+  }
+  .med-result-dose {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--accent-deep);
+    margin-top: 1px;
+  }
+  #med-modal textarea.search-input {
+    font-family: inherit;
+    font-size: 13px;
+    resize: vertical;
+    min-height: 44px;
+  }
+
   .add-lab-btn {
     display: flex;
     align-items: center;
@@ -4241,6 +4350,15 @@
             <div id="labs-content"></div>
           </div>
 
+          <!-- MEDICATIONS -->
+          <div class="card">
+            <h2>Farmaci <span class="sub" id="meds-sub">—</span></h2>
+            <button class="add-lab-btn" id="add-med-btn">
+              <span class="add-icon">+</span> Registra assunzione
+            </button>
+            <div id="meds-list"></div>
+          </div>
+
         </div>
       </div>
     </div>
@@ -4513,6 +4631,47 @@
     </div>
     <div class="modal-actions">
       <button class="btn-secondary" id="exercise-info-close">Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEDS MODAL -->
+<div class="modal-overlay" id="med-modal">
+  <div class="modal" style="max-width: 480px;">
+    <h3 id="med-modal-title">Registra assunzione</h3>
+    <div class="modal-sub">scegli il farmaco e (opzionale) i dettagli</div>
+
+    <div class="step-label">Farmaco</div>
+    <div class="med-search-wrap">
+      <input type="text" id="med-name-input" class="search-input" placeholder="Es. Tachipirina, Oki, vitamina D..." autocomplete="off">
+      <div class="results" id="med-results" style="position:static; margin-top:8px; max-height:220px; display:none;"></div>
+    </div>
+
+    <div class="med-fields-grid">
+      <div>
+        <div class="step-label">Dose</div>
+        <input type="text" id="med-dose-input" class="search-input" placeholder="es. 1000 mg, 1 cp">
+      </div>
+      <div>
+        <div class="step-label">Data</div>
+        <input type="date" id="med-date-input" class="search-input">
+      </div>
+      <div>
+        <div class="step-label">Ora</div>
+        <input type="time" id="med-time-input" class="search-input">
+      </div>
+    </div>
+
+    <div class="step-label">Motivo (opzionale)</div>
+    <input type="text" id="med-reason-input" class="search-input" placeholder="es. mal di testa, dolore ginocchio, profilassi">
+
+    <div class="step-label">Effetti / note (opzionale)</div>
+    <textarea id="med-effects-input" class="search-input" rows="2" placeholder="es. ha funzionato dopo 30 min, leggero mal di stomaco"></textarea>
+
+    <div class="modal-actions">
+      <button class="btn-danger" id="med-delete-btn" style="display:none; flex:0.7;">🗑 Elimina</button>
+      <button class="btn-secondary" id="med-cancel-btn">Annulla</button>
+      <button class="btn-primary" id="med-save-btn">Salva</button>
     </div>
   </div>
 </div>
@@ -5465,6 +5624,49 @@ const PRELOADED_LAB = {
   notes: 'Esami del sangue di partenza, peso 81 kg'
 };
 
+// ========== MEDS DATABASE (common Italian OTC + supplements) ==========
+// Suggested doses for autocomplete only. Diary-style, not medical advice.
+const MEDS_DB = [
+  // Pain / fever
+  { id:'tachipirina', name:'Tachipirina', emoji:'💊', cat:'antidolorifico', dose:'1000 mg' },
+  { id:'paracetamolo', name:'Paracetamolo (generico)', emoji:'💊', cat:'antidolorifico', dose:'1000 mg' },
+  { id:'efferalgan', name:'Efferalgan', emoji:'💊', cat:'antidolorifico', dose:'1 bustina' },
+  { id:'moment', name:'Moment', emoji:'💊', cat:'antinfiammatorio', dose:'200 mg' },
+  { id:'brufen', name:'Brufen (ibuprofene)', emoji:'💊', cat:'antinfiammatorio', dose:'600 mg' },
+  { id:'oki', name:'OKi (ketoprofene)', emoji:'💊', cat:'antinfiammatorio', dose:'1 bustina' },
+  { id:'aulin', name:'Aulin (nimesulide)', emoji:'💊', cat:'antinfiammatorio', dose:'1 bustina' },
+  { id:'voltaren', name:'Voltaren (diclofenac)', emoji:'💊', cat:'antinfiammatorio', dose:'50 mg' },
+  { id:'voltaren-gel', name:'Voltaren gel/crema', emoji:'🩹', cat:'antinfiammatorio topico', dose:'2-4 g' },
+  { id:'toradol', name:'Toradol', emoji:'💊', cat:'antidolorifico', dose:'10 mg' },
+  { id:'aspirina', name:'Aspirina', emoji:'💊', cat:'antinfiammatorio', dose:'500 mg' },
+  { id:'cardioaspirina', name:'Cardioaspirina', emoji:'❤️', cat:'cardiovascolare', dose:'100 mg' },
+  // Stomach
+  { id:'gaviscon', name:'Gaviscon', emoji:'🥤', cat:'gastrico', dose:'10 ml' },
+  { id:'maalox', name:'Maalox', emoji:'🥤', cat:'gastrico', dose:'1 bustina' },
+  { id:'lansoprazolo', name:'Lansoprazolo', emoji:'💊', cat:'gastroprotettore', dose:'15 mg' },
+  { id:'pantoprazolo', name:'Pantoprazolo', emoji:'💊', cat:'gastroprotettore', dose:'20 mg' },
+  { id:'omeprazolo', name:'Omeprazolo', emoji:'💊', cat:'gastroprotettore', dose:'20 mg' },
+  { id:'imodium', name:'Imodium', emoji:'💊', cat:'antidiarroico', dose:'1 cp' },
+  { id:'enterogermina', name:'Enterogermina', emoji:'🦠', cat:'fermenti lattici', dose:'1 flacone' },
+  // Cold / cough
+  { id:'oki-orosolubile', name:'Oki gola', emoji:'😷', cat:'mal di gola', dose:'1 cp' },
+  { id:'rinazina', name:'Rinazina', emoji:'👃', cat:'decongestionante', dose:'2 spruzzi' },
+  { id:'fluimucil', name:'Fluimucil', emoji:'😮‍💨', cat:'mucolitico', dose:'1 bustina 600 mg' },
+  { id:'tachiflu', name:'Tachiflu', emoji:'🤒', cat:'influenza/raffreddore', dose:'1 bustina' },
+  // Allergy
+  { id:'reactine', name:'Reactine', emoji:'🤧', cat:'antistaminico', dose:'10 mg' },
+  { id:'zirtec', name:'Zirtec', emoji:'🤧', cat:'antistaminico', dose:'10 mg' },
+  // Supplements
+  { id:'vitamina-d', name:'Vitamina D', emoji:'☀️', cat:'integratore', dose:'1000 UI' },
+  { id:'vitamina-c', name:'Vitamina C', emoji:'🍊', cat:'integratore', dose:'1000 mg' },
+  { id:'omega3', name:'Omega-3', emoji:'🐟', cat:'integratore', dose:'1 capsula' },
+  { id:'magnesio', name:'Magnesio', emoji:'⚡', cat:'integratore', dose:'1 bustina' },
+  { id:'multivitaminico', name:'Multivitaminico', emoji:'💊', cat:'integratore', dose:'1 cp' },
+  { id:'melatonina', name:'Melatonina', emoji:'😴', cat:'integratore sonno', dose:'1 mg' },
+  { id:'creatina', name:'Creatina monoidrato', emoji:'💪', cat:'integratore sport', dose:'3-5 g' },
+  { id:'proteine-whey', name:'Proteine whey', emoji:'🥤', cat:'integratore sport', dose:'30 g' },
+];
+
 // ========== WORKOUT SCHEDA DATABASE ==========
 // Scheda allenamento personale: 2 sedute A/B alternate, manubri 5kg e 10kg
 // Progressione "5 leve in sequenza": reps → tempo (TUT) → serie → recupero → carico
@@ -5711,7 +5913,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.11.0';
+const APP_VERSION = '3.12.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -5721,6 +5923,7 @@ let state = {
   weights: {},     // { 'YYYY-MM-DD': 78.5 }
   activities: {},  // { 'YYYY-MM-DD': [{activityId, name, emoji, level, mets, durationMin, weightKg, kcalBurned, ts}] }
   labs: [],        // [{ts, date, values: {paramId: number, ...}, notes}] - sorted by ts asc
+  meds: [],        // [{id, ts, date, time, drugId, name, dose, reason, effects, notes}]
   workoutLogs: [], // [{ts, date, sessionId: 'A'|'B', durationMin, exercises: [{exerciseId, targetSets, targetReps, targetWeight, restSec, tempoSec, lever, sets: [{reps, weight, done}], notes}]}]
   dayEmojis: {},   // { 'YYYY-MM-DD': ['😴','🍕'] } — manual emoji tags per day (max 4 incl. auto)
   collapsedLabGroups: {}, // { lipids: false, glucose: false, pressure: false }
@@ -5816,6 +6019,12 @@ async function loadState() {
     const cl = localStorage.getItem(KEY_PREFIX + 'collapsedLabGroups');
     if (cl) state.collapsedLabGroups = JSON.parse(cl);
   } catch (e) { state.collapsedLabGroups = {}; }
+
+  // Medications (meds log)
+  try {
+    const m = localStorage.getItem(KEY_PREFIX + 'meds');
+    if (m) state.meds = JSON.parse(m);
+  } catch (e) { state.meds = []; }
 
   // Workout logs (training sessions)
   try {
@@ -5915,6 +6124,13 @@ async function saveLabs() {
     localStorage.setItem(KEY_PREFIX + 'labs', JSON.stringify(state.labs));
     markUnbackedChange();
   } catch (e) { console.error('save labs', e); }
+}
+async function saveMeds() {
+  try {
+    state.meds.sort((a, b) => a.ts - b.ts);
+    localStorage.setItem(KEY_PREFIX + 'meds', JSON.stringify(state.meds));
+    markUnbackedChange();
+  } catch (e) { console.error('save meds', e); }
 }
 async function saveWorkoutLogs() {
   try {
@@ -6639,6 +6855,7 @@ function renderAll() {
   renderActivities();
   renderActivityWeekChart();
   renderLabs();
+  renderMeds();
   renderHome();
   renderWorkout();
   renderActivityCalendar();
@@ -8494,6 +8711,233 @@ function openLabHistory() {
   histModal.classList.add('show');
 }
 
+// ========== MEDS ==========
+function findMed(drugId) {
+  return MEDS_DB.find(m => m.id === drugId);
+}
+
+function renderMeds() {
+  const listEl = document.getElementById('meds-list');
+  const subEl = document.getElementById('meds-sub');
+  if (!listEl) return;
+
+  const meds = (state.meds || []).slice().sort((a, b) => b.ts - a.ts);
+  subEl.textContent = meds.length === 0 ? 'nessuna assunzione registrata' : `${meds.length} assunzioni`;
+
+  listEl.innerHTML = '';
+  if (meds.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'med-empty';
+    empty.textContent = 'Nessuna assunzione registrata. Tocca "Registra assunzione" per iniziare.';
+    listEl.appendChild(empty);
+    return;
+  }
+
+  // Show last 15 entries; if more, hint at it
+  const visible = meds.slice(0, 15);
+  visible.forEach(m => {
+    const ref = findMed(m.drugId);
+    const emoji = (ref && ref.emoji) || '💊';
+    const row = document.createElement('div');
+    row.className = 'med-entry';
+    const dateObj = new Date(m.ts);
+    const dateLabel = dateObj.toLocaleDateString('it-IT', { weekday:'short', day:'numeric', month:'short' });
+    const timeLabel = m.time || dateObj.toLocaleTimeString('it-IT', { hour:'2-digit', minute:'2-digit' });
+    row.innerHTML = `
+      <span class="med-entry-icon">${emoji}</span>
+      <div class="med-entry-body">
+        <div class="med-entry-top">
+          <span class="med-entry-name">${m.name}</span>
+          ${m.dose ? `<span class="med-entry-dose">${m.dose}</span>` : ''}
+        </div>
+        <div class="med-entry-when">${dateLabel} · ${timeLabel}</div>
+        ${m.reason ? `<div class="med-entry-reason">📝 ${m.reason}</div>` : ''}
+        ${m.effects ? `<div class="med-entry-effects">${m.effects}</div>` : ''}
+      </div>
+    `;
+    row.addEventListener('click', () => openMedModal(m));
+    listEl.appendChild(row);
+  });
+
+  if (meds.length > 15) {
+    const more = document.createElement('div');
+    more.className = 'med-empty';
+    more.style.padding = '8px';
+    more.textContent = `... e altre ${meds.length - 15} assunzioni più vecchie`;
+    listEl.appendChild(more);
+  }
+}
+
+// ========== MED MODAL ==========
+const medModal = document.getElementById('med-modal');
+let medEditing = null; // null = new, otherwise the med object being edited
+let medSelectedDrug = null; // selected from DB { id, name, dose, ... } or { id:'custom-...', name } for free text
+
+function openMedModal(existing) {
+  medEditing = existing || null;
+  document.getElementById('med-modal-title').textContent = existing ? 'Modifica assunzione' : 'Registra assunzione';
+
+  const nameIn = document.getElementById('med-name-input');
+  const doseIn = document.getElementById('med-dose-input');
+  const dateIn = document.getElementById('med-date-input');
+  const timeIn = document.getElementById('med-time-input');
+  const reasonIn = document.getElementById('med-reason-input');
+  const effIn = document.getElementById('med-effects-input');
+  const delBtn = document.getElementById('med-delete-btn');
+
+  if (existing) {
+    nameIn.value = existing.name || '';
+    doseIn.value = existing.dose || '';
+    dateIn.value = existing.date || todayISO();
+    timeIn.value = existing.time || '';
+    reasonIn.value = existing.reason || '';
+    effIn.value = existing.effects || '';
+    medSelectedDrug = existing.drugId ? findMed(existing.drugId) || { id: existing.drugId, name: existing.name } : { id: 'custom-' + Date.now(), name: existing.name };
+    delBtn.style.display = '';
+  } else {
+    nameIn.value = '';
+    doseIn.value = '';
+    const now = new Date();
+    dateIn.value = todayISO();
+    timeIn.value = now.toTimeString().slice(0, 5);
+    reasonIn.value = '';
+    effIn.value = '';
+    medSelectedDrug = null;
+    delBtn.style.display = 'none';
+  }
+
+  document.getElementById('med-results').style.display = 'none';
+  medModal.classList.add('show');
+  setTimeout(() => { if (!existing) nameIn.focus(); }, 80);
+}
+
+function closeMedModal() {
+  medModal.classList.remove('show');
+  document.getElementById('med-results').style.display = 'none';
+  medEditing = null;
+  medSelectedDrug = null;
+}
+
+function renderMedResults(query) {
+  const resBox = document.getElementById('med-results');
+  resBox.innerHTML = '';
+  if (!query || query.trim().length < 1) { resBox.style.display = 'none'; return; }
+  const q = normalize(query);
+  const matches = MEDS_DB.filter(m =>
+    normalize(m.name).includes(q) || normalize(m.cat).includes(q)
+  ).slice(0, 12);
+
+  // Also offer "use as typed" option if no exact match
+  const exactMatch = MEDS_DB.some(m => normalize(m.name) === q);
+  if (matches.length === 0 || !exactMatch) {
+    const customItem = document.createElement('div');
+    customItem.className = 'med-result-item';
+    customItem.innerHTML = `
+      <div class="med-result-name">Usa "${query}" <span class="med-result-cat">come digitato</span></div>
+      <div class="med-result-dose">Farmaco personalizzato</div>
+    `;
+    customItem.addEventListener('click', () => {
+      medSelectedDrug = { id: 'custom-' + Date.now(), name: query };
+      document.getElementById('med-name-input').value = query;
+      resBox.style.display = 'none';
+      document.getElementById('med-dose-input').focus();
+    });
+    resBox.appendChild(customItem);
+  }
+
+  matches.forEach(m => {
+    const item = document.createElement('div');
+    item.className = 'med-result-item';
+    item.innerHTML = `
+      <div class="med-result-name">${m.emoji} ${m.name} <span class="med-result-cat">${m.cat}</span></div>
+      <div class="med-result-dose">dose tipica: ${m.dose}</div>
+    `;
+    item.addEventListener('click', () => {
+      medSelectedDrug = m;
+      document.getElementById('med-name-input').value = m.name;
+      const doseField = document.getElementById('med-dose-input');
+      if (!doseField.value) doseField.value = m.dose;
+      resBox.style.display = 'none';
+      doseField.focus();
+    });
+    resBox.appendChild(item);
+  });
+
+  resBox.style.display = matches.length > 0 || !exactMatch ? 'block' : 'none';
+}
+
+// Wire med modal handlers
+document.getElementById('add-med-btn').addEventListener('click', () => openMedModal(null));
+document.getElementById('med-cancel-btn').addEventListener('click', closeMedModal);
+medModal.addEventListener('click', (e) => { if (e.target === medModal) closeMedModal(); });
+
+document.getElementById('med-name-input').addEventListener('input', (e) => renderMedResults(e.target.value));
+document.getElementById('med-name-input').addEventListener('focus', (e) => renderMedResults(e.target.value));
+
+document.getElementById('med-save-btn').addEventListener('click', async () => {
+  const name = document.getElementById('med-name-input').value.trim();
+  if (!name) {
+    alert('Inserisci il nome del farmaco.');
+    document.getElementById('med-name-input').focus();
+    return;
+  }
+  const dose = document.getElementById('med-dose-input').value.trim();
+  const dateVal = document.getElementById('med-date-input').value || todayISO();
+  const timeVal = document.getElementById('med-time-input').value || '';
+  const reason = document.getElementById('med-reason-input').value.trim();
+  const effects = document.getElementById('med-effects-input').value.trim();
+
+  // Reconstruct timestamp from date + time (or "now" for missing time)
+  let ts;
+  try {
+    if (timeVal) ts = new Date(`${dateVal}T${timeVal}`).getTime();
+    else ts = new Date(`${dateVal}T12:00`).getTime();
+  } catch (e) { ts = Date.now(); }
+  if (isNaN(ts)) ts = Date.now();
+
+  // Resolve drugId
+  let drugId;
+  if (medSelectedDrug) {
+    drugId = medSelectedDrug.id;
+  } else {
+    // Try to match by name to DB
+    const matched = MEDS_DB.find(m => normalize(m.name) === normalize(name));
+    drugId = matched ? matched.id : 'custom-' + Date.now();
+  }
+
+  const entry = {
+    id: medEditing ? medEditing.id : ('med-' + Date.now()),
+    ts: ts,
+    date: dateVal,
+    time: timeVal,
+    drugId: drugId,
+    name: name,
+    dose: dose,
+    reason: reason,
+    effects: effects
+  };
+
+  if (medEditing) {
+    const idx = state.meds.findIndex(m => m.id === medEditing.id);
+    if (idx >= 0) state.meds[idx] = entry;
+    else state.meds.push(entry);
+  } else {
+    state.meds.push(entry);
+  }
+  await saveMeds();
+  closeMedModal();
+  renderMeds();
+});
+
+document.getElementById('med-delete-btn').addEventListener('click', async () => {
+  if (!medEditing) return;
+  if (!confirm('Eliminare questa assunzione?')) return;
+  state.meds = state.meds.filter(m => m.id !== medEditing.id);
+  await saveMeds();
+  closeMedModal();
+  renderMeds();
+});
+
 // ========== ACTIVITY CALENDAR ==========
 let calViewYear = new Date().getFullYear();
 let calViewMonth = new Date().getMonth(); // 0-11
@@ -9831,7 +10275,7 @@ const fabBackup = document.getElementById('fab-backup');
 
 function getAllData() {
   return {
-    version: 5,
+    version: 6,
     exportedAt: new Date().toISOString(),
     appName: 'Health Diary',
     data: {
@@ -9842,6 +10286,7 @@ function getAllData() {
       labs: state.labs,
       workoutLogs: state.workoutLogs,
       dayEmojis: state.dayEmojis,
+      meds: state.meds,
       targets: state.targets,
       profile: state.profile
     }
@@ -9968,6 +10413,7 @@ document.getElementById('backup-file-input').addEventListener('change', async (e
     if (d.labs) state.labs = d.labs;
     if (d.workoutLogs) state.workoutLogs = d.workoutLogs;
     if (d.dayEmojis) state.dayEmojis = d.dayEmojis;
+    if (d.meds) state.meds = d.meds;
     if (d.targets) state.targets = d.targets;
     if (d.profile) state.profile = { ...state.profile, ...d.profile };
     await saveDiary();
@@ -9977,6 +10423,7 @@ document.getElementById('backup-file-input').addEventListener('change', async (e
     await saveLabs();
     await saveWorkoutLogs();
     await saveDayEmojis();
+    await saveMeds();
     await saveTargets();
     await saveProfile();
     // Reset backup badge (just restored, equivalent to fresh state)
