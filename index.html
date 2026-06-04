@@ -701,6 +701,95 @@
   }
 
   /* ===== WORKOUT / SCHEDA ALLENAMENTO ===== */
+  .duration-edit-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+  .duration-edit-row #int-duration-input {
+    flex: 1;
+    padding: 12px;
+    border: 1.5px solid var(--accent);
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--accent-deep);
+    background: var(--bg-card);
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+  }
+  .duration-edit-row #int-duration-input::-webkit-outer-spin-button,
+  .duration-edit-row #int-duration-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  .dur-step-btn {
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    color: var(--accent-deep);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.12s;
+  }
+  .dur-step-btn:active { transform: scale(0.93); }
+  .dur-step-btn:hover { background: var(--accent); color: white; }
+  .dur-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .dur-hint.changed { color: var(--warm); font-weight: 600; }
+  .wd-intensity-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+  .wd-int-pick {
+    background: var(--bg-soft);
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 6px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.12s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+  .wd-int-pick span { font-size: 20px; line-height: 1; }
+  .wd-int-pick:active { transform: scale(0.96); }
+  .wd-int-pick.selected {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent-deep);
+  }
+  .wd-kcal-preview {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--warm);
+    background: var(--bg-soft);
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 12px;
+  }
   .intensity-options {
     display: flex;
     flex-direction: column;
@@ -4573,7 +4662,16 @@
 <div class="modal-overlay" id="intensity-modal">
   <div class="modal" style="max-width: 420px;">
     <h3>Com'è andata?</h3>
-    <div class="modal-sub">Scegli l'intensità della sessione per stimare le calorie bruciate.</div>
+    <div class="modal-sub">Controlla la durata, poi scegli l'intensità.</div>
+
+    <div class="step-label">Durata sessione (minuti)</div>
+    <div class="duration-edit-row">
+      <button class="dur-step-btn" id="dur-minus" title="-5 min">−5</button>
+      <input type="number" id="int-duration-input" min="1" max="600" step="1" inputmode="numeric">
+      <button class="dur-step-btn" id="dur-plus" title="+5 min">+5</button>
+    </div>
+    <div class="dur-hint" id="dur-hint">cronometrato: — min</div>
+
     <div class="intensity-options">
       <button class="intensity-opt" data-intensity="light">
         <span class="intensity-emoji">🟢</span>
@@ -4605,10 +4703,31 @@
   <div class="modal" style="max-width: 480px;">
     <h3 id="workout-detail-title">Dettaglio sessione</h3>
     <div class="modal-sub" id="workout-detail-meta">—</div>
+
+    <!-- EDITABLE: duration + intensity, with live kcal recompute -->
+    <div class="step-label">Durata (minuti)</div>
+    <div class="duration-edit-row">
+      <button class="dur-step-btn" id="wd-dur-minus" title="-5 min">−5</button>
+      <input type="number" id="wd-duration-input" min="1" max="600" step="1" inputmode="numeric">
+      <button class="dur-step-btn" id="wd-dur-plus" title="+5 min">+5</button>
+    </div>
+    <div class="dur-hint" id="wd-dur-hint">durata originale: — min</div>
+
+    <div class="step-label">Intensità</div>
+    <div class="wd-intensity-row">
+      <button class="wd-int-pick" data-intensity="light"><span>🟢</span> Leggera</button>
+      <button class="wd-int-pick" data-intensity="medium"><span>🟠</span> Media</button>
+      <button class="wd-int-pick" data-intensity="intense"><span>🔴</span> Intensa</button>
+    </div>
+    <div class="wd-kcal-preview" id="wd-kcal-preview">~— kcal stimate</div>
+
+    <div class="step-label">Esercizi</div>
     <div id="workout-detail-content"></div>
+
     <div class="modal-actions">
-      <button class="btn-secondary" id="workout-detail-close">Chiudi</button>
       <button class="btn-danger" id="workout-detail-delete">Elimina</button>
+      <button class="btn-secondary" id="workout-detail-close">Annulla</button>
+      <button class="btn-primary" id="workout-detail-save">Salva</button>
     </div>
   </div>
 </div>
@@ -5913,7 +6032,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.12.0';
+const APP_VERSION = '3.12.2';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -10056,14 +10175,15 @@ async function finishWorkoutSession() {
   if (totalDone === 0) {
     if (!confirm('Nessun set completato. Salvare comunque?')) return;
   }
-  const durationMin = Math.max(1, Math.round(currentWorkoutElapsedSec() / 60));
+  const measuredMin = Math.max(1, Math.round(currentWorkoutElapsedSec() / 60));
   // Build the log but defer saving until intensity is chosen
   pendingWorkoutLog = {
     ts: workoutStartTime,
     date: todayISO(),
     sessionId: workoutSession.sessionId,
-    durationMin: durationMin,
-    intensity: null, // set by intensity modal
+    durationMin: measuredMin, // may be overridden via the editable field
+    measuredMin: measuredMin, // keep the cronometered value for the hint
+    intensity: null,
     exercises: workoutSession.exercises.map(ex => ({
       exerciseId: ex.exerciseId,
       name: ex.name,
@@ -10084,21 +10204,58 @@ async function finishWorkoutSession() {
   }
   if (workoutTimerInterval) { clearInterval(workoutTimerInterval); workoutTimerInterval = null; }
 
-  // Compute kcal preview for each intensity, using duration + current weight
+  // Populate the editable duration field
+  const durInput = document.getElementById('int-duration-input');
+  const durHint = document.getElementById('dur-hint');
+  if (durInput) durInput.value = measuredMin;
+  if (durHint) {
+    durHint.textContent = `cronometrato: ${measuredMin} min`;
+    durHint.classList.remove('changed');
+  }
+
+  // Compute kcal preview for the current (possibly edited) duration
+  updateIntensityKcalPreview();
+
+  document.getElementById('intensity-modal').classList.add('show');
+}
+
+// Recompute the kcal previews based on the editable duration field
+function updateIntensityKcalPreview() {
+  if (!pendingWorkoutLog) return;
+  const durInput = document.getElementById('int-duration-input');
+  let mins = parseInt(durInput ? durInput.value : pendingWorkoutLog.durationMin);
+  if (isNaN(mins) || mins < 1) mins = pendingWorkoutLog.measuredMin || 1;
   const weight = getWeightOnDate(pendingWorkoutLog.date);
-  const hours = durationMin / 60;
+  const hours = mins / 60;
   ['light','medium','intense'].forEach(level => {
     const kcal = Math.round(WORKOUT_METS[level] * weight * hours);
     const el = document.getElementById('int-kcal-' + level);
     if (el) el.textContent = `~${kcal} kcal`;
   });
-
-  document.getElementById('intensity-modal').classList.add('show');
+  // Update hint: mark "changed" if differs from measured
+  const durHint = document.getElementById('dur-hint');
+  if (durHint && pendingWorkoutLog.measuredMin != null) {
+    if (mins !== pendingWorkoutLog.measuredMin) {
+      durHint.textContent = `cronometrato: ${pendingWorkoutLog.measuredMin} min · modificato a ${mins} min`;
+      durHint.classList.add('changed');
+    } else {
+      durHint.textContent = `cronometrato: ${pendingWorkoutLog.measuredMin} min`;
+      durHint.classList.remove('changed');
+    }
+  }
 }
 
 async function saveWorkoutWithIntensity(intensity) {
   if (!pendingWorkoutLog) return;
+  // Read the (possibly edited) duration from the input
+  const durInput = document.getElementById('int-duration-input');
+  let mins = parseInt(durInput ? durInput.value : pendingWorkoutLog.durationMin);
+  if (isNaN(mins) || mins < 1) mins = pendingWorkoutLog.measuredMin || 1;
+  if (mins > 600) mins = 600; // sanity cap at 10h
+  pendingWorkoutLog.durationMin = mins;
   pendingWorkoutLog.intensity = intensity;
+  // Drop the helper field before saving
+  delete pendingWorkoutLog.measuredMin;
   state.workoutLogs.push(pendingWorkoutLog);
   await saveWorkoutLogs();
   pendingWorkoutLog = null;
@@ -10145,11 +10302,35 @@ function openExerciseInfoModal(exerciseId, sessionId) {
 
 // ========== WORKOUT DETAIL MODAL ==========
 let workoutDetailLogIdx = null;
+// Track the original (measured) duration to show the "originale" hint
+let workoutDetailOriginalMin = null;
+let workoutDetailOriginalIntensity = null;
+let workoutDetailIntensity = null;
+
 function openWorkoutDetailModal(log) {
   workoutDetailLogIdx = state.workoutLogs.indexOf(log);
   const dateLabel = new Date(log.date).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   document.getElementById('workout-detail-title').textContent = `Sessione ${log.sessionId} · ${dateLabel}`;
-  document.getElementById('workout-detail-meta').textContent = `Durata ${log.durationMin || '—'} min`;
+
+  const doneTotal = log.exercises.reduce((s, e) => s + (e.sets || []).filter(x => x.done).length, 0);
+  document.getElementById('workout-detail-meta').textContent = `${doneTotal} serie completate`;
+
+  // Populate editable fields
+  workoutDetailOriginalMin = log.durationMin || 1;
+  workoutDetailOriginalIntensity = log.intensity || 'medium';
+  workoutDetailIntensity = log.intensity || 'medium';
+
+  document.getElementById('wd-duration-input').value = log.durationMin || 1;
+  document.getElementById('wd-dur-hint').textContent = `durata salvata: ${workoutDetailOriginalMin} min`;
+  document.getElementById('wd-dur-hint').classList.remove('changed');
+
+  // Highlight current intensity
+  document.querySelectorAll('.wd-int-pick').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.intensity === workoutDetailIntensity);
+  });
+
+  updateWorkoutDetailKcalPreview();
+
   const content = document.getElementById('workout-detail-content');
   content.innerHTML = '';
   log.exercises.forEach(ex => {
@@ -10168,6 +10349,45 @@ function openWorkoutDetailModal(log) {
     content.appendChild(div);
   });
   workoutDetailModal.classList.add('show');
+}
+
+// Recompute the kcal preview for the detail modal based on current duration + intensity
+function updateWorkoutDetailKcalPreview() {
+  const log = state.workoutLogs[workoutDetailLogIdx];
+  if (!log) return;
+  const durInput = document.getElementById('wd-duration-input');
+  let mins = parseInt(durInput ? durInput.value : log.durationMin);
+  if (isNaN(mins) || mins < 1) mins = log.durationMin || 1;
+  const weight = getWeightOnDate(log.date);
+  const mets = WORKOUT_METS[workoutDetailIntensity] || WORKOUT_METS.medium;
+  const kcal = Math.round(mets * weight * (mins / 60));
+  document.getElementById('wd-kcal-preview').textContent = `~${kcal} kcal stimate (${WORKOUT_INTENSITY_LABELS[workoutDetailIntensity].toLowerCase()})`;
+
+  // Update hint: mark "changed" if differs from saved
+  const hint = document.getElementById('wd-dur-hint');
+  if (hint) {
+    const changed = (mins !== workoutDetailOriginalMin) || (workoutDetailIntensity !== workoutDetailOriginalIntensity);
+    if (mins !== workoutDetailOriginalMin) {
+      hint.textContent = `durata salvata: ${workoutDetailOriginalMin} min · modificata a ${mins} min`;
+    } else {
+      hint.textContent = `durata salvata: ${workoutDetailOriginalMin} min`;
+    }
+    hint.classList.toggle('changed', changed);
+  }
+}
+
+async function saveWorkoutDetailChanges() {
+  const log = state.workoutLogs[workoutDetailLogIdx];
+  if (!log) return;
+  const durInput = document.getElementById('wd-duration-input');
+  let mins = parseInt(durInput ? durInput.value : log.durationMin);
+  if (isNaN(mins) || mins < 1) mins = log.durationMin || 1;
+  if (mins > 600) mins = 600;
+  log.durationMin = mins;
+  log.intensity = workoutDetailIntensity;
+  await saveWorkoutLogs();
+  workoutDetailModal.classList.remove('show');
+  renderAll();
 }
 
 // Initialize workout event listeners
@@ -10240,6 +10460,31 @@ function initWorkoutHandlers() {
     workoutDetailModal.classList.remove('show');
     renderAll();
   });
+  document.getElementById('workout-detail-save').addEventListener('click', saveWorkoutDetailChanges);
+
+  // Editable duration in detail modal
+  const wdDurInput = document.getElementById('wd-duration-input');
+  if (wdDurInput) wdDurInput.addEventListener('input', updateWorkoutDetailKcalPreview);
+  const wdMinus = document.getElementById('wd-dur-minus');
+  const wdPlus = document.getElementById('wd-dur-plus');
+  if (wdMinus) wdMinus.addEventListener('click', () => {
+    const cur = parseInt(wdDurInput.value) || 0;
+    wdDurInput.value = Math.max(1, cur - 5);
+    updateWorkoutDetailKcalPreview();
+  });
+  if (wdPlus) wdPlus.addEventListener('click', () => {
+    const cur = parseInt(wdDurInput.value) || 0;
+    wdDurInput.value = Math.min(600, cur + 5);
+    updateWorkoutDetailKcalPreview();
+  });
+  // Intensity picker in detail modal
+  document.querySelectorAll('.wd-int-pick').forEach(btn => {
+    btn.addEventListener('click', () => {
+      workoutDetailIntensity = btn.dataset.intensity;
+      document.querySelectorAll('.wd-int-pick').forEach(b => b.classList.toggle('selected', b === btn));
+      updateWorkoutDetailKcalPreview();
+    });
+  });
 
   // Exercise info modal
   document.getElementById('exercise-info-close').addEventListener('click', () => exerciseInfoModal.classList.remove('show'));
@@ -10250,6 +10495,27 @@ function initWorkoutHandlers() {
   intensityModal.querySelectorAll('.intensity-opt').forEach(opt => {
     opt.addEventListener('click', () => saveWorkoutWithIntensity(opt.dataset.intensity));
   });
+
+  // Editable duration field — recompute kcal preview on every change
+  const durInput = document.getElementById('int-duration-input');
+  if (durInput) {
+    durInput.addEventListener('input', updateIntensityKcalPreview);
+  }
+  const durMinus = document.getElementById('dur-minus');
+  const durPlus = document.getElementById('dur-plus');
+  if (durMinus) durMinus.addEventListener('click', () => {
+    if (!durInput) return;
+    const cur = parseInt(durInput.value) || 0;
+    durInput.value = Math.max(1, cur - 5);
+    updateIntensityKcalPreview();
+  });
+  if (durPlus) durPlus.addEventListener('click', () => {
+    if (!durInput) return;
+    const cur = parseInt(durInput.value) || 0;
+    durInput.value = Math.min(600, cur + 5);
+    updateIntensityKcalPreview();
+  });
+
   document.getElementById('intensity-cancel').addEventListener('click', () => {
     // Cancel finishing — go back to the workout, resume timer
     intensityModal.classList.remove('show');
