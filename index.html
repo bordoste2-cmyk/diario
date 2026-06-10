@@ -2918,6 +2918,49 @@
 
   /* Activity modal */
   .activity-step { margin-bottom: 16px; }
+  .optional-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    text-transform: uppercase;
+    background: var(--bg-soft);
+    color: var(--ink-soft);
+    padding: 1px 6px;
+    border-radius: 5px;
+    margin-left: 6px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+  .temp-quick-picks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-top: 8px;
+  }
+  .temp-quick-picks button {
+    background: var(--bg-soft);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 5px 9px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.12s;
+  }
+  .temp-quick-picks button:active { transform: scale(0.93); }
+  .temp-quick-picks button:hover { background: var(--accent-soft); border-color: var(--accent); }
+  .temp-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    margin-top: 8px;
+    line-height: 1.45;
+  }
+  .temp-hint.active {
+    color: var(--warm);
+    font-weight: 600;
+  }
   .step-label {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
@@ -4859,6 +4902,17 @@
       </div>
     </div>
 
+    <!-- Step 5: temperature (optional) -->
+    <div class="activity-step" id="temp-step" style="display:none;">
+      <div class="step-label">5. Temperatura <span class="optional-tag">opzionale</span></div>
+      <div class="duration-input">
+        <input type="number" id="activity-temp" step="1" min="-10" max="50" inputmode="numeric" placeholder="es. 30">
+        <span class="dur-unit">°C</span>
+      </div>
+      <div class="temp-quick-picks" id="temp-quick-picks"></div>
+      <div class="temp-hint" id="temp-hint">Lascia vuoto per condizioni standard. Caldo/freddo aggiunge un piccolo modificatore alle kcal.</div>
+    </div>
+
     <!-- Preview -->
     <div class="activity-preview" id="activity-preview" style="display:none;">
       <div class="preview-summary" id="activity-preview-summary"></div>
@@ -6032,7 +6086,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.12.2';
+const APP_VERSION = '3.13.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -6322,9 +6376,32 @@ function previousLabValue(paramId) {
 // ========== ACTIVITY HELPERS ==========
 function findActivity(id) { return ACTIVITIES.find(a => a.id === id); }
 
-function computeKcalBurned(mets, weightKg, durationMin) {
-  // kcal = METs × kg × hours
-  return mets * weightKg * (durationMin / 60);
+// Temperature modifier on kcal — moderate, evidence-grounded
+// Returns the multiplier (1.0 = no change) for the given temperature in °C, or 1.0 if null
+function tempKcalModifier(tempC) {
+  if (tempC === null || tempC === undefined || isNaN(tempC)) return 1.0;
+  if (tempC < 5) return 1.05;        // cold: +5%
+  if (tempC < 22) return 1.00;       // comfort zone
+  if (tempC < 27) return 1.03;       // mildly warm: +3%
+  if (tempC < 32) return 1.07;       // significantly warm: +7%
+  return 1.12;                        // hot extreme: +12%
+}
+
+function tempModifierLabel(tempC) {
+  if (tempC === null || tempC === undefined || isNaN(tempC)) return '';
+  const mod = tempKcalModifier(tempC);
+  if (mod === 1.0) return 'zona di comfort, nessun modificatore';
+  const pct = Math.round((mod - 1) * 100);
+  if (tempC < 5) return `freddo: +${pct}% kcal`;
+  if (tempC >= 32) return `caldo estremo: +${pct}% kcal`;
+  if (tempC >= 27) return `caldo significativo: +${pct}% kcal`;
+  return `caldo moderato: +${pct}% kcal`;
+}
+
+function computeKcalBurned(mets, weightKg, durationMin, tempC) {
+  // kcal = METs × kg × hours, with optional temperature modifier
+  const base = mets * weightKg * (durationMin / 60);
+  return base * tempKcalModifier(tempC);
 }
 
 function getDayActivities(dateKey) {
@@ -8061,7 +8138,7 @@ function renderActivities() {
         <span class="activity-emoji-big">${it.emoji||'✨'}</span>
         <div class="activity-info">
           <div class="activity-name">${it.name}</div>
-          <div class="activity-meta">${it.level||''} · ${it.durationMin} min · ${it.mets} MET · ${it.weightKg}kg</div>
+          <div class="activity-meta">${it.level||''} · ${it.durationMin} min · ${it.mets} MET · ${it.weightKg}kg${it.tempC != null ? ' · ' + it.tempC + '°C' : ''}</div>
         </div>
         <div class="activity-kcal">
           <span class="lbl">kcal</span>
@@ -8170,10 +8247,10 @@ function renderActivityWeekChart() {
 
 // ========== ACTIVITY MODAL ==========
 const activityModal = document.getElementById('activity-modal');
-let activitySelection = { activity: null, level: null, customMets: null, durationMin: null, weightKg: null, editIdx: null };
+let activitySelection = { activity: null, level: null, customMets: null, durationMin: null, weightKg: null, tempC: null, editIdx: null };
 
 function openActivityModal() {
-  activitySelection = { activity: null, level: null, customMets: null, durationMin: null, weightKg: getCurrentWeightKg(), editIdx: null };
+  activitySelection = { activity: null, level: null, customMets: null, durationMin: null, weightKg: getCurrentWeightKg(), tempC: null, editIdx: null };
   document.getElementById('activity-modal-title').textContent = 'Registra attività';
   document.getElementById('activity-save').disabled = true;
   document.getElementById('activity-save').textContent = 'Salva';
@@ -8181,9 +8258,13 @@ function openActivityModal() {
   document.getElementById('intensity-step').style.display = 'none';
   document.getElementById('duration-step').style.display = 'none';
   document.getElementById('weight-step').style.display = 'none';
+  document.getElementById('temp-step').style.display = 'none';
   document.getElementById('activity-preview').style.display = 'none';
   document.getElementById('activity-duration').value = '';
   document.getElementById('activity-weight').value = activitySelection.weightKg.toFixed(1);
+  document.getElementById('activity-temp').value = '';
+  populateTempQuickPicks();
+  updateTempHint();
   document.getElementById('custom-mets-input').style.display = 'none';
   document.getElementById('custom-mets-input').value = '';
   activityModal.classList.add('show');
@@ -8200,6 +8281,7 @@ function openActivityModalEdit(idx) {
     customMets: item.customMets || null,
     durationMin: item.durationMin,
     weightKg: item.weightKg,
+    tempC: item.tempC != null ? item.tempC : null,
     editIdx: idx
   };
   document.getElementById('activity-modal-title').textContent = 'Modifica attività';
@@ -8208,8 +8290,12 @@ function openActivityModalEdit(idx) {
   showIntensityStep();
   showDurationStep();
   showWeightStep();
+  showTempStep();
   document.getElementById('activity-duration').value = item.durationMin;
   document.getElementById('activity-weight').value = item.weightKg.toFixed(1);
+  document.getElementById('activity-temp').value = item.tempC != null ? item.tempC : '';
+  populateTempQuickPicks();
+  updateTempHint();
   if (activitySelection.level.custom) {
     document.getElementById('custom-mets-input').style.display = 'block';
     document.getElementById('custom-mets-input').value = item.customMets;
@@ -8303,6 +8389,52 @@ function showDurationStep() {
 
 function showWeightStep() {
   document.getElementById('weight-step').style.display = 'block';
+  showTempStep();
+}
+
+function showTempStep() {
+  document.getElementById('temp-step').style.display = 'block';
+}
+
+function populateTempQuickPicks() {
+  const picksEl = document.getElementById('temp-quick-picks');
+  if (!picksEl) return;
+  picksEl.innerHTML = '';
+  const presets = [
+    { label: '❄ 0°', v: 0 },
+    { label: '🌤 15°', v: 15 },
+    { label: '☀ 22°', v: 22 },
+    { label: '🔥 28°', v: 28 },
+    { label: '🥵 32°', v: 32 },
+    { label: '🥵 35°', v: 35 }
+  ];
+  presets.forEach(p => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = p.label;
+    btn.addEventListener('click', () => {
+      document.getElementById('activity-temp').value = p.v;
+      updateActivityPreview();
+    });
+    picksEl.appendChild(btn);
+  });
+}
+
+function updateTempHint() {
+  const hint = document.getElementById('temp-hint');
+  if (!hint) return;
+  const v = parseFloat(document.getElementById('activity-temp').value);
+  if (isNaN(v)) {
+    hint.textContent = 'Lascia vuoto per condizioni standard. Caldo/freddo aggiunge un piccolo modificatore alle kcal.';
+    hint.classList.remove('active');
+  } else {
+    const label = tempModifierLabel(v);
+    if (label) {
+      hint.textContent = label;
+      const mod = tempKcalModifier(v);
+      hint.classList.toggle('active', mod !== 1.0);
+    }
+  }
 }
 
 function updateActivityPreview() {
@@ -8319,6 +8451,8 @@ function updateActivityPreview() {
   }
   const dur = parseFloat(document.getElementById('activity-duration').value);
   const wt = parseFloat(document.getElementById('activity-weight').value);
+  const tempRaw = document.getElementById('activity-temp').value;
+  const tempC = tempRaw === '' ? null : parseFloat(tempRaw);
 
   if (!mets || isNaN(dur) || dur <= 0 || isNaN(wt) || wt <= 0) {
     document.getElementById('activity-preview').style.display = 'none';
@@ -8328,10 +8462,13 @@ function updateActivityPreview() {
 
   activitySelection.durationMin = dur;
   activitySelection.weightKg = wt;
-  const kcal = computeKcalBurned(mets, wt, dur);
+  activitySelection.tempC = (tempC !== null && !isNaN(tempC)) ? tempC : null;
+  const kcal = computeKcalBurned(mets, wt, dur, activitySelection.tempC);
+  updateTempHint();
   document.getElementById('activity-preview').style.display = 'block';
+  const tempSuffix = activitySelection.tempC != null ? ` · ${activitySelection.tempC}°C` : '';
   document.getElementById('activity-preview-summary').textContent =
-    `${activitySelection.activity.emoji} ${activitySelection.activity.name} · ${activitySelection.level.name} (${mets} MET) · ${dur} min @ ${wt.toFixed(1)}kg`;
+    `${activitySelection.activity.emoji} ${activitySelection.activity.name} · ${activitySelection.level.name} (${mets} MET) · ${dur} min @ ${wt.toFixed(1)}kg${tempSuffix}`;
   document.getElementById('kcal-burned-preview').textContent = `${Math.round(kcal)} kcal`;
   document.getElementById('activity-save').disabled = false;
 }
@@ -8341,6 +8478,7 @@ document.getElementById('activity-cancel').addEventListener('click', () => activ
 activityModal.addEventListener('click', (e) => { if (e.target === activityModal) activityModal.classList.remove('show'); });
 document.getElementById('activity-duration').addEventListener('input', updateActivityPreview);
 document.getElementById('activity-weight').addEventListener('input', updateActivityPreview);
+document.getElementById('activity-temp').addEventListener('input', updateActivityPreview);
 document.getElementById('custom-mets-input').addEventListener('input', updateActivityPreview);
 
 document.getElementById('activity-save').addEventListener('click', async () => {
@@ -8349,7 +8487,7 @@ document.getElementById('activity-save').addEventListener('click', async () => {
   let mets = sel.level.mets;
   if (sel.level.custom) mets = sel.customMets;
   if (!mets) return;
-  const kcalBurned = computeKcalBurned(mets, sel.weightKg, sel.durationMin);
+  const kcalBurned = computeKcalBurned(mets, sel.weightKg, sel.durationMin, sel.tempC);
   const entry = {
     activityId: sel.activity.id,
     name: sel.activity.name,
@@ -8359,6 +8497,7 @@ document.getElementById('activity-save').addEventListener('click', async () => {
     customMets: sel.level.custom ? sel.customMets : null,
     durationMin: sel.durationMin,
     weightKg: sel.weightKg,
+    tempC: sel.tempC,
     kcalBurned: kcalBurned,
     ts: Date.now()
   };
@@ -9197,7 +9336,7 @@ function openCalDayModal(dateKey) {
       <span class="cal-day-activity-icon">${a.emoji || activityEmoji(a.activityId)}</span>
       <div class="cal-day-activity-info">
         <div class="cal-day-activity-name">${a.name}</div>
-        <div class="cal-day-activity-meta">${a.durationMin} min · ${a.level || ''}</div>
+        <div class="cal-day-activity-meta">${a.durationMin} min · ${a.level || ''}${a.tempC != null ? ' · ' + a.tempC + '°C' : ''}</div>
       </div>
       <span class="cal-day-activity-kcal">${Math.round(a.kcalBurned || 0)} kcal</span>
     `;
