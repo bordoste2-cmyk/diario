@@ -3233,6 +3233,155 @@
     background: var(--accent-soft);
   }
 
+  /* ===== RECIPE / CUSTOM FOOD ===== */
+  .cf-mode-switch {
+    display: flex;
+    gap: 6px;
+    background: var(--bg-soft);
+    border-radius: 10px;
+    padding: 4px;
+    margin-bottom: 14px;
+  }
+  .cf-mode-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 9px 8px;
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.15s;
+  }
+  .cf-mode-btn:active { transform: scale(0.97); }
+  .cf-mode-btn.selected {
+    background: var(--bg-card);
+    color: var(--accent-deep);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  .recipe-ingredient-section {
+    margin-top: 16px;
+    padding: 12px;
+    background: var(--bg-soft);
+    border-radius: 10px;
+  }
+  .recipe-ingredient-search-wrap { position: relative; margin-bottom: 8px; }
+  .recipe-ingredient-list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-height: 50px;
+  }
+  .recipe-empty {
+    text-align: center;
+    color: var(--ink-faint);
+    font-style: italic;
+    font-size: 12px;
+    padding: 14px 8px;
+  }
+  .recipe-ing-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card);
+    border-radius: 8px;
+    padding: 7px 10px;
+  }
+  .recipe-ing-name {
+    flex: 1;
+    font-size: 12.5px;
+    color: var(--ink);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .recipe-ing-qty {
+    width: 64px;
+    padding: 5px 6px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    text-align: center;
+    background: var(--bg);
+    color: var(--ink);
+    -webkit-appearance: none;
+  }
+  .recipe-ing-unit {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    width: 22px;
+  }
+  .recipe-ing-remove {
+    background: none;
+    border: none;
+    color: var(--tomato);
+    font-size: 18px;
+    cursor: pointer;
+    padding: 0 4px;
+    -webkit-tap-highlight-color: transparent;
+    line-height: 1;
+  }
+  .recipe-totals {
+    margin-top: 12px;
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px;
+  }
+  .recipe-totals-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent-deep);
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-align: center;
+  }
+  .recipe-totals-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    text-align: center;
+  }
+  .recipe-totals-cell {
+    background: var(--bg-card);
+    border-radius: 8px;
+    padding: 6px 4px;
+  }
+  .recipe-totals-cell .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent-deep);
+  }
+  .recipe-totals-cell .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+  .recipe-badge {
+    display: inline-block;
+    background: var(--accent-soft);
+    color: var(--accent-deep);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9.5px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 5px;
+    margin-left: 6px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
   /* Custom food modal */
   .form-grid {
     display: grid;
@@ -4968,6 +5117,7 @@
   <div class="modal">
     <h3 id="qty-food-name">Alimento</h3>
     <div class="modal-sub" id="qty-food-base">100g →</div>
+    <button id="qty-edit-custom" style="display:none; background:none; border:none; color:var(--accent-deep); font-family:inherit; font-size:11px; text-decoration:underline; cursor:pointer; padding:0 0 8px 0; -webkit-tap-highlight-color:transparent;">✎ Modifica questo alimento/ricetta</button>
 
     <div class="qty-input">
       <input type="number" id="qty-input" step="any" min="0">
@@ -4997,56 +5147,97 @@
 
 <!-- CUSTOM FOOD MODAL -->
 <div class="modal-overlay" id="custom-modal">
-  <div class="modal">
-    <h3>Nuovo alimento personalizzato</h3>
-    <div class="modal-sub">Valori per 100 g (o 100 ml per liquidi)</div>
+  <div class="modal" style="max-width: 540px;">
+    <h3 id="cf-modal-title">Nuovo alimento personalizzato</h3>
 
-    <div class="form-grid">
-      <div class="form-row full">
-        <label>Nome</label>
-        <input type="text" id="cf-name" placeholder="Es. La mia barretta proteica">
+    <!-- Mode switcher -->
+    <div class="cf-mode-switch">
+      <button class="cf-mode-btn selected" data-mode="simple">🍽 Alimento</button>
+      <button class="cf-mode-btn" data-mode="recipe">📋 Ricetta</button>
+    </div>
+
+    <div class="modal-sub" id="cf-modal-sub">Valori per 100 g (o 100 ml per liquidi)</div>
+
+    <!-- SIMPLE FOOD form -->
+    <div id="cf-simple-form">
+      <div class="form-grid">
+        <div class="form-row full">
+          <label>Nome</label>
+          <input type="text" id="cf-name" placeholder="Es. La mia barretta proteica">
+        </div>
+        <div class="form-row">
+          <label>Calorie (kcal)</label>
+          <input type="number" id="cf-kcal" step="any" min="0">
+        </div>
+        <div class="form-row">
+          <label>Proteine (g)</label>
+          <input type="number" id="cf-protein" step="any" min="0">
+        </div>
+        <div class="form-row">
+          <label>Carboidrati (g)</label>
+          <input type="number" id="cf-carbs" step="any" min="0">
+        </div>
+        <div class="form-row">
+          <label>di cui zuccheri (g)</label>
+          <input type="number" id="cf-sugar" step="any" min="0">
+        </div>
+        <div class="form-row">
+          <label>Grassi (g)</label>
+          <input type="number" id="cf-fat" step="any" min="0">
+        </div>
+        <div class="form-row">
+          <label>di cui saturi (g)</label>
+          <input type="number" id="cf-saturated" step="any" min="0">
+        </div>
+        <div class="form-row">
+          <label>Fibre (g)</label>
+          <input type="number" id="cf-fiber" step="any" min="0">
+        </div>
+        <div class="form-row">
+          <label>Unità di default</label>
+          <select id="cf-unit" style="padding:10px 12px; border:1.5px solid var(--line); border-radius:6px; font-size:14px; font-family:inherit;">
+            <option value="g">grammi (g)</option>
+            <option value="ml">millilitri (ml)</option>
+            <option value="pz">pezzi/unità</option>
+          </select>
+        </div>
       </div>
-      <div class="form-row">
-        <label>Calorie (kcal)</label>
-        <input type="number" id="cf-kcal" step="any" min="0">
+    </div>
+
+    <!-- RECIPE form -->
+    <div id="cf-recipe-form" style="display:none;">
+      <div class="form-grid">
+        <div class="form-row full">
+          <label>Nome ricetta</label>
+          <input type="text" id="cf-recipe-name" placeholder="Es. Caffè zuccherato, Torta della nonna">
+        </div>
+        <div class="form-row">
+          <label>Porzioni totali</label>
+          <input type="number" id="cf-recipe-servings" step="0.5" min="0.5" value="1">
+        </div>
       </div>
-      <div class="form-row">
-        <label>Proteine (g)</label>
-        <input type="number" id="cf-protein" step="any" min="0">
+
+      <div class="recipe-ingredient-section">
+        <div class="step-label">Ingredienti</div>
+        <div class="recipe-ingredient-search-wrap">
+          <input type="text" id="cf-ingredient-search" class="search-input" placeholder="Cerca alimento da aggiungere...">
+          <div class="results" id="cf-ingredient-results" style="position:static; margin-top:8px; max-height:180px; display:none;"></div>
+        </div>
+        <div class="recipe-ingredient-list" id="cf-ingredient-list">
+          <div class="recipe-empty">Nessun ingrediente. Cerca sopra per aggiungerne.</div>
+        </div>
       </div>
-      <div class="form-row">
-        <label>Carboidrati (g)</label>
-        <input type="number" id="cf-carbs" step="any" min="0">
-      </div>
-      <div class="form-row">
-        <label>di cui zuccheri (g)</label>
-        <input type="number" id="cf-sugar" step="any" min="0">
-      </div>
-      <div class="form-row">
-        <label>Grassi (g)</label>
-        <input type="number" id="cf-fat" step="any" min="0">
-      </div>
-      <div class="form-row">
-        <label>di cui saturi (g)</label>
-        <input type="number" id="cf-saturated" step="any" min="0">
-      </div>
-      <div class="form-row">
-        <label>Fibre (g)</label>
-        <input type="number" id="cf-fiber" step="any" min="0">
-      </div>
-      <div class="form-row">
-        <label>Unità di default</label>
-        <select id="cf-unit" style="padding:10px 12px; border:1.5px solid var(--line); border-radius:6px; font-size:14px; font-family:inherit;">
-          <option value="g">grammi (g)</option>
-          <option value="ml">millilitri (ml)</option>
-          <option value="pz">pezzi/unità</option>
-        </select>
+
+      <div class="recipe-totals" id="cf-recipe-totals" style="display:none;">
+        <div class="recipe-totals-label">Per porzione (su <span id="cf-recipe-svg-show">1</span> porzioni totali)</div>
+        <div class="recipe-totals-grid" id="cf-recipe-per-serving"></div>
       </div>
     </div>
 
     <div class="modal-actions">
+      <button class="btn-danger" id="cf-delete" style="display:none; flex:0.7;">🗑 Elimina</button>
       <button class="btn-secondary" id="cf-cancel">Annulla</button>
-      <button class="btn-primary" id="cf-save">Salva alimento</button>
+      <button class="btn-primary" id="cf-save">Salva</button>
     </div>
   </div>
 </div>
@@ -6086,7 +6277,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.13.0';
+const APP_VERSION = '3.14.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -6694,9 +6885,12 @@ function renderMeals() {
       items.forEach((item, idx) => {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'item';
-        const qtyStr = item.unit === 'pz'
-          ? `${fmt(item.qty,1)} ${item.qty > 1 ? 'unità' : 'unità'}`
-          : `${fmt(item.qty)} ${item.unit}`;
+        const isRecipeItem = !!item.isRecipe;
+        const qtyStr = isRecipeItem
+          ? `${fmt(item.qty,1)} porzion${item.qty === 1 ? 'e' : 'i'}`
+          : (item.unit === 'pz'
+            ? `${fmt(item.qty,1)} unità`
+            : `${fmt(item.qty)} ${item.unit}`);
 
         // Classify food by health profile (using per-100 derived values)
         // The values in item are already computed for the consumed quantity.
@@ -7345,10 +7539,12 @@ function renderResults(query) {
       const item = document.createElement('div');
       item.className = 'result-item';
       const macroStr = `<span class="kcal">${fmt(f.kcal)}</span> kcal · ${fmt(f.protein,1)}p / ${fmt(f.carbs,1)}c / ${fmt(f.fat,1)}g`;
-      const customTag = f.custom ? '<span class="custom-tag">MIO</span>' : '';
+      const customTag = f.custom && !f.recipe ? '<span class="custom-tag">MIO</span>' : '';
+      const recipeTag = f.recipe ? '<span class="recipe-badge">📋 ricetta</span>' : '';
+      const perLabel = f.recipe ? 'porzione' : `/100${f.unit}`;
       item.innerHTML = `
-        <span class="name">${f.name}${customTag}</span>
-        <span class="macros">${macroStr}<br>/100${f.unit}</span>
+        <span class="name">${f.name}${customTag}${recipeTag}</span>
+        <span class="macros">${macroStr}<br>${perLabel}</span>
         <button class="result-add-cart ${isInCart(f) ? 'in-cart' : ''}" title="Aggiungi alla selezione">${isInCart(f) ? '✓' : '+'}</button>
       `;
       // Click on the row (not the +) opens single-add qty modal
@@ -7531,12 +7727,25 @@ let editMode = null; // null = adding new, {meal, idx} = editing existing
 function openQtyModal(food, prefillQty, mealOverride) {
   editMode = null; // reset to add mode
   currentFood = food;
-  qtyFoodName.textContent = food.name;
-  const baseLabel = food.unit === 'pz'
-    ? `1 unità ≈ ${food.gramsPerUnit || 100}g · ${fmt(food.kcal)} kcal/100g`
-    : `${fmt(food.kcal)} kcal · ${fmt(food.protein,1)}g proteine · per 100${food.unit}`;
+  const isRecipe = !!food.recipe;
+  qtyFoodName.innerHTML = isRecipe ? `${food.name} <span class="recipe-badge">📋</span>` : food.name;
+  let baseLabel;
+  if (isRecipe) {
+    const s = food.recipe.servings;
+    baseLabel = `${fmt(food.kcal)} kcal · ${fmt(food.protein,1)}g proteine · per porzione (ricetta da ${s} porzion${s===1?'e':'i'})`;
+  } else if (food.unit === 'pz') {
+    baseLabel = `1 unità ≈ ${food.gramsPerUnit || 100}g · ${fmt(food.kcal)} kcal/100g`;
+  } else {
+    baseLabel = `${fmt(food.kcal)} kcal · ${fmt(food.protein,1)}g proteine · per 100${food.unit}`;
+  }
   qtyFoodBase.textContent = baseLabel;
-  qtyUnit.textContent = food.unit;
+  qtyUnit.textContent = isRecipe ? 'porz.' : food.unit;
+
+  // Show edit link for custom foods/recipes
+  const editLink = document.getElementById('qty-edit-custom');
+  if (editLink) {
+    editLink.style.display = food.custom ? 'block' : 'none';
+  }
 
   // Update button label
   document.getElementById('qty-add').textContent = 'Aggiungi';
@@ -7546,12 +7755,14 @@ function openQtyModal(food, prefillQty, mealOverride) {
 
   // quick picks
   quickPicks.innerHTML = '';
-  const picks = food.unit === 'pz' ? [1, 2, 3, 4]
-              : food.unit === 'ml' ? [100, 150, 200, 250, 330, 500]
-              : [30, 50, 80, 100, 150, 200, 250];
+  let picks;
+  if (isRecipe) picks = [0.5, 1, 1.5, 2, 3];
+  else if (food.unit === 'pz') picks = [1, 2, 3, 4];
+  else if (food.unit === 'ml') picks = [100, 150, 200, 250, 330, 500];
+  else picks = [30, 50, 80, 100, 150, 200, 250];
   picks.forEach(p => {
     const btn = document.createElement('button');
-    btn.textContent = `${p}${food.unit}`;
+    btn.textContent = isRecipe ? `${p} porz.` : `${p}${food.unit}`;
     btn.addEventListener('click', () => { qtyInput.value = p; updatePreview(); });
     quickPicks.appendChild(btn);
   });
@@ -7657,6 +7868,17 @@ document.querySelectorAll('.meal-pick').forEach(btn => {
 });
 
 document.getElementById('qty-cancel').addEventListener('click', () => qtyModal.classList.remove('show'));
+document.getElementById('qty-edit-custom').addEventListener('click', () => {
+  if (!currentFood || !currentFood.custom) return;
+  // Look up the original custom food from state to preserve recipe data
+  const orig = state.customFoods.find(f => f.id === currentFood.id);
+  if (!orig) {
+    alert("Non riesco a trovare l'alimento per la modifica.");
+    return;
+  }
+  qtyModal.classList.remove('show');
+  openCustomFoodModal('', orig);
+});
 qtyModal.addEventListener('click', (e) => {
   if (e.target === qtyModal) qtyModal.classList.remove('show');
 });
@@ -7677,6 +7899,7 @@ document.getElementById('qty-add').addEventListener('click', async () => {
       name: oldItem.name,
       qty: qty,
       unit: oldItem.unit,
+      isRecipe: oldItem.isRecipe || !!currentFood.recipe,
       ...c
     };
 
@@ -7697,6 +7920,7 @@ document.getElementById('qty-add').addEventListener('click', async () => {
       name: currentFood.name,
       qty: qty,
       unit: currentFood.unit,
+      isRecipe: !!currentFood.recipe,
       ...c
     });
   }
@@ -7717,41 +7941,320 @@ qtyInput.addEventListener('keypress', e => {
 const customModal = document.getElementById('custom-modal');
 document.getElementById('add-custom-btn').addEventListener('click', () => openCustomFoodModal(''));
 
-function openCustomFoodModal(prefillName) {
-  document.getElementById('cf-name').value = prefillName;
+// State for the modal
+let cfMode = 'simple'; // 'simple' | 'recipe'
+let cfEditingId = null; // when editing existing customFood
+let cfRecipeIngredients = []; // [{foodId, qty, unit, name}]
+
+function openCustomFoodModal(prefillName, existing) {
+  cfEditingId = existing ? existing.id : null;
+  cfRecipeIngredients = [];
+
+  // Determine mode: editing a recipe → recipe mode; editing simple → simple; new → default to simple but allow switch
+  if (existing && existing.recipe) {
+    cfMode = 'recipe';
+    cfRecipeIngredients = existing.recipe.ingredients.map(ing => ({...ing}));
+  } else if (existing) {
+    cfMode = 'simple';
+  } else {
+    cfMode = 'simple';
+  }
+
+  // Title
+  document.getElementById('cf-modal-title').textContent = existing
+    ? (existing.recipe ? 'Modifica ricetta' : 'Modifica alimento')
+    : 'Nuovo alimento o ricetta';
+
+  // Mode switch buttons
+  document.querySelectorAll('.cf-mode-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.mode === cfMode);
+  });
+
+  // Show/hide forms
+  document.getElementById('cf-simple-form').style.display = cfMode === 'simple' ? 'block' : 'none';
+  document.getElementById('cf-recipe-form').style.display = cfMode === 'recipe' ? 'block' : 'none';
+
+  // Sub-title
+  document.getElementById('cf-modal-sub').textContent = cfMode === 'simple'
+    ? 'Valori per 100 g (o 100 ml per liquidi)'
+    : 'Somma di ingredienti dal database. Definisci quante porzioni produce.';
+
+  // Reset simple form
   ['kcal','protein','carbs','sugar','fat','saturated','fiber'].forEach(k => {
     document.getElementById('cf-' + k).value = '';
   });
+  document.getElementById('cf-name').value = '';
   document.getElementById('cf-unit').value = 'g';
+
+  // Reset recipe form
+  document.getElementById('cf-recipe-name').value = '';
+  document.getElementById('cf-recipe-servings').value = 1;
+  document.getElementById('cf-ingredient-search').value = '';
+  document.getElementById('cf-ingredient-results').style.display = 'none';
+
+  // Populate fields if editing
+  if (existing) {
+    if (existing.recipe) {
+      document.getElementById('cf-recipe-name').value = existing.name;
+      document.getElementById('cf-recipe-servings').value = existing.recipe.servings;
+    } else {
+      document.getElementById('cf-name').value = existing.name;
+      document.getElementById('cf-kcal').value = existing.kcal;
+      document.getElementById('cf-protein').value = existing.protein || 0;
+      document.getElementById('cf-carbs').value = existing.carbs || 0;
+      document.getElementById('cf-sugar').value = existing.sugar || 0;
+      document.getElementById('cf-fat').value = existing.fat || 0;
+      document.getElementById('cf-saturated').value = existing.sat || 0;
+      document.getElementById('cf-fiber').value = existing.fiber || 0;
+      document.getElementById('cf-unit').value = existing.unit || 'g';
+    }
+  } else if (prefillName) {
+    document.getElementById('cf-name').value = prefillName;
+    document.getElementById('cf-recipe-name').value = prefillName;
+  }
+
+  // Show/hide delete button
+  document.getElementById('cf-delete').style.display = existing ? '' : 'none';
+
+  renderRecipeIngredients();
   customModal.classList.add('show');
-  setTimeout(() => document.getElementById('cf-name').focus(), 50);
+  setTimeout(() => {
+    if (cfMode === 'simple') document.getElementById('cf-name').focus();
+    else document.getElementById('cf-recipe-name').focus();
+  }, 50);
 }
+
+function switchCfMode(mode) {
+  cfMode = mode;
+  document.querySelectorAll('.cf-mode-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.mode === mode);
+  });
+  document.getElementById('cf-simple-form').style.display = mode === 'simple' ? 'block' : 'none';
+  document.getElementById('cf-recipe-form').style.display = mode === 'recipe' ? 'block' : 'none';
+  document.getElementById('cf-modal-sub').textContent = mode === 'simple'
+    ? 'Valori per 100 g (o 100 ml per liquidi)'
+    : 'Somma di ingredienti dal database. Definisci quante porzioni produce.';
+}
+
+document.querySelectorAll('.cf-mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => switchCfMode(btn.dataset.mode));
+});
+
+// Compute totals of recipe per serving (returns {kcal, protein, carbs, sugar, fat, sat, fiber})
+function computeRecipeTotals(ingredients, servings) {
+  const total = { kcal:0, protein:0, carbs:0, sugar:0, fat:0, sat:0, fiber:0 };
+  ingredients.forEach(ing => {
+    const food = findFood(ing.foodId);
+    if (!food) return;
+    const c = compute(food, ing.qty);
+    total.kcal      += c.kcal      || 0;
+    total.protein   += c.protein   || 0;
+    total.carbs     += c.carbs     || 0;
+    total.sugar     += c.sugar     || 0;
+    total.fat       += c.fat       || 0;
+    total.sat       += c.saturated || 0;
+    total.fiber     += c.fiber     || 0;
+  });
+  const s = Math.max(0.5, servings || 1);
+  return {
+    kcal:    total.kcal / s,
+    protein: total.protein / s,
+    carbs:   total.carbs / s,
+    sugar:   total.sugar / s,
+    fat:     total.fat / s,
+    sat:     total.sat / s,
+    fiber:   total.fiber / s
+  };
+}
+
+function renderRecipeIngredients() {
+  const listEl = document.getElementById('cf-ingredient-list');
+  listEl.innerHTML = '';
+  if (cfRecipeIngredients.length === 0) {
+    listEl.innerHTML = '<div class="recipe-empty">Nessun ingrediente. Cerca sopra per aggiungerne.</div>';
+    document.getElementById('cf-recipe-totals').style.display = 'none';
+    return;
+  }
+  cfRecipeIngredients.forEach((ing, idx) => {
+    const food = findFood(ing.foodId);
+    const row = document.createElement('div');
+    row.className = 'recipe-ing-row';
+    const unit = ing.unit || (food && food.unit) || 'g';
+    row.innerHTML = `
+      <span class="recipe-ing-name" title="${ing.name}">${ing.name}</span>
+      <input type="number" class="recipe-ing-qty" data-idx="${idx}" step="any" min="0" value="${ing.qty}" inputmode="decimal">
+      <span class="recipe-ing-unit">${unit}</span>
+      <button class="recipe-ing-remove" data-idx="${idx}" title="Rimuovi">✕</button>
+    `;
+    listEl.appendChild(row);
+  });
+  // Bind handlers
+  listEl.querySelectorAll('.recipe-ing-qty').forEach(inp => {
+    inp.addEventListener('input', (e) => {
+      const idx = parseInt(e.target.dataset.idx);
+      const v = parseFloat(e.target.value);
+      if (!isNaN(v) && v > 0) {
+        cfRecipeIngredients[idx].qty = v;
+        renderRecipeTotals();
+      }
+    });
+  });
+  listEl.querySelectorAll('.recipe-ing-remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const idx = parseInt(e.currentTarget.dataset.idx);
+      cfRecipeIngredients.splice(idx, 1);
+      renderRecipeIngredients();
+    });
+  });
+  renderRecipeTotals();
+}
+
+function renderRecipeTotals() {
+  const totalsEl = document.getElementById('cf-recipe-totals');
+  if (cfRecipeIngredients.length === 0) {
+    totalsEl.style.display = 'none';
+    return;
+  }
+  const servings = parseFloat(document.getElementById('cf-recipe-servings').value) || 1;
+  const per = computeRecipeTotals(cfRecipeIngredients, servings);
+  document.getElementById('cf-recipe-svg-show').textContent = servings;
+  const grid = document.getElementById('cf-recipe-per-serving');
+  grid.innerHTML = `
+    <div class="recipe-totals-cell"><div class="val">${Math.round(per.kcal)}</div><div class="lbl">kcal</div></div>
+    <div class="recipe-totals-cell"><div class="val">${per.protein.toFixed(1)}</div><div class="lbl">prot</div></div>
+    <div class="recipe-totals-cell"><div class="val">${per.carbs.toFixed(1)}</div><div class="lbl">carb</div></div>
+    <div class="recipe-totals-cell"><div class="val">${per.fat.toFixed(1)}</div><div class="lbl">gras</div></div>
+  `;
+  totalsEl.style.display = 'block';
+}
+
+// Ingredient search
+document.getElementById('cf-recipe-servings').addEventListener('input', renderRecipeTotals);
+
+const cfIngSearch = document.getElementById('cf-ingredient-search');
+const cfIngResults = document.getElementById('cf-ingredient-results');
+cfIngSearch.addEventListener('input', () => {
+  const q = cfIngSearch.value.trim();
+  if (!q || q.length < 2) { cfIngResults.style.display = 'none'; return; }
+  const qN = normalize(q);
+  const matches = allFoods()
+    .filter(f => !f.recipe && normalize(f.name).includes(qN))  // don't allow recipes as ingredients (avoid nesting)
+    .slice(0, 12);
+  cfIngResults.innerHTML = '';
+  if (matches.length === 0) {
+    cfIngResults.style.display = 'none';
+    return;
+  }
+  matches.forEach(f => {
+    const item = document.createElement('div');
+    item.className = 'food-result';
+    item.style.cssText = 'padding:8px 10px; cursor:pointer; border-bottom:1px solid var(--bg-soft);';
+    item.innerHTML = `
+      <div style="font-size:13px; color:var(--ink);">${f.name}</div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-soft);">${Math.round(f.kcal)} kcal/100${f.unit==='pz'?'pz':f.unit||'g'}</div>
+    `;
+    item.addEventListener('click', () => {
+      const defaultQty = f.unit === 'pz' ? 1 : (f.defaultQty || 100);
+      cfRecipeIngredients.push({
+        foodId: f.id,
+        qty: defaultQty,
+        unit: f.unit || 'g',
+        name: f.name
+      });
+      cfIngSearch.value = '';
+      cfIngResults.style.display = 'none';
+      renderRecipeIngredients();
+    });
+    cfIngResults.appendChild(item);
+  });
+  cfIngResults.style.display = 'block';
+});
+cfIngSearch.addEventListener('blur', () => {
+  // delay so click can register
+  setTimeout(() => { cfIngResults.style.display = 'none'; }, 150);
+});
 
 document.getElementById('cf-cancel').addEventListener('click', () => customModal.classList.remove('show'));
 customModal.addEventListener('click', e => { if (e.target === customModal) customModal.classList.remove('show'); });
 
-document.getElementById('cf-save').addEventListener('click', async () => {
-  const name = document.getElementById('cf-name').value.trim();
-  const kcal = parseFloat(document.getElementById('cf-kcal').value);
-  if (!name || isNaN(kcal)) { alert('Inserisci almeno il nome e le calorie'); return; }
-  const food = {
-    id: 'custom-' + Date.now(),
-    name: name,
-    cat: 'Personalizzati',
-    kcal: kcal,
-    protein: parseFloat(document.getElementById('cf-protein').value) || 0,
-    carbs: parseFloat(document.getElementById('cf-carbs').value) || 0,
-    sugar: parseFloat(document.getElementById('cf-sugar').value) || 0,
-    fat: parseFloat(document.getElementById('cf-fat').value) || 0,
-    sat: parseFloat(document.getElementById('cf-saturated').value) || 0,
-    fiber: parseFloat(document.getElementById('cf-fiber').value) || 0,
-    unit: document.getElementById('cf-unit').value
-  };
-  state.customFoods.push(food);
+document.getElementById('cf-delete').addEventListener('click', async () => {
+  if (!cfEditingId) return;
+  if (!confirm('Eliminare questo alimento personalizzato? Le voci già registrate nel diario non verranno toccate.')) return;
+  state.customFoods = state.customFoods.filter(f => f.id !== cfEditingId);
   await saveCustomFoods();
   customModal.classList.remove('show');
-  // Open quantity modal for the new food
-  openQtyModal({...food, custom: true});
+  renderAll();
+});
+
+document.getElementById('cf-save').addEventListener('click', async () => {
+  if (cfMode === 'simple') {
+    // SIMPLE FOOD save
+    const name = document.getElementById('cf-name').value.trim();
+    const kcal = parseFloat(document.getElementById('cf-kcal').value);
+    if (!name || isNaN(kcal)) { alert('Inserisci almeno il nome e le calorie'); return; }
+    const food = {
+      id: cfEditingId || ('custom-' + Date.now()),
+      name: name,
+      cat: 'Personalizzati',
+      kcal: kcal,
+      protein: parseFloat(document.getElementById('cf-protein').value) || 0,
+      carbs: parseFloat(document.getElementById('cf-carbs').value) || 0,
+      sugar: parseFloat(document.getElementById('cf-sugar').value) || 0,
+      fat: parseFloat(document.getElementById('cf-fat').value) || 0,
+      sat: parseFloat(document.getElementById('cf-saturated').value) || 0,
+      fiber: parseFloat(document.getElementById('cf-fiber').value) || 0,
+      unit: document.getElementById('cf-unit').value
+    };
+    if (cfEditingId) {
+      const idx = state.customFoods.findIndex(f => f.id === cfEditingId);
+      if (idx >= 0) state.customFoods[idx] = food;
+      else state.customFoods.push(food);
+    } else {
+      state.customFoods.push(food);
+    }
+    await saveCustomFoods();
+    customModal.classList.remove('show');
+    if (!cfEditingId) openQtyModal({...food, custom: true});
+    else renderAll();
+  } else {
+    // RECIPE save
+    const name = document.getElementById('cf-recipe-name').value.trim();
+    const servings = parseFloat(document.getElementById('cf-recipe-servings').value);
+    if (!name) { alert('Inserisci il nome della ricetta'); return; }
+    if (isNaN(servings) || servings <= 0) { alert('Inserisci un numero di porzioni valido'); return; }
+    if (cfRecipeIngredients.length === 0) { alert('Aggiungi almeno un ingrediente'); return; }
+    const per = computeRecipeTotals(cfRecipeIngredients, servings);
+    const food = {
+      id: cfEditingId || ('custom-' + Date.now()),
+      name: name,
+      cat: 'Ricette',
+      kcal: per.kcal,
+      protein: per.protein,
+      carbs: per.carbs,
+      sugar: per.sugar,
+      fat: per.fat,
+      sat: per.sat,
+      fiber: per.fiber,
+      unit: 'pz',
+      gramsPerUnit: 100, // so compute() with qty=N gives N portions (ratio = N*100/100 = N)
+      defaultQty: 1,
+      recipe: {
+        servings: servings,
+        ingredients: cfRecipeIngredients.map(ing => ({...ing}))
+      }
+    };
+    if (cfEditingId) {
+      const idx = state.customFoods.findIndex(f => f.id === cfEditingId);
+      if (idx >= 0) state.customFoods[idx] = food;
+      else state.customFoods.push(food);
+    } else {
+      state.customFoods.push(food);
+    }
+    await saveCustomFoods();
+    customModal.classList.remove('show');
+    if (!cfEditingId) openQtyModal({...food, custom: true});
+    else renderAll();
+  }
 });
 
 // ========== SETTINGS MODAL ==========
