@@ -5762,8 +5762,6 @@ const FOODS = [
   { id:'mozzarella-galbani', name:'Mozzarella Galbani Santa Lucia', cat:'🇮🇹 Latticini', brand:'Galbani', kcal:253, protein:18, carbs:1, sugar:1, fat:20, sat:14, fiber:0, unit:'g' },
   { id:'mozzarella-bufala-mandara', name:'Mozzarella di bufala campana', cat:'🇮🇹 Latticini', brand:'Mandara', kcal:288, protein:17, carbs:0.5, sugar:0.5, fat:24, sat:17, fiber:0, unit:'g' },
   { id:'stracchino-galbani', name:'Stracchino Galbani', cat:'🇮🇹 Latticini', brand:'Galbani', kcal:286, protein:15, carbs:1, sugar:1, fat:25, sat:17, fiber:0, unit:'g' },
-  { id:'philadelphia', name:'Philadelphia classico', cat:'🇮🇹 Latticini', brand:'Philadelphia', kcal:265, protein:5.5, carbs:3.5, sugar:3.5, fat:25, sat:17, fiber:0, unit:'g' },
-  { id:'philadelphia-light', name:'Philadelphia light', cat:'🇮🇹 Latticini', brand:'Philadelphia', kcal:155, protein:7, carbs:4, sugar:4, fat:12, sat:8, fiber:0, unit:'g' },
   { id:'ricotta-galbani', name:'Ricotta Galbani Santa Lucia', cat:'🇮🇹 Latticini', brand:'Galbani', kcal:146, protein:8.5, carbs:3.5, sugar:3.5, fat:11, sat:7, fiber:0, unit:'g' },
   { id:'yogurt-greco-fage', name:'Yogurt greco Fage 0%', cat:'🇮🇹 Latticini', brand:'Fage', kcal:57, protein:10.2, carbs:3.8, sugar:3.8, fat:0.2, sat:0.1, fiber:0, unit:'g' },
   { id:'yogurt-greco-fage-2', name:'Yogurt greco Fage 2%', cat:'🇮🇹 Latticini', brand:'Fage', kcal:76, protein:9, carbs:3.8, sugar:3.8, fat:2, sat:1.3, fiber:0, unit:'g' },
@@ -5793,10 +5791,8 @@ const FOODS = [
   { id:'plasmon-biscotti', name:'Plasmon biscotti', cat:'🇮🇹 Snack', brand:'Plasmon', kcal:420, protein:9, carbs:75, sugar:25, fat:9, sat:5, fiber:2, unit:'g' },
   { id:'oro-saiwa', name:'Oro Saiwa', cat:'🇮🇹 Snack', brand:'Saiwa', kcal:438, protein:8, carbs:71, sugar:20, fat:13, sat:6, fiber:2, unit:'g' },
   { id:'gocciole-pavesi', name:'Gocciole Pavesi', cat:'🇮🇹 Snack', brand:'Pavesi', kcal:495, protein:6, carbs:65, sugar:25, fat:23, sat:12, fiber:2, unit:'g' },
-  { id:'nutella', name:'Nutella', cat:'🇮🇹 Snack', brand:'Ferrero', kcal:539, protein:6.3, carbs:57.5, sugar:56.3, fat:30.9, sat:10.6, fiber:0, unit:'g' },
   { id:'kinder-cereali', name:'Kinder Cereali', cat:'🇮🇹 Snack', brand:'Kinder', kcal:530, protein:8, carbs:53, sugar:43, fat:31, sat:21, fiber:2, unit:'g' },
   { id:'kinder-bueno', name:'Kinder Bueno', cat:'🇮🇹 Snack', brand:'Kinder', kcal:570, protein:8.4, carbs:48.2, sugar:35.5, fat:38, sat:18.5, fiber:1.7, unit:'g' },
-  { id:'pan-bauletto', name:'Pan Bauletto Mulino Bianco', cat:'🇮🇹 Snack', brand:'Mulino Bianco', kcal:284, protein:9, carbs:48, sugar:5, fat:5.5, sat:0.7, fiber:3, unit:'g' },
 
   // ===== MERENDINE E COLAZIONE =====
   { id:'kinder-brioss', name:'Kinder Brioss', cat:'🇮🇹 Colazione', brand:'Kinder', kcal:410, protein:7.5, carbs:55, sugar:25, fat:17, sat:8, fiber:1.5, unit:'g' },
@@ -5831,6 +5827,97 @@ const FOODS = [
   { id:'biscotti-galbusera-zero', name:'Buoni Sani senza zucchero Galbusera', cat:'🇮🇹 Snack', brand:'Galbusera', kcal:445, protein:8, carbs:64, sugar:1.5, fat:17, sat:2.5, fiber:5, unit:'g' },
   { id:'tarallucci-mulino', name:'Tarallucci Mulino Bianco', cat:'🇮🇹 Snack', brand:'Mulino Bianco', kcal:432, protein:7, carbs:71, sugar:23, fat:13, sat:6, fiber:2, unit:'g' },
   { id:'cotechino-rovagnati', name:'Cotechino Rovagnati', cat:'🇮🇹 Salumi', brand:'Rovagnati', kcal:300, protein:15, carbs:0.5, sugar:0.5, fat:26, sat:9, fiber:0, unit:'g' },
+
+  // ===== MEDITERRANEA — PESCE =====
+  { id:'palamita', name:'Palamita', cat:'Pesce', kcal:138, protein:23, carbs:0, sugar:0, fat:5, sat:1.3, fiber:0, unit:'g' },
+  { id:'spigola', name:'Spigola (branzino di mare)', cat:'Pesce', kcal:97, protein:18, carbs:0, sugar:0, fat:2.5, sat:0.6, fiber:0, unit:'g' },
+  { id:'dentice', name:'Dentice', cat:'Pesce', kcal:100, protein:20, carbs:0, sugar:0, fat:2.5, sat:0.5, fiber:0, unit:'g' },
+  { id:'triglia', name:'Triglie', cat:'Pesce', kcal:123, protein:15.6, carbs:0, sugar:0, fat:6.8, sat:1.5, fiber:0, unit:'g' },
+  { id:'seppia', name:'Seppia (pulita, cruda)', cat:'Pesce', kcal:79, protein:14, carbs:1.4, sugar:0, fat:1.5, sat:0.3, fiber:0, unit:'g' },
+  { id:'baccala-ammollato', name:'Baccalà ammollato', cat:'Pesce', kcal:122, protein:29, carbs:0, sugar:0, fat:0.7, sat:0.15, fiber:0, unit:'g' },
+  { id:'sarde', name:'Sarde fresche', cat:'Pesce', kcal:130, protein:21, carbs:0, sugar:0, fat:4.5, sat:1.4, fiber:0, unit:'g' },
+  { id:'alici-fresche', name:'Alici fresche', cat:'Pesce', kcal:96, protein:16.8, carbs:0, sugar:0, fat:2.6, sat:0.7, fiber:0, unit:'g' },
+  { id:'vongole-sgusciate', name:'Vongole sgusciate', cat:'Pesce', kcal:72, protein:10.2, carbs:2.2, sugar:0, fat:2.5, sat:0.4, fiber:0, unit:'g' },
+  { id:'gamberetti-cotti', name:'Gamberetti cotti', cat:'Pesce', kcal:99, protein:21, carbs:0, sugar:0, fat:1.5, sat:0.3, fiber:0, unit:'g' },
+
+  // ===== MEDITERRANEA — VERDURE =====
+  { id:'indivia', name:"Indivia", cat:'Verdure', kcal:17, protein:1.3, carbs:3.4, sugar:0.2, fat:0.2, sat:0, fiber:3.1, unit:'g' },
+  { id:'cicoria', name:'Cicoria', cat:'Verdure', kcal:23, protein:1.4, carbs:4.7, sugar:0.7, fat:0.3, sat:0.1, fiber:4, unit:'g' },
+  { id:'catalogna', name:'Catalogna (puntarelle)', cat:'Verdure', kcal:18, protein:1.4, carbs:2.4, sugar:0.7, fat:0.2, sat:0, fiber:3.2, unit:'g' },
+  { id:'fagiolini', name:'Fagiolini (cotti)', cat:'Verdure', kcal:35, protein:1.9, carbs:7.1, sugar:3.3, fat:0.3, sat:0, fiber:3.4, unit:'g' },
+  { id:'ravanelli', name:'Ravanelli', cat:'Verdure', kcal:11, protein:0.8, carbs:1.8, sugar:1.8, fat:0.1, sat:0, fiber:1.3, unit:'g' },
+  { id:'bietole', name:'Bietole (erbette, cotte)', cat:'Verdure', kcal:20, protein:1.9, carbs:2.9, sugar:1.1, fat:0.2, sat:0, fiber:2.1, unit:'g' },
+  { id:'cime-rapa', name:'Cime di rapa (cotte)', cat:'Verdure', kcal:25, protein:2.9, carbs:2, sugar:0.7, fat:0.4, sat:0, fiber:2.9, unit:'g' },
+  { id:'friarielli', name:'Friarielli (cotti)', cat:'Verdure', kcal:32, protein:3.3, carbs:2.8, sugar:0.9, fat:0.5, sat:0, fiber:3, unit:'g' },
+
+  // ===== MEDITERRANEA — CEREALI =====
+  { id:'grano-saraceno', name:'Grano saraceno (crudo)', cat:'Cereali', kcal:343, protein:13.3, carbs:71.5, sugar:0, fat:3.4, sat:0.7, fiber:10, unit:'g' },
+  { id:'miglio', name:'Miglio (crudo)', cat:'Cereali', kcal:354, protein:11, carbs:73, sugar:0, fat:4, sat:0.7, fiber:8.5, unit:'g' },
+  { id:'farina-mais', name:'Farina di mais', cat:'Cereali', kcal:362, protein:8.7, carbs:75, sugar:1.6, fat:2.8, sat:0.4, fiber:6, unit:'g' },
+
+  // ===== MEDITERRANEA — PASTA NOMI COMUNI (alias) =====
+  // Stessi valori della pasta di semola di grano duro cruda, ma compaiono nelle ricerche per nome
+  { id:'spaghetti', name:'Spaghetti (crudi)', cat:'🇮🇹 Pasta', kcal:357, protein:12.5, carbs:71.7, sugar:3.5, fat:1.5, sat:0.3, fiber:3, unit:'g' },
+  { id:'penne', name:'Penne (crude)', cat:'🇮🇹 Pasta', kcal:357, protein:12.5, carbs:71.7, sugar:3.5, fat:1.5, sat:0.3, fiber:3, unit:'g' },
+  { id:'fusilli', name:'Fusilli (crudi)', cat:'🇮🇹 Pasta', kcal:357, protein:12.5, carbs:71.7, sugar:3.5, fat:1.5, sat:0.3, fiber:3, unit:'g' },
+  { id:'rigatoni', name:'Rigatoni (crudi)', cat:'🇮🇹 Pasta', kcal:357, protein:12.5, carbs:71.7, sugar:3.5, fat:1.5, sat:0.3, fiber:3, unit:'g' },
+  { id:'tagliatelle-uovo', name:'Tagliatelle all\'uovo (crude)', cat:'🇮🇹 Pasta', kcal:368, protein:14, carbs:67, sugar:2.5, fat:5, sat:1.2, fiber:3, unit:'g' },
+  { id:'orecchiette', name:'Orecchiette (crude)', cat:'🇮🇹 Pasta', kcal:357, protein:12.5, carbs:71.7, sugar:3.5, fat:1.5, sat:0.3, fiber:3, unit:'g' },
+  { id:'trofie', name:'Trofie (crude)', cat:'🇮🇹 Pasta', kcal:357, protein:12.5, carbs:71.7, sugar:3.5, fat:1.5, sat:0.3, fiber:3, unit:'g' },
+
+  // ===== MEDITERRANEA — CARNI =====
+  { id:'coniglio', name:'Coniglio (crudo)', cat:'Carni bianche', kcal:131, protein:21.5, carbs:0, sugar:0, fat:5, sat:1.7, fiber:0, unit:'g' },
+
+  // ===== MEDITERRANEA — FORMAGGI / SALUMI =====
+  { id:'caprino-fresco', name:'Caprino fresco', cat:'Latticini', kcal:285, protein:18, carbs:2.5, sugar:2.5, fat:22, sat:15, fiber:0, unit:'g' },
+  { id:'guanciale', name:'Guanciale', cat:'Salumi', kcal:655, protein:8, carbs:0, sugar:0, fat:69, sat:25, fiber:0, unit:'g' },
+  { id:'coppa', name:'Coppa', cat:'Salumi', kcal:398, protein:25, carbs:0, sugar:0, fat:33, sat:11, fiber:0, unit:'g' },
+
+  // ===== MEDITERRANEA — FRUTTA / SEMI =====
+  { id:'melagrana', name:'Melagrana (chicchi)', cat:'Frutta', kcal:83, protein:1.7, carbs:18.7, sugar:13.7, fat:1.2, sat:0.1, fiber:4, unit:'g' },
+  { id:'fichi-freschi', name:'Fichi freschi', cat:'Frutta', kcal:74, protein:0.8, carbs:19, sugar:16.3, fat:0.3, sat:0.1, fiber:2.9, unit:'g' },
+  { id:'sesamo', name:'Semi di sesamo', cat:'Frutta secca', kcal:573, protein:18, carbs:23, sugar:0.3, fat:50, sat:7, fiber:12, unit:'g' },
+
+  // ===== UOVA PREPARATE =====
+  { id:'uova-strapazzate', name:'Uova strapazzate (2 uova + olio)', cat:'Uova', kcal:220, protein:14, carbs:1, sugar:0.5, fat:18, sat:5, fiber:0, unit:'g', defaultQty:120, gramsPerUnit:120 },
+  { id:'frittata-2', name:'Frittata (2 uova)', cat:'Uova', kcal:215, protein:14, carbs:1, sugar:0.5, fat:17.5, sat:5, fiber:0, unit:'g', defaultQty:120, gramsPerUnit:120 },
+  { id:'uova-sode', name:'Uova sode (1 uovo)', cat:'Uova', kcal:155, protein:13, carbs:1.1, sugar:1.1, fat:11, sat:3.3, fiber:0, unit:'g', defaultQty:55, gramsPerUnit:55 },
+
+  // ===== MEDITERRANEA — PIATTI REGIONALI =====
+  { id:'caponata', name:'Caponata (porzione media)', cat:'Piatti pronti', kcal:135, protein:1.5, carbs:9, sugar:6, fat:10, sat:1.5, fiber:3, unit:'g' },
+  { id:'peperonata', name:'Peperonata', cat:'Piatti pronti', kcal:75, protein:1.5, carbs:7, sugar:5, fat:4.5, sat:0.7, fiber:2.5, unit:'g' },
+  { id:'passato-verdure', name:'Passato di verdure', cat:'Piatti pronti', kcal:45, protein:2, carbs:7, sugar:3, fat:1, sat:0.2, fiber:2, unit:'g' },
+  { id:'vellutata-zucca', name:'Vellutata di zucca', cat:'Piatti pronti', kcal:60, protein:1.5, carbs:9, sugar:4, fat:2, sat:0.5, fiber:1.5, unit:'g' },
+  { id:'ossobuco', name:'Ossobuco (porzione)', cat:'Piatti pronti', kcal:220, protein:23, carbs:3, sugar:1, fat:13, sat:4.5, fiber:0.5, unit:'g' },
+  { id:'polpette-sugo', name:'Polpette al sugo', cat:'Piatti pronti', kcal:200, protein:14, carbs:5, sugar:3, fat:14, sat:5, fiber:1, unit:'g' },
+  { id:'risotto-zafferano', name:'Risotto allo zafferano', cat:'Piatti pronti', kcal:165, protein:4, carbs:24, sugar:1, fat:5.5, sat:3, fiber:0.5, unit:'g' },
+  { id:'cacio-pepe', name:'Pasta cacio e pepe', cat:'Piatti pronti', kcal:285, protein:13, carbs:38, sugar:1.5, fat:9, sat:5, fiber:2, unit:'g' },
+  { id:'spag-aglio-olio', name:'Spaghetti aglio olio peperoncino', cat:'Piatti pronti', kcal:215, protein:6.5, carbs:32, sugar:1, fat:7, sat:1, fiber:1.5, unit:'g' },
+  { id:'spag-vongole', name:'Spaghetti alle vongole', cat:'Piatti pronti', kcal:170, protein:9, carbs:25, sugar:1, fat:4, sat:0.7, fiber:1, unit:'g' },
+  { id:'insalata-mare', name:'Insalata di mare', cat:'Piatti pronti', kcal:105, protein:13, carbs:3, sugar:0.5, fat:4.5, sat:0.7, fiber:0.5, unit:'g' },
+  { id:'insalata-pollo', name:'Insalata di pollo', cat:'Piatti pronti', kcal:140, protein:14, carbs:4, sugar:2, fat:7.5, sat:1.5, fiber:1.5, unit:'g' },
+  { id:'panzanella', name:'Panzanella', cat:'Piatti pronti', kcal:130, protein:3, carbs:18, sugar:3, fat:5, sat:0.8, fiber:2, unit:'g' },
+
+  // ===== ETNICO MEDITERRANEO / ALTRI POPOLARI =====
+  { id:'tzatziki', name:'Tzatziki', cat:'Etnico', kcal:75, protein:3.5, carbs:4, sugar:3, fat:5, sat:2.5, fiber:0.3, unit:'g' },
+  { id:'tabule', name:'Tabulé', cat:'Etnico', kcal:130, protein:3.5, carbs:21, sugar:2, fat:3.5, sat:0.5, fiber:3, unit:'g' },
+  { id:'baba-ganoush', name:'Baba ganoush', cat:'Etnico', kcal:150, protein:3.5, carbs:8, sugar:3, fat:12, sat:1.7, fiber:3, unit:'g' },
+
+  // ===== DOLCI / COLAZIONE =====
+  { id:'croissant-vuoto', name:'Croissant/cornetto vuoto', cat:'🇮🇹 Colazione', kcal:406, protein:8, carbs:45, sugar:11, fat:21, sat:13, fiber:2.5, unit:'g' },
+  { id:'panettone', name:'Panettone (1 fetta ~80g)', cat:'Dolci', kcal:375, protein:6.5, carbs:55, sugar:30, fat:14, sat:7, fiber:1.5, unit:'g' },
+  { id:'pandoro', name:'Pandoro (1 fetta ~80g)', cat:'Dolci', kcal:415, protein:7, carbs:50, sugar:24, fat:21, sat:13, fiber:1, unit:'g' },
+  { id:'amaretti', name:'Amaretti (1 pz ~7g)', cat:'Dolci', kcal:430, protein:7, carbs:75, sugar:55, fat:12, sat:1.5, fiber:3, unit:'g' },
+
+  // ===== CONDIMENTI / SPALMABILI =====
+  { id:'marmellata-generica', name:'Marmellata/confettura (con zucchero)', cat:'Zuccheri', kcal:265, protein:0.4, carbs:65, sugar:60, fat:0.1, sat:0, fiber:1, unit:'g' },
+  { id:'zucchero-bianco', name:'Zucchero bianco', cat:'Zuccheri', kcal:387, protein:0, carbs:99.9, sugar:99.9, fat:0, sat:0, fiber:0, unit:'g' },
+
+  // ===== BEVANDE =====
+  { id:'spremuta-arancia', name:'Spremuta d\'arancia (fresca)', cat:'Bevande', kcal:38, protein:0.7, carbs:8.5, sugar:8.5, fat:0.1, sat:0, fiber:0.2, unit:'ml' },
+  { id:'caffe-macchiato', name:'Caffè macchiato (1 tazzina)', cat:'Bevande', kcal:8, protein:0.4, carbs:0.7, sugar:0.5, fat:0.3, sat:0.2, fiber:0, unit:'g', defaultQty:40, gramsPerUnit:40 },
+  { id:'caffe-americano', name:'Caffè americano (1 tazza ~200g)', cat:'Bevande', kcal:4, protein:0.3, carbs:0, sugar:0, fat:0, sat:0, fiber:0, unit:'g', defaultQty:200, gramsPerUnit:200 },
+  { id:'te-verde', name:'Tè verde (infusione, senza zucchero)', cat:'Bevande', kcal:1, protein:0, carbs:0, sugar:0, fat:0, sat:0, fiber:0, unit:'ml' },
 ];
 
 // ========== ACTIVITIES DATABASE ==========
@@ -6277,7 +6364,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.14.0';
+const APP_VERSION = '3.14.2';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
