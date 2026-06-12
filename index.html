@@ -1288,6 +1288,78 @@
     margin-top: 8px;
     line-height: 1.3;
   }
+
+  /* SET TIMER — popup during an active set */
+  .set-timer {
+    display: none;
+    position: absolute;
+    left: 50%;
+    bottom: 90px;
+    transform: translateX(-50%);
+    background: var(--bg-card);
+    border: 2px solid var(--warm);
+    border-radius: 18px;
+    padding: 18px 22px;
+    box-shadow: 0 10px 40px rgba(42,42,38,0.3);
+    z-index: 60;
+    width: 280px;
+    text-align: center;
+    animation: restPop 0.25s ease;
+  }
+  .set-timer.show { display: block; }
+  .set-timer-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--warm);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+  }
+  .set-timer-target {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    line-height: 1.4;
+  }
+  .set-timer-count {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 56px;
+    font-weight: 600;
+    color: var(--warm);
+    line-height: 1.1;
+    margin: 8px 0 14px 0;
+  }
+  .set-timer-done {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.1s;
+  }
+  .set-timer-done:active { transform: scale(0.96); }
+  .set-timer-cancel {
+    width: 100%;
+    margin-top: 8px;
+    padding: 9px;
+    background: transparent;
+    color: var(--ink-soft);
+    border: none;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    text-decoration: underline;
+  }
   .workout-set-label {
     font-family: 'JetBrains Mono', monospace;
     font-size: 11px;
@@ -4848,6 +4920,15 @@
     </div>
     <div class="rest-timer-next" id="rest-timer-next">—</div>
   </div>
+
+  <!-- SET TIMER OVERLAY — open during an active set -->
+  <div class="set-timer" id="set-timer">
+    <div class="set-timer-label" id="set-timer-label">Serie in corso</div>
+    <div class="set-timer-target" id="set-timer-target">— × — kg · tempo TUT —s</div>
+    <div class="set-timer-count" id="set-timer-count">0:00</div>
+    <button class="set-timer-done" id="set-timer-done">✓ Serie completata</button>
+    <button class="set-timer-cancel" id="set-timer-cancel">Annulla</button>
+  </div>
 </div>
 
 <!-- WORKOUT INTENSITY MODAL — asked at finish -->
@@ -6364,7 +6445,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.14.2';
+const APP_VERSION = '3.15.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -10620,6 +10701,10 @@ function openWorkoutModal(sessionId) {
         set.weight = isNaN(weightVal) ? exObj.targetWeight : weightVal;
         set.done = !set.done;
         row.classList.toggle('done', set.done);
+        // Close the set timer popup if it was open for this set
+        if (setTimerActive && setTimerExIdx === exIdx && setTimerSetIdx === sIdx) {
+          stopSetTimer();
+        }
         // Light haptic if available
         if (set.done && navigator.vibrate) navigator.vibrate(40);
 
@@ -10699,6 +10784,8 @@ function startWorkout() {
   // Scroll back to top so user starts at first exercise
   const listEl = document.getElementById('workout-exercises-list');
   if (listEl) listEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  // Auto-open the set timer for the first set
+  triggerNextSetTimer();
 }
 
 // ===== PAUSE TOGGLE =====
@@ -10718,6 +10805,8 @@ function toggleWorkoutPause() {
       restTimerInterval = null;
       restWasPausedWithSession = true;
     }
+    // Freeze the set timer accumulator
+    syncSetTimerWithPause(true);
     releaseWakeLock();
   } else {
     // Resuming
@@ -10725,12 +10814,21 @@ function toggleWorkoutPause() {
     workoutPaused = false;
     if (timerEl) timerEl.classList.remove('paused');
     if (overlay) overlay.classList.remove('show');
+    // Resume the set timer segment
+    syncSetTimerWithPause(false);
     // Resume rest timer if it was active
     if (restWasPausedWithSession && restTimerRemaining > 0) {
       restWasPausedWithSession = false;
       restTimerInterval = setInterval(() => {
         restTimerRemaining--;
         updateRestDisplay();
+        if (restTimerRemaining === 10) {
+          playWarningBeep10();
+          if (navigator.vibrate) navigator.vibrate(60);
+        } else if (restTimerRemaining === 5) {
+          playWarningBeep5();
+          if (navigator.vibrate) navigator.vibrate([60, 60, 60]);
+        }
         if (restTimerRemaining <= 0) finishRestTimer();
       }, 1000);
     }
@@ -10810,6 +10908,14 @@ function startRestTimer(seconds, nextLabel) {
   restTimerInterval = setInterval(() => {
     restTimerRemaining--;
     updateRestDisplay();
+    // Warning beeps as the rest approaches end
+    if (restTimerRemaining === 10) {
+      playWarningBeep10();
+      if (navigator.vibrate) navigator.vibrate(60);
+    } else if (restTimerRemaining === 5) {
+      playWarningBeep5();
+      if (navigator.vibrate) navigator.vibrate([60, 60, 60]);
+    }
     if (restTimerRemaining <= 0) {
       finishRestTimer();
     }
@@ -10841,8 +10947,11 @@ function finishRestTimer() {
     const countEl = document.getElementById('rest-timer-count');
     if (countEl) countEl.textContent = 'Vai! 💪';
   }
-  // Auto-hide after 2.5s
-  setTimeout(() => { stopRestTimer(); }, 2500);
+  // Auto-hide after 2.5s and open the next set timer
+  setTimeout(() => {
+    stopRestTimer();
+    triggerNextSetTimer();
+  }, 2500);
 }
 
 function stopRestTimer() {
@@ -10851,27 +10960,181 @@ function stopRestTimer() {
   if (timerEl) { timerEl.classList.remove('show', 'finishing'); }
 }
 
-function playBeep() {
+// ===== SET TIMER (popup during an active set) =====
+let setTimerInterval = null;
+let setTimerStartMs = 0;
+let setTimerActive = false;
+let setTimerExIdx = null;
+let setTimerSetIdx = null;
+let setTimerPausedAccum = 0;
+let setTimerSegmentStart = 0;
+
+function triggerNextSetTimer() {
+  if (!workoutSession || !workoutStarted) return;
+  // Don't interrupt if a set timer is already running, or if rest is running, or if workout paused
+  if (setTimerActive || restTimerInterval || workoutPaused) return;
+  // Find first not-done set
+  for (let exIdx = 0; exIdx < workoutSession.exercises.length; exIdx++) {
+    const ex = workoutSession.exercises[exIdx];
+    for (let sIdx = 0; sIdx < ex.sets.length; sIdx++) {
+      if (!ex.sets[sIdx].done) {
+        startSetTimer(exIdx, sIdx);
+        return;
+      }
+    }
+  }
+}
+
+function startSetTimer(exIdx, sIdx) {
+  const ex = workoutSession.exercises[exIdx];
+  if (!ex) return;
+  const setNum = sIdx + 1;
+  setTimerExIdx = exIdx;
+  setTimerSetIdx = sIdx;
+  setTimerActive = true;
+  setTimerStartMs = Date.now();
+  setTimerSegmentStart = Date.now();
+  setTimerPausedAccum = 0;
+
+  // Header info
+  const labelEl = document.getElementById('set-timer-label');
+  const targetEl = document.getElementById('set-timer-target');
+  if (labelEl) labelEl.textContent = `${ex.name} · Serie ${setNum}/${ex.sets.length}`;
+  if (targetEl) {
+    const tutStr = ex.tempoSec ? ` · TUT teorico ~${ex.tempoSec}s` : '';
+    targetEl.textContent = `${ex.targetReps} reps × ${ex.targetWeight} kg${tutStr}`;
+  }
+  // Initial display
+  updateSetTimerDisplay();
+
+  // Show popup
+  const popup = document.getElementById('set-timer');
+  if (popup) popup.classList.add('show');
+
+  // Tick every second
+  if (setTimerInterval) clearInterval(setTimerInterval);
+  setTimerInterval = setInterval(() => {
+    if (workoutPaused) return; // freeze count when paused
+    updateSetTimerDisplay();
+  }, 1000);
+
+  // Light haptic on open so user knows it's there
+  if (navigator.vibrate) navigator.vibrate(30);
+
+  // Scroll the active row into view (so reps/weight inputs are accessible behind popup)
+  try {
+    const listEl = document.getElementById('workout-exercises-list');
+    if (listEl) {
+      const card = listEl.querySelector(`.workout-ex-card[data-exidx="${exIdx}"]`);
+      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  } catch (e) {}
+}
+
+function currentSetElapsedSec() {
+  if (!setTimerActive) return 0;
+  if (workoutPaused) return setTimerPausedAccum;
+  return setTimerPausedAccum + Math.floor((Date.now() - setTimerSegmentStart) / 1000);
+}
+
+function updateSetTimerDisplay() {
+  const elapsed = currentSetElapsedSec();
+  const m = Math.floor(elapsed / 60);
+  const s = elapsed % 60;
+  const countEl = document.getElementById('set-timer-count');
+  if (countEl) countEl.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+}
+
+function stopSetTimer() {
+  if (setTimerInterval) { clearInterval(setTimerInterval); setTimerInterval = null; }
+  const popup = document.getElementById('set-timer');
+  if (popup) popup.classList.remove('show');
+  setTimerActive = false;
+  setTimerExIdx = null;
+  setTimerSetIdx = null;
+}
+
+// Big "✓ Serie completata" inside the popup → behaves exactly like tapping the row's small ✓
+function completeSetFromPopup() {
+  if (!setTimerActive || setTimerExIdx == null || setTimerSetIdx == null) return;
+  const exIdx = setTimerExIdx;
+  const sIdx = setTimerSetIdx;
+  stopSetTimer();
+  // Locate and click the corresponding small "done" button so the existing logic runs
+  const listEl = document.getElementById('workout-exercises-list');
+  if (!listEl) return;
+  const card = listEl.querySelector(`.workout-ex-card[data-exidx="${exIdx}"]`);
+  if (!card) return;
+  const row = card.querySelector(`.workout-set-row[data-setidx="${sIdx}"]`);
+  if (!row) return;
+  const doneBtn = row.querySelector('.workout-set-done');
+  if (doneBtn) doneBtn.click();
+}
+
+// Pause / resume the set timer alongside the workout pause
+function syncSetTimerWithPause(paused) {
+  if (!setTimerActive) return;
+  if (paused) {
+    // accumulate
+    setTimerPausedAccum += Math.floor((Date.now() - setTimerSegmentStart) / 1000);
+  } else {
+    // resume
+    setTimerSegmentStart = Date.now();
+  }
+}
+
+// Generic helper: schedule a single beep at a given time
+function _beepAt(startTime, freq, durSec, peakGain) {
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.frequency.value = freq;
+  osc.type = 'sine';
+  gain.gain.setValueAtTime(0.0001, startTime);
+  gain.gain.exponentialRampToValueAtTime(peakGain || 0.3, startTime + 0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + (durSec || 0.18));
+  osc.start(startTime);
+  osc.stop(startTime + (durSec || 0.2));
+}
+
+function _ensureAudio() {
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    // Two quick beeps
-    const beepAt = (startTime, freq) => {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.frequency.value = freq;
-      osc.type = 'sine';
-      gain.gain.setValueAtTime(0.0001, startTime);
-      gain.gain.exponentialRampToValueAtTime(0.3, startTime + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.18);
-      osc.start(startTime);
-      osc.stop(startTime + 0.2);
-    };
+    return true;
+  } catch (e) { return false; }
+}
+
+// End-of-rest cue: two rising beeps (existing behavior)
+function playBeep() {
+  if (!_ensureAudio()) return;
+  try {
     const now = audioCtx.currentTime;
-    beepAt(now, 880);
-    beepAt(now + 0.25, 1175);
-  } catch (e) { /* audio not available — vibration still fires */ }
+    _beepAt(now, 880, 0.2, 0.3);
+    _beepAt(now + 0.25, 1175, 0.2, 0.3);
+  } catch (e) {}
+}
+
+// Warning at -10s: two short medium beeps ("preparati")
+function playWarningBeep10() {
+  if (!_ensureAudio()) return;
+  try {
+    const now = audioCtx.currentTime;
+    _beepAt(now, 660, 0.10, 0.18);
+    _beepAt(now + 0.16, 660, 0.10, 0.18);
+  } catch (e) {}
+}
+
+// Warning at -5s: three short higher beeps ("imminente")
+function playWarningBeep5() {
+  if (!_ensureAudio()) return;
+  try {
+    const now = audioCtx.currentTime;
+    _beepAt(now, 880, 0.09, 0.22);
+    _beepAt(now + 0.14, 880, 0.09, 0.22);
+    _beepAt(now + 0.28, 880, 0.09, 0.22);
+  } catch (e) {}
 }
 
 function closeWorkoutModal(saved) {
@@ -10881,6 +11144,7 @@ function closeWorkoutModal(saved) {
     workoutTimerInterval = null;
   }
   stopRestTimer();
+  stopSetTimer();
   releaseWakeLock();
   workoutPaused = false;
   workoutStarted = false;
@@ -10899,6 +11163,8 @@ let pendingWorkoutLog = null;
 
 async function finishWorkoutSession() {
   if (!workoutSession) return;
+  // Close any active set timer popup before showing intensity modal
+  stopSetTimer();
   // Check at least one set was completed
   const totalDone = workoutSession.exercises.reduce((s, ex) => s + ex.sets.filter(set => set.done).length, 0);
   if (totalDone === 0) {
@@ -11176,6 +11442,19 @@ function initWorkoutHandlers() {
   if (restSkip) restSkip.addEventListener('click', (e) => {
     e.stopPropagation();
     stopRestTimer();
+    triggerNextSetTimer();
+  });
+
+  // Set timer buttons
+  const setDoneBtn = document.getElementById('set-timer-done');
+  const setCancelBtn = document.getElementById('set-timer-cancel');
+  if (setDoneBtn) setDoneBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    completeSetFromPopup();
+  });
+  if (setCancelBtn) setCancelBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    stopSetTimer();
   });
 
   // Detail modal
