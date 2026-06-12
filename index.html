@@ -790,6 +790,94 @@
     padding: 8px;
     margin-bottom: 12px;
   }
+
+  /* Detail modal — editable set pills */
+  .detail-ex-block {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .detail-ex-name {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .detail-set-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .detail-set-pill {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--accent-deep);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 5px 9px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+    transition: all 0.15s;
+  }
+  .detail-set-pill:active { transform: scale(0.95); }
+  .detail-set-pill.pressing {
+    background: var(--accent);
+    color: white;
+    transform: scale(1.05);
+  }
+  .detail-set-pill .pill-num {
+    color: var(--ink-soft);
+    margin-right: 6px;
+    font-size: 10px;
+  }
+  .detail-set-pill.pressing .pill-num { color: rgba(255,255,255,0.8); }
+  .detail-set-ex-notes {
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-style: italic;
+    margin-top: 5px;
+  }
+  .detail-set-hint {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    margin-top: 6px;
+    margin-bottom: 4px;
+    text-align: center;
+    font-style: italic;
+  }
+
+  /* Set edit modal grid */
+  .set-edit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .set-edit-grid input {
+    width: 100%;
+    padding: 14px 12px;
+    border: 1.5px solid var(--accent);
+    border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    color: var(--accent-deep);
+    background: var(--bg-card);
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+  }
+  .set-edit-grid input::-webkit-outer-spin-button,
+  .set-edit-grid input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
   .intensity-options {
     display: flex;
     flex-direction: column;
@@ -5008,6 +5096,29 @@
   </div>
 </div>
 
+<!-- SET EDIT MODAL — modifica una singola serie già salvata -->
+<div class="modal-overlay" id="set-edit-modal">
+  <div class="modal" style="max-width: 360px;">
+    <h3 id="set-edit-title">Modifica serie</h3>
+    <div class="modal-sub" id="set-edit-sub">—</div>
+    <div class="set-edit-grid">
+      <div>
+        <div class="step-label">Peso (kg)</div>
+        <input type="number" id="set-edit-weight" step="0.5" min="0" inputmode="decimal">
+      </div>
+      <div>
+        <div class="step-label">Ripetizioni</div>
+        <input type="number" id="set-edit-reps" step="1" min="0" inputmode="numeric">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-danger" id="set-edit-uncomplete" style="flex:0.9; font-size:12px;">Annulla serie</button>
+      <button class="btn-secondary" id="set-edit-cancel">Annulla</button>
+      <button class="btn-primary" id="set-edit-save">Salva</button>
+    </div>
+  </div>
+</div>
+
 <!-- EXERCISE INFO MODAL — shows execution + history -->
 <div class="modal-overlay" id="exercise-info-modal">
   <div class="modal" style="max-width: 500px;">
@@ -6448,7 +6559,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.15.2';
+const APP_VERSION = '3.16.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -11331,22 +11442,142 @@ function openWorkoutDetailModal(log) {
 
   const content = document.getElementById('workout-detail-content');
   content.innerHTML = '';
-  log.exercises.forEach(ex => {
-    const doneSets = (ex.sets || []).filter(s => s.done);
+
+  // Hint above
+  const hint = document.createElement('div');
+  hint.className = 'detail-set-hint';
+  hint.textContent = '↳ Tieni premuto su una serie per modificarla';
+  content.appendChild(hint);
+
+  log.exercises.forEach((ex, exIdx) => {
+    const doneSets = (ex.sets || []).map((s, sIdx) => ({...s, _sIdx: sIdx})).filter(s => s.done);
     if (doneSets.length === 0) return;
-    const div = document.createElement('div');
-    div.style.cssText = 'padding:8px 0; border-bottom:1px solid var(--line);';
-    const setSummary = doneSets.map(s => `${s.weight}×${s.reps}`).join(' · ');
-    div.innerHTML = `
-      <div style="font-family:'Fraunces',serif; font-style:italic; font-size:14px; color:var(--ink);">${ex.name}</div>
-      <div style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-soft); margin-top:3px;">
-        ${setSummary}
-      </div>
-      ${ex.notes ? `<div style="font-size:11px; color:var(--ink-faint); font-style:italic; margin-top:3px;">${ex.notes}</div>` : ''}
-    `;
-    content.appendChild(div);
+    const block = document.createElement('div');
+    block.className = 'detail-ex-block';
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'detail-ex-name';
+    nameDiv.textContent = ex.name;
+    block.appendChild(nameDiv);
+
+    const pillsRow = document.createElement('div');
+    pillsRow.className = 'detail-set-pills';
+    doneSets.forEach((s, idx) => {
+      const pill = document.createElement('span');
+      pill.className = 'detail-set-pill';
+      pill.dataset.exidx = exIdx;
+      pill.dataset.setidx = s._sIdx;
+      pill.innerHTML = `<span class="pill-num">${idx+1}</span>${s.weight}×${s.reps}`;
+      attachLongPress(pill, () => openSetEditModal(exIdx, s._sIdx));
+      pillsRow.appendChild(pill);
+    });
+    block.appendChild(pillsRow);
+
+    if (ex.notes) {
+      const notesDiv = document.createElement('div');
+      notesDiv.className = 'detail-set-ex-notes';
+      notesDiv.textContent = ex.notes;
+      block.appendChild(notesDiv);
+    }
+    content.appendChild(block);
   });
   workoutDetailModal.classList.add('show');
+}
+
+// Generic long-press helper (touch + mouse)
+function attachLongPress(el, onLongPress, durationMs) {
+  const dur = durationMs || 500;
+  let timer = null;
+  let startX = 0, startY = 0;
+  let cancelled = false;
+  const start = (e) => {
+    cancelled = false;
+    const point = e.touches ? e.touches[0] : e;
+    startX = point.clientX; startY = point.clientY;
+    el.classList.add('pressing');
+    if (navigator.vibrate) navigator.vibrate(15);
+    timer = setTimeout(() => {
+      if (!cancelled) {
+        if (navigator.vibrate) navigator.vibrate([40, 20, 40]);
+        el.classList.remove('pressing');
+        onLongPress();
+      }
+    }, dur);
+  };
+  const cancel = () => {
+    cancelled = true;
+    if (timer) { clearTimeout(timer); timer = null; }
+    el.classList.remove('pressing');
+  };
+  const move = (e) => {
+    if (!timer) return;
+    const point = e.touches ? e.touches[0] : e;
+    const dx = Math.abs(point.clientX - startX);
+    const dy = Math.abs(point.clientY - startY);
+    if (dx > 12 || dy > 12) cancel();
+  };
+  el.addEventListener('touchstart', start, { passive: true });
+  el.addEventListener('touchend', cancel);
+  el.addEventListener('touchcancel', cancel);
+  el.addEventListener('touchmove', move, { passive: true });
+  el.addEventListener('mousedown', start);
+  el.addEventListener('mouseup', cancel);
+  el.addEventListener('mouseleave', cancel);
+  el.addEventListener('contextmenu', (e) => e.preventDefault());
+}
+
+// ===== SET EDIT MODAL =====
+let setEditExIdx = null;
+let setEditSetIdx = null;
+
+function openSetEditModal(exIdx, sIdx) {
+  const log = state.workoutLogs[workoutDetailLogIdx];
+  if (!log) return;
+  const ex = log.exercises[exIdx];
+  if (!ex) return;
+  const set = ex.sets[sIdx];
+  if (!set) return;
+  setEditExIdx = exIdx;
+  setEditSetIdx = sIdx;
+  document.getElementById('set-edit-title').textContent = `${ex.name}`;
+  document.getElementById('set-edit-sub').textContent = `Serie ${sIdx + 1} di ${ex.sets.length}`;
+  document.getElementById('set-edit-weight').value = set.weight;
+  document.getElementById('set-edit-reps').value = set.reps;
+  document.getElementById('set-edit-modal').classList.add('show');
+}
+
+async function saveSetEdit() {
+  if (setEditExIdx == null || setEditSetIdx == null) return;
+  const log = state.workoutLogs[workoutDetailLogIdx];
+  if (!log) return;
+  const ex = log.exercises[setEditExIdx];
+  if (!ex) return;
+  const set = ex.sets[setEditSetIdx];
+  if (!set) return;
+  const w = parseFloat(document.getElementById('set-edit-weight').value);
+  const r = parseInt(document.getElementById('set-edit-reps').value);
+  if (!isNaN(w) && w >= 0) set.weight = w;
+  if (!isNaN(r) && r >= 0) set.reps = r;
+  await saveWorkoutLogs();
+  document.getElementById('set-edit-modal').classList.remove('show');
+  // Re-render the detail modal contents (without closing it)
+  openWorkoutDetailModal(log);
+  renderAll();
+}
+
+async function uncompleteSet() {
+  if (setEditExIdx == null || setEditSetIdx == null) return;
+  if (!confirm('Vuoi annullare il completamento di questa serie?')) return;
+  const log = state.workoutLogs[workoutDetailLogIdx];
+  if (!log) return;
+  const ex = log.exercises[setEditExIdx];
+  if (!ex) return;
+  const set = ex.sets[setEditSetIdx];
+  if (!set) return;
+  set.done = false;
+  await saveWorkoutLogs();
+  document.getElementById('set-edit-modal').classList.remove('show');
+  openWorkoutDetailModal(log);
+  renderAll();
 }
 
 // Recompute the kcal preview for the detail modal based on current duration + intensity
@@ -11472,6 +11703,13 @@ function initWorkoutHandlers() {
     renderAll();
   });
   document.getElementById('workout-detail-save').addEventListener('click', saveWorkoutDetailChanges);
+
+  // Set edit modal handlers
+  const setEditModal = document.getElementById('set-edit-modal');
+  document.getElementById('set-edit-cancel').addEventListener('click', () => setEditModal.classList.remove('show'));
+  setEditModal.addEventListener('click', (e) => { if (e.target === setEditModal) setEditModal.classList.remove('show'); });
+  document.getElementById('set-edit-save').addEventListener('click', saveSetEdit);
+  document.getElementById('set-edit-uncomplete').addEventListener('click', uncompleteSet);
 
   // Editable duration in detail modal
   const wdDurInput = document.getElementById('wd-duration-input');
