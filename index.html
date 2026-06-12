@@ -6113,6 +6113,41 @@ const FOODS = [
   { id:'caffe-macchiato', name:'Caffè macchiato (1 tazzina)', cat:'Bevande', kcal:8, protein:0.4, carbs:0.7, sugar:0.5, fat:0.3, sat:0.2, fiber:0, unit:'g', defaultQty:40, gramsPerUnit:40 },
   { id:'caffe-americano', name:'Caffè americano (1 tazza ~200g)', cat:'Bevande', kcal:4, protein:0.3, carbs:0, sugar:0, fat:0, sat:0, fiber:0, unit:'g', defaultQty:200, gramsPerUnit:200 },
   { id:'te-verde', name:'Tè verde (infusione, senza zucchero)', cat:'Bevande', kcal:1, protein:0, carbs:0, sugar:0, fat:0, sat:0, fiber:0, unit:'ml' },
+
+  // ===== HAMBURGER & CO. =====
+  // Carni
+  { id:'macinato-manzo', name:'Carne macinata di manzo (5% grassi)', cat:'Carni rosse', kcal:137, protein:21.5, carbs:0, sugar:0, fat:5, sat:2.2, fiber:0, unit:'g' },
+  { id:'macinato-manzo-15', name:'Carne macinata di manzo (15% grassi)', cat:'Carni rosse', kcal:218, protein:18, carbs:0, sugar:0, fat:15.6, sat:6.2, fiber:0, unit:'g' },
+  { id:'macinato-misto', name:'Macinato misto (manzo+suino)', cat:'Carni rosse', kcal:230, protein:18, carbs:0, sugar:0, fat:17, sat:6.5, fiber:0, unit:'g' },
+  { id:'bacon-fette', name:'Bacon (fette)', cat:'Salumi', kcal:541, protein:37, carbs:1.4, sugar:0, fat:42, sat:14, fiber:0, unit:'g' },
+  // Pane
+  { id:'panino-burger', name:'Panino burger (bun classico)', cat:'🇮🇹 Pane e sostituti', kcal:280, protein:9, carbs:48, sugar:6, fat:5, sat:1.2, fiber:2, unit:'g', defaultQty:60, gramsPerUnit:60 },
+  { id:'panino-brioche', name:'Panino brioche (bun dolce)', cat:'🇮🇹 Pane e sostituti', kcal:320, protein:9, carbs:46, sugar:9, fat:11, sat:5, fiber:2, unit:'g', defaultQty:65, gramsPerUnit:65 },
+  { id:'panino-sesamo', name:'Panino con semi di sesamo (burger)', cat:'🇮🇹 Pane e sostituti', kcal:285, protein:10, carbs:46, sugar:5, fat:6.5, sat:1.2, fiber:2.5, unit:'g', defaultQty:60, gramsPerUnit:60 },
+  // Formaggi americani
+  { id:'cheddar', name:'Cheddar', cat:'Latticini', kcal:402, protein:25, carbs:1.3, sugar:0.5, fat:33, sat:21, fiber:0, unit:'g' },
+  { id:'cheddar-fette', name:'Cheddar a fette (1 fetta ~20g)', cat:'Latticini', kcal:380, protein:23, carbs:2.5, sugar:1, fat:31, sat:19, fiber:0, unit:'g', defaultQty:20, gramsPerUnit:20 },
+  { id:'sottilette', name:'Sottilette / formaggio fuso a fette', cat:'Latticini', kcal:290, protein:15, carbs:7, sugar:6, fat:22, sat:14, fiber:0, unit:'g', defaultQty:20, gramsPerUnit:20 },
+  // Vegetali per farcire
+  { id:'cipolla-rossa', name:'Cipolla rossa (cruda)', cat:'Verdure', kcal:42, protein:1.4, carbs:9, sugar:6, fat:0.1, sat:0, fiber:1.5, unit:'g' },
+  { id:'cipolla-caramellata', name:'Cipolla caramellata', cat:'Verdure', kcal:145, protein:1.1, carbs:18, sugar:13, fat:7.5, sat:1.1, fiber:1.5, unit:'g' },
+  { id:'cipolla-cruda', name:'Cipolla bianca (cruda)', cat:'Verdure', kcal:28, protein:1, carbs:5, sugar:3.7, fat:0.1, sat:0, fiber:1.7, unit:'g' },
+  { id:'pomodoro-fette', name:'Pomodoro a fette', cat:'Verdure', kcal:18, protein:0.9, carbs:3.5, sugar:2.6, fat:0.2, sat:0, fiber:1.2, unit:'g' },
+  { id:'insalata-iceberg', name:'Insalata iceberg', cat:'Verdure', kcal:14, protein:0.9, carbs:3, sugar:2, fat:0.1, sat:0, fiber:1.2, unit:'g' },
+  { id:'cetriolini-sottaceto', name:'Cetriolini sottaceto (gherkin)', cat:'Verdure', kcal:18, protein:0.5, carbs:2.5, sugar:1.5, fat:0.2, sat:0, fiber:1.2, unit:'g' },
+  // Salse
+  { id:'salsa-barbecue', name:'Salsa barbecue (BBQ)', cat:'Salse', kcal:172, protein:0.6, carbs:41, sugar:33, fat:0.4, sat:0.1, fiber:0.9, unit:'g' },
+  { id:'salsa-burger', name:'Salsa burger (tipo big mac/cocktail)', cat:'Salse', kcal:440, protein:0.8, carbs:14, sugar:10, fat:42, sat:6, fiber:0.3, unit:'g' },
+  { id:'salsa-rosa', name:'Salsa rosa (cocktail)', cat:'Salse', kcal:430, protein:1, carbs:9, sugar:7, fat:43, sat:6, fiber:0, unit:'g' },
+  // Contorni tipici
+  { id:'patatine-fritte', name:'Patatine fritte (cotte)', cat:'Verdure', kcal:312, protein:3.4, carbs:41, sugar:0.3, fat:15, sat:2.5, fiber:3.8, unit:'g' },
+  { id:'patatine-forno', name:'Patate al forno', cat:'Verdure', kcal:145, protein:2.5, carbs:24, sugar:1, fat:4.5, sat:0.7, fiber:2.3, unit:'g' },
+  { id:'onion-rings', name:'Anelli di cipolla fritti', cat:'Verdure', kcal:332, protein:4.5, carbs:38, sugar:4, fat:18, sat:3, fiber:1.3, unit:'g' },
+  // Piatti pronti hamburger
+  { id:'hamburger-classico', name:'Hamburger classico (panino + carne 150g)', cat:'Piatti pronti', kcal:265, protein:14, carbs:18, sugar:3, fat:14, sat:5, fiber:1.5, unit:'g' },
+  { id:'cheeseburger', name:'Cheeseburger (con cheddar)', cat:'Piatti pronti', kcal:285, protein:15, carbs:18, sugar:3, fat:16, sat:7, fiber:1.5, unit:'g' },
+  { id:'bacon-cheeseburger', name:'Bacon cheeseburger', cat:'Piatti pronti', kcal:310, protein:17, carbs:17, sugar:3, fat:19, sat:8, fiber:1.5, unit:'g' },
+  { id:'double-burger', name:'Double burger (doppio bun + 2 carni)', cat:'Piatti pronti', kcal:295, protein:17, carbs:17, sugar:3, fat:17, sat:6.5, fiber:1.4, unit:'g' },
 ];
 
 // ========== ACTIVITIES DATABASE ==========
@@ -6559,7 +6594,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.16.0';
+const APP_VERSION = '3.16.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
