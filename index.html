@@ -1194,10 +1194,10 @@
     background: var(--bg-card);
     border: 2px solid var(--accent);
     border-radius: 18px;
-    padding: 16px 20px;
+    padding: 16px 18px;
     box-shadow: 0 10px 40px rgba(42,42,38,0.3);
     z-index: 60;
-    width: 240px;
+    width: 300px;
     text-align: center;
     animation: restPop 0.25s ease;
   }
@@ -1257,36 +1257,39 @@
   }
   .rest-timer-actions {
     display: flex;
-    gap: 6px;
+    gap: 8px;
     justify-content: center;
-    margin-top: 8px;
+    margin-top: 12px;
   }
   .rest-timer-btn {
     flex: 1;
     background: var(--bg-soft);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 8px 4px;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 6px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 17px;
+    font-weight: 700;
     color: var(--ink);
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     transition: all 0.12s;
+    min-height: 56px;
+    line-height: 1.1;
   }
   .rest-timer-btn:active { transform: scale(0.94); }
   .rest-timer-btn.rest-skip {
     background: var(--accent);
     color: white;
     border-color: var(--accent);
+    font-size: 16px;
   }
   .rest-timer-next {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: var(--ink-faint);
-    margin-top: 8px;
-    line-height: 1.3;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+    line-height: 1.35;
   }
 
   /* SET TIMER — popup during an active set */
@@ -4914,9 +4917,9 @@
       </svg>
     </div>
     <div class="rest-timer-actions">
-      <button class="rest-timer-btn" id="rest-minus">−15s</button>
-      <button class="rest-timer-btn rest-skip" id="rest-skip">salta ▶</button>
-      <button class="rest-timer-btn" id="rest-plus">+15s</button>
+      <button class="rest-timer-btn" id="rest-minus">−15</button>
+      <button class="rest-timer-btn rest-skip" id="rest-skip">Salta ▶</button>
+      <button class="rest-timer-btn" id="rest-plus">+15</button>
     </div>
     <div class="rest-timer-next" id="rest-timer-next">—</div>
   </div>
@@ -6445,7 +6448,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.15.1';
+const APP_VERSION = '3.15.2';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
