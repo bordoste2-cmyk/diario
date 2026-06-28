@@ -6114,6 +6114,28 @@ const FOODS = [
   { id:'caffe-americano', name:'Caffè americano (1 tazza ~200g)', cat:'Bevande', kcal:4, protein:0.3, carbs:0, sugar:0, fat:0, sat:0, fiber:0, unit:'g', defaultQty:200, gramsPerUnit:200 },
   { id:'te-verde', name:'Tè verde (infusione, senza zucchero)', cat:'Bevande', kcal:1, protein:0, carbs:0, sugar:0, fat:0, sat:0, fiber:0, unit:'ml' },
 
+  // ===== BESCIAMELLA =====
+  { id:'besciamella-chef', name:'Besciamella Chef (Parmalat)', cat:'🇮🇹 Salse', brand:'Parmalat Chef', kcal:166, protein:3.6, carbs:14.2, sugar:3.6, fat:10.5, sat:7, fiber:0, unit:'ml' },
+  { id:'besciamella-chef-leggera', name:'Besciamella Chef leggera (Parmalat)', cat:'🇮🇹 Salse', brand:'Parmalat Chef', kcal:91, protein:3.5, carbs:11, sugar:3, fat:3.5, sat:2.3, fiber:0, unit:'ml' },
+  { id:'besciamella-chef-senzalattosio', name:'Besciamella Chef senza lattosio/glutine (Parmalat)', cat:'🇮🇹 Salse', brand:'Parmalat Chef', kcal:116, protein:3.5, carbs:11, sugar:0.5, fat:6.5, sat:4.3, fiber:0, unit:'ml' },
+  { id:'besciamella-casa', name:'Besciamella fatta in casa', cat:'Salse', kcal:178, protein:4.5, carbs:11, sugar:4, fat:13, sat:8, fiber:0.3, unit:'g' },
+
+  // ===== SCALOPPINE (piatti pronti, ~100g porzione) =====
+  { id:'scaloppine-limone', name:'Scaloppine al limone (vitello)', cat:'Piatti pronti', kcal:175, protein:22, carbs:4, sugar:0.5, fat:8, sat:2.5, fiber:0.2, unit:'g' },
+  { id:'scaloppine-vino', name:'Scaloppine al vino bianco', cat:'Piatti pronti', kcal:180, protein:22, carbs:3, sugar:0.5, fat:8.5, sat:2.5, fiber:0.1, unit:'g' },
+  { id:'scaloppine-marsala', name:'Scaloppine al marsala', cat:'Piatti pronti', kcal:200, protein:21, carbs:6, sugar:3, fat:9, sat:3, fiber:0.1, unit:'g' },
+  { id:'scaloppine-funghi', name:'Scaloppine ai funghi', cat:'Piatti pronti', kcal:195, protein:22, carbs:4, sugar:1, fat:10, sat:3.5, fiber:1, unit:'g' },
+  { id:'scaloppine-burro-salvia', name:'Scaloppine burro e salvia', cat:'Piatti pronti', kcal:225, protein:21, carbs:3, sugar:0.3, fat:14, sat:7, fiber:0.1, unit:'g' },
+  { id:'saltimbocca-romana', name:'Saltimbocca alla romana (vitello+prosciutto+salvia)', cat:'Piatti pronti', kcal:215, protein:24, carbs:3, sugar:0.3, fat:12, sat:4, fiber:0.1, unit:'g' },
+  { id:'scaloppine-pollo-limone', name:'Scaloppine di pollo al limone', cat:'Piatti pronti', kcal:160, protein:23, carbs:4, sugar:0.5, fat:6, sat:1.5, fiber:0.2, unit:'g' },
+  // Scaloppine di lonza (maiale magro) — più magre delle classiche di vitello
+  { id:'scaloppine-lonza-limone', name:'Scaloppine di lonza al limone', cat:'Piatti pronti', kcal:165, protein:23, carbs:4, sugar:0.5, fat:6.5, sat:2, fiber:0.2, unit:'g' },
+  { id:'scaloppine-lonza-vino', name:'Scaloppine di lonza al vino bianco', cat:'Piatti pronti', kcal:170, protein:23, carbs:3, sugar:0.5, fat:7, sat:2.2, fiber:0.1, unit:'g' },
+  { id:'scaloppine-lonza-funghi', name:'Scaloppine di lonza ai funghi', cat:'Piatti pronti', kcal:180, protein:23, carbs:4, sugar:1, fat:8, sat:2.8, fiber:1, unit:'g' },
+  { id:'scaloppine-lonza-burro', name:'Scaloppine di lonza burro e salvia', cat:'Piatti pronti', kcal:210, protein:22, carbs:3, sugar:0.3, fat:12, sat:6, fiber:0.1, unit:'g' },
+  { id:'lonza-cruda', name:'Lonza di maiale (cruda, magra)', cat:'Carni rosse', kcal:113, protein:22, carbs:0, sugar:0, fat:2.8, sat:1, fiber:0, unit:'g' },
+  { id:'lonza-cotta', name:'Lonza di maiale (cotta in padella)', cat:'Carni rosse', kcal:155, protein:28, carbs:0, sugar:0, fat:4.5, sat:1.5, fiber:0, unit:'g' },
+
   // ===== HAMBURGER & CO. =====
   // Carni
   { id:'macinato-manzo', name:'Carne macinata di manzo (5% grassi)', cat:'Carni rosse', kcal:137, protein:21.5, carbs:0, sugar:0, fat:5, sat:2.2, fiber:0, unit:'g' },
@@ -6594,7 +6616,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.16.1';
+const APP_VERSION = '3.16.4';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
