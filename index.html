@@ -6616,7 +6616,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.16.5';
+const APP_VERSION = '3.16.6';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -12077,18 +12077,20 @@ async function fetchProductByBarcode(barcode) {
   }
 }
 
-// Search products by text — multi-query strategy for better Italian coverage
+// Search products by text — uses Search-a-licious (the new OFF search engine)
+// with fallback to the legacy endpoint
 async function searchProductsByText(query) {
   const trimmed = query.trim();
   if (!trimmed) return [];
   const enc = encodeURIComponent(trimmed);
 
-  // Single search query (was 3 parallel → triggered OFF rate-limit ban of 10 req/min/IP)
-  // Strategy: query Italian OFF mirror with popularity sort. If empty, fall back to world.
-  const urlItaly = `https://it.openfoodfacts.org/cgi/search.pl?search_terms=${enc}&search_simple=1&action=process&json=1&page_size=25&fields=code,product_name,product_name_it,brands,nutriments,countries_tags&sort_by=popularity_key`;
-  const urlWorld = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${enc}&search_simple=1&action=process&json=1&page_size=20&fields=code,product_name,product_name_it,brands,nutriments,countries_tags&sort_by=popularity_key`;
+  // PRIMARY: Search-a-licious (Elasticsearch-based, the new OFF search)
+  // Filter: only products with nutrition data and in Italy (countries_tags), with some popularity
+  const salUrl = `https://search.openfoodfacts.org/search?q=${enc}&page_size=25&langs=it,en&sort_by=-popularity_key&fields=code,product_name,product_name_it,brands,nutriments,countries_tags`;
 
-  // Use Accept header. Browsers block setting User-Agent from fetch().
+  // FALLBACK: legacy endpoint (currently often returns 503, kept as safety net)
+  const legacyUrl = `https://it.openfoodfacts.org/cgi/search.pl?search_terms=${enc}&search_simple=1&action=process&json=1&page_size=25&fields=code,product_name,product_name_it,brands,nutriments,countries_tags&sort_by=popularity_key`;
+
   const fetchSafe = async (url) => {
     try {
       const r = await fetch(url, {
@@ -12097,21 +12099,23 @@ async function searchProductsByText(query) {
       });
       if (!r.ok) return { products: [], status: r.status };
       const data = await r.json();
-      return { products: data.products || [], status: 200 };
+      // Search-a-licious returns "hits", legacy returns "products"
+      const items = data.hits || data.products || [];
+      return { products: items, status: 200 };
     } catch (e) { return { products: [], status: 0, error: e.message }; }
   };
 
-  // First try Italian mirror
-  let result = await fetchSafe(urlItaly);
+  // Try Search-a-licious first
+  let result = await fetchSafe(salUrl);
   let products = result.products;
 
-  // If empty AND not a rate-limit response (429/503), try world as fallback
+  // If empty, try legacy as fallback
   if (products.length === 0 && result.status !== 429 && result.status !== 503) {
-    result = await fetchSafe(urlWorld);
+    result = await fetchSafe(legacyUrl);
     products = result.products;
   }
 
-  // Convert to internal format and filter out entries without nutrition data
+  // Convert to internal format and filter
   return products
     .map(offProductToFood)
     .filter(p => p && p.kcal > 0)
@@ -12504,14 +12508,15 @@ function renderOnlineResults(products) {
   if (products.length === 0) {
     onlineResults.innerHTML = `
       <div class="online-empty">
-        Nessun risultato. Open Food Facts ha limiti severi sulla ricerca testuale e a volte non trova nemmeno prodotti famosi (es. Nutella).
+        Nessun risultato dalla ricerca testuale.
+        <br><br>
+        <strong>Open Food Facts ha problemi infrastrutturali</strong> sulla ricerca per parole (le marche tipo Ferrero/Nutella sono interessate). La scansione barcode invece <strong>funziona normalmente</strong>.
         <br><br>
         <strong>Cosa fare:</strong>
         <ul style="text-align:left; margin: 8px 0 0 18px; padding: 0; font-size: 12px; line-height: 1.5;">
-          <li>Prova a <strong>scansionare il codice a barre</strong> del prodotto (funziona molto meglio)</li>
-          <li>Prova parole diverse o solo la marca (es. "Ferrero" invece di "Nutella")</li>
-          <li>Aspetta qualche minuto: se hai cercato troppe volte, OFF blocca temporaneamente l'IP</li>
-          <li>Crea un alimento personalizzato leggendo l'etichetta del prodotto</li>
+          <li><strong>Scansiona il codice a barre</strong> del prodotto (metodo più affidabile)</li>
+          <li>Crea un alimento personalizzato leggendo l'etichetta</li>
+          <li>Riprova più tardi: OFF sta migrando a un nuovo motore di ricerca (Search-a-licious)</li>
         </ul>
       </div>`;
     return;
