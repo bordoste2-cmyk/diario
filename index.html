@@ -6616,7 +6616,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.16.4';
+const APP_VERSION = '3.16.5';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -12083,55 +12083,39 @@ async function searchProductsByText(query) {
   if (!trimmed) return [];
   const enc = encodeURIComponent(trimmed);
 
-  // Build 3 URLs to query in parallel
-  // 1) Italy-tagged products (highest priority for IT users)
-  const urlItaly = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${enc}&search_simple=1&action=process&json=1&page_size=20&fields=code,product_name,product_name_it,brands,nutriments,countries_tags&countries_tags=italy&sort_by=popularity_key`;
-  // 2) Worldwide search (fallback for missing IT products)
-  const urlWorld = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${enc}&search_simple=1&action=process&json=1&page_size=15&fields=code,product_name,product_name_it,brands,nutriments,countries_tags&sort_by=popularity_key`;
-  // 3) Italian product names specifically (uses Italian-language field as the search term)
-  const urlItName = `https://it.openfoodfacts.org/cgi/search.pl?search_terms=${enc}&search_simple=1&action=process&json=1&page_size=15&fields=code,product_name,product_name_it,brands,nutriments,countries_tags&sort_by=popularity_key`;
+  // Single search query (was 3 parallel → triggered OFF rate-limit ban of 10 req/min/IP)
+  // Strategy: query Italian OFF mirror with popularity sort. If empty, fall back to world.
+  const urlItaly = `https://it.openfoodfacts.org/cgi/search.pl?search_terms=${enc}&search_simple=1&action=process&json=1&page_size=25&fields=code,product_name,product_name_it,brands,nutriments,countries_tags&sort_by=popularity_key`;
+  const urlWorld = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${enc}&search_simple=1&action=process&json=1&page_size=20&fields=code,product_name,product_name_it,brands,nutriments,countries_tags&sort_by=popularity_key`;
 
+  // Use Accept header. Browsers block setting User-Agent from fetch().
   const fetchSafe = async (url) => {
     try {
-      const r = await fetch(url, { signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined });
-      if (!r.ok) return [];
+      const r = await fetch(url, {
+        headers: { 'Accept': 'application/json' },
+        signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined
+      });
+      if (!r.ok) return { products: [], status: r.status };
       const data = await r.json();
-      return data.products || [];
-    } catch (e) { return []; }
+      return { products: data.products || [], status: 200 };
+    } catch (e) { return { products: [], status: 0, error: e.message }; }
   };
 
-  // Run all 3 in parallel
-  const [itProducts, worldProducts, itNameProducts] = await Promise.all([
-    fetchSafe(urlItaly),
-    fetchSafe(urlWorld),
-    fetchSafe(urlItName)
-  ]);
+  // First try Italian mirror
+  let result = await fetchSafe(urlItaly);
+  let products = result.products;
 
-  // Merge and deduplicate by barcode (code), prioritizing Italian sources
-  const seen = new Set();
-  const merged = [];
-  const addBatch = (batch, isItalian) => {
-    for (const p of batch) {
-      const code = p.code;
-      if (!code || seen.has(code)) continue;
-      seen.add(code);
-      // Mark Italian-tagged products for ordering
-      p._isItalian = isItalian || (p.countries_tags && p.countries_tags.includes('en:italy'));
-      merged.push(p);
-    }
-  };
-  addBatch(itProducts, true);          // First: Italy tagged, popular
-  addBatch(itNameProducts, false);     // Then: Italian language results
-  addBatch(worldProducts, false);      // Last: worldwide fallback
+  // If empty AND not a rate-limit response (429/503), try world as fallback
+  if (products.length === 0 && result.status !== 429 && result.status !== 503) {
+    result = await fetchSafe(urlWorld);
+    products = result.products;
+  }
 
-  // Reorder: Italian products first, then the rest
-  merged.sort((a, b) => (b._isItalian ? 1 : 0) - (a._isItalian ? 1 : 0));
-
-  // Convert to internal format and filter out useless entries
-  return merged
+  // Convert to internal format and filter out entries without nutrition data
+  return products
     .map(offProductToFood)
     .filter(p => p && p.kcal > 0)
-    .slice(0, 25); // Cap to 25 results
+    .slice(0, 25);
 }
 
 // Save fetched product as custom food (for re-use)
@@ -12518,7 +12502,18 @@ onlineSearchInput.addEventListener('input', () => {
 
 function renderOnlineResults(products) {
   if (products.length === 0) {
-    onlineResults.innerHTML = '<div class="online-empty">Nessun prodotto trovato. Prova con altre parole.</div>';
+    onlineResults.innerHTML = `
+      <div class="online-empty">
+        Nessun risultato. Open Food Facts ha limiti severi sulla ricerca testuale e a volte non trova nemmeno prodotti famosi (es. Nutella).
+        <br><br>
+        <strong>Cosa fare:</strong>
+        <ul style="text-align:left; margin: 8px 0 0 18px; padding: 0; font-size: 12px; line-height: 1.5;">
+          <li>Prova a <strong>scansionare il codice a barre</strong> del prodotto (funziona molto meglio)</li>
+          <li>Prova parole diverse o solo la marca (es. "Ferrero" invece di "Nutella")</li>
+          <li>Aspetta qualche minuto: se hai cercato troppe volte, OFF blocca temporaneamente l'IP</li>
+          <li>Crea un alimento personalizzato leggendo l'etichetta del prodotto</li>
+        </ul>
+      </div>`;
     return;
   }
   onlineResults.innerHTML = '';
