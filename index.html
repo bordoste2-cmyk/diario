@@ -6616,7 +6616,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.16.6';
+const APP_VERSION = '3.16.7';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -12077,49 +12077,35 @@ async function fetchProductByBarcode(barcode) {
   }
 }
 
-// Search products by text — uses Search-a-licious (the new OFF search engine)
-// with fallback to the legacy endpoint
+// Search products by text — legacy endpoint works fine (verified via browser console).
+// Search-a-licious is blocked by CORS, so we don't use it.
 async function searchProductsByText(query) {
   const trimmed = query.trim();
   if (!trimmed) return [];
   const enc = encodeURIComponent(trimmed);
 
-  // PRIMARY: Search-a-licious (Elasticsearch-based, the new OFF search)
-  // Filter: only products with nutrition data and in Italy (countries_tags), with some popularity
-  const salUrl = `https://search.openfoodfacts.org/search?q=${enc}&page_size=25&langs=it,en&sort_by=-popularity_key&fields=code,product_name,product_name_it,brands,nutriments,countries_tags`;
+  // Single query to the legacy endpoint, sorted by popularity
+  const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${enc}&search_simple=1&action=process&json=1&page_size=25&fields=code,product_name,product_name_it,brands,nutriments,countries_tags&sort_by=popularity_key`;
 
-  // FALLBACK: legacy endpoint (currently often returns 503, kept as safety net)
-  const legacyUrl = `https://it.openfoodfacts.org/cgi/search.pl?search_terms=${enc}&search_simple=1&action=process&json=1&page_size=25&fields=code,product_name,product_name_it,brands,nutriments,countries_tags&sort_by=popularity_key`;
-
-  const fetchSafe = async (url) => {
-    try {
-      const r = await fetch(url, {
-        headers: { 'Accept': 'application/json' },
-        signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined
-      });
-      if (!r.ok) return { products: [], status: r.status };
-      const data = await r.json();
-      // Search-a-licious returns "hits", legacy returns "products"
-      const items = data.hits || data.products || [];
-      return { products: items, status: 200 };
-    } catch (e) { return { products: [], status: 0, error: e.message }; }
-  };
-
-  // Try Search-a-licious first
-  let result = await fetchSafe(salUrl);
-  let products = result.products;
-
-  // If empty, try legacy as fallback
-  if (products.length === 0 && result.status !== 429 && result.status !== 503) {
-    result = await fetchSafe(legacyUrl);
-    products = result.products;
+  try {
+    const r = await fetch(url, {
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined
+    });
+    if (!r.ok) {
+      console.warn('OFF search returned status', r.status);
+      return [];
+    }
+    const data = await r.json();
+    const products = data.products || [];
+    return products
+      .map(offProductToFood)
+      .filter(p => p && p.kcal > 0)
+      .slice(0, 25);
+  } catch (e) {
+    console.warn('OFF search failed:', e.message);
+    return [];
   }
-
-  // Convert to internal format and filter
-  return products
-    .map(offProductToFood)
-    .filter(p => p && p.kcal > 0)
-    .slice(0, 25);
 }
 
 // Save fetched product as custom food (for re-use)
@@ -12508,15 +12494,13 @@ function renderOnlineResults(products) {
   if (products.length === 0) {
     onlineResults.innerHTML = `
       <div class="online-empty">
-        Nessun risultato dalla ricerca testuale.
-        <br><br>
-        <strong>Open Food Facts ha problemi infrastrutturali</strong> sulla ricerca per parole (le marche tipo Ferrero/Nutella sono interessate). La scansione barcode invece <strong>funziona normalmente</strong>.
+        Nessun risultato per questa ricerca.
         <br><br>
         <strong>Cosa fare:</strong>
         <ul style="text-align:left; margin: 8px 0 0 18px; padding: 0; font-size: 12px; line-height: 1.5;">
-          <li><strong>Scansiona il codice a barre</strong> del prodotto (metodo più affidabile)</li>
+          <li>Prova parole diverse (es. solo la marca: "Ferrero", "Barilla")</li>
+          <li><strong>Scansiona il codice a barre</strong> del prodotto (sempre più affidabile)</li>
           <li>Crea un alimento personalizzato leggendo l'etichetta</li>
-          <li>Riprova più tardi: OFF sta migrando a un nuovo motore di ricerca (Search-a-licious)</li>
         </ul>
       </div>`;
     return;
