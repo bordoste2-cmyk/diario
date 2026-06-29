@@ -6616,7 +6616,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.16.7';
+const APP_VERSION = '3.16.8';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -12088,22 +12088,30 @@ async function searchProductsByText(query) {
   const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${enc}&search_simple=1&action=process&json=1&page_size=25&fields=code,product_name,product_name_it,brands,nutriments,countries_tags&sort_by=popularity_key`;
 
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     const r = await fetch(url, {
       headers: { 'Accept': 'application/json' },
-      signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
     if (!r.ok) {
       console.warn('OFF search returned status', r.status);
       return [];
     }
     const data = await r.json();
     const products = data.products || [];
+    console.log('OFF search ok:', products.length, 'products for', trimmed);
     return products
       .map(offProductToFood)
       .filter(p => p && p.kcal > 0)
       .slice(0, 25);
   } catch (e) {
-    console.warn('OFF search failed:', e.message);
+    if (e.name === 'AbortError') {
+      console.warn('OFF search timeout (15s) for:', trimmed);
+    } else {
+      console.warn('OFF search failed:', e.message, 'for:', trimmed);
+    }
     return [];
   }
 }

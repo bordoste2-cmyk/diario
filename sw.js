@@ -1,6 +1,6 @@
 // Health Diary - Service Worker
 // Update the version number when you change app code to force refresh
-const CACHE_NAME = 'diario-v3.16.7';
+const CACHE_NAME = 'diario-v3.16.8';
 const ASSETS = [
   './',
   './index.html',
@@ -37,13 +37,11 @@ self.addEventListener('fetch', event => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Network-only for Open Food Facts API (always live)
+  // For Open Food Facts: don't intercept at all. Let the browser handle it natively.
+  // (Previously the SW wrapped this in fetch().catch() which could cause timeouts
+  //  and convert real errors into fake "offline" JSON.)
   if (NETWORK_ONLY_HOSTS.includes(url.hostname)) {
-    event.respondWith(fetch(req).catch(() => new Response(
-      JSON.stringify({ error: 'offline', status: 0 }),
-      { headers: { 'Content-Type': 'application/json' } }
-    )));
-    return;
+    return; // browser will handle the request natively
   }
 
   // Network-first for HTML so updates propagate; cache-first for everything else
