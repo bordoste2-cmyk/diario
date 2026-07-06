@@ -6616,7 +6616,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.16.8';
+const APP_VERSION = '3.16.9';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -10831,7 +10831,7 @@ function openWorkoutModal(sessionId) {
         <div class="workout-set-row" data-setidx="${sIdx}">
           <span class="workout-set-label">${sIdx + 1}</span>
           <input class="workout-set-input weight-input" type="number" step="0.5" min="0" value="${s.weight}" data-field="weight" inputmode="decimal">
-          <input class="workout-set-input reps-input" type="number" step="1" min="0" placeholder="${ex.targetReps}" data-field="reps" inputmode="numeric">
+          <input class="workout-set-input reps-input" type="number" step="${ex.isTimed ? 5 : 1}" min="0" value="${s.reps || ''}" placeholder="${ex.targetReps}" data-field="reps" inputmode="numeric">
           <button class="workout-set-done" data-setidx="${sIdx}">✓</button>
         </div>
       `).join('')}
@@ -11598,7 +11598,19 @@ function openSetEditModal(exIdx, sIdx) {
   document.getElementById('set-edit-title').textContent = `${ex.name}`;
   document.getElementById('set-edit-sub').textContent = `Serie ${sIdx + 1} di ${ex.sets.length}`;
   document.getElementById('set-edit-weight').value = set.weight;
-  document.getElementById('set-edit-reps').value = set.reps;
+  const repsInput = document.getElementById('set-edit-reps');
+  repsInput.value = set.reps;
+  // If exercise is time-based, use bigger step and update label
+  // Fallback: for legacy logs missing isTimed, look up the exercise definition
+  let isTimed = !!ex.isTimed;
+  if (!isTimed && log.sessionId && WORKOUT_SESSIONS[log.sessionId]) {
+    const defEx = WORKOUT_SESSIONS[log.sessionId].exercises.find(e => e.id === ex.exerciseId);
+    if (defEx && defEx.isTimed) isTimed = true;
+  }
+  repsInput.step = isTimed ? 5 : 1;
+  // Update the "Ripetizioni" label to "Secondi" when relevant
+  const repsLabel = repsInput.parentElement.querySelector('.step-label');
+  if (repsLabel) repsLabel.textContent = isTimed ? 'Secondi' : 'Ripetizioni';
   document.getElementById('set-edit-modal').classList.add('show');
 }
 
