@@ -6529,55 +6529,80 @@ function suggestNextSession(exerciseId, sessionId) {
   const lastRest = last.ex.restSec || exercise.restSec;
   const lastTempo = last.ex.tempoSec || 2;
 
-  // Did the user complete the target rep range in last 2 sessions?
-  // Check if all sets hit the upper bound of reps range (or current target)
+  // Actual performance in last session: min of what was really done in each done set.
+  // This is the "sustainable floor" — what the user could hold across ALL sets.
+  const doneSetsReps = lastSets.filter(s => s.done && s.reps != null && s.reps > 0).map(s => s.reps);
+  const actualMin = doneSetsReps.length > 0 ? Math.min(...doneSetsReps) : 0;
+  const doneSetsWeights = lastSets.filter(s => s.done && s.weight != null).map(s => s.weight);
+  const actualMinWeight = doneSetsWeights.length > 0 ? Math.min(...doneSetsWeights) : 0;
+
+  // Baseline = max between what was proposed as target and what the user actually sustained.
+  // This way, if user did 50s of plank while target was 45s, next baseline is 50 (not 45).
+  // Same for weight: if user did 12kg while target was 10, next weight is 12.
+  const effectiveBaseline = Math.max(lastRepsTarget, actualMin);
+  const effectiveWeight = Math.max(lastWeight, actualMinWeight);
+  const weightBumped = effectiveWeight > lastWeight;
+
+  // Did the user hit the target (or above) in last 2 sessions?
+  // "Hit target" means all done sets reached at least the target of that session.
   const hitTarget = (h) => {
     if (!h || !h.ex || !h.ex.sets) return false;
-    return h.ex.sets.every(s => (s.reps || 0) >= (h.ex.targetReps || exercise.repsMax));
+    const done = h.ex.sets.filter(s => s.done && s.reps != null && s.reps > 0);
+    if (done.length === 0) return false;
+    return done.every(s => s.reps >= (h.ex.targetReps || exercise.repsMax));
   };
   const twoConsecutiveSuccess = secondLast && hitTarget(last) && hitTarget(secondLast)
-    && last.ex.targetReps === secondLast.ex.targetReps
     && last.ex.targetWeight === secondLast.ex.targetWeight;
 
-  // Current state copies from last
+  // Current state copies from last, but repsTarget/weight are the effective baselines
   let next = {
     sets: lastNumSets,
-    repsTarget: lastRepsTarget,
-    weight: lastWeight,
+    repsTarget: effectiveBaseline,
+    weight: effectiveWeight,
     restSec: lastRest,
     tempoSec: lastTempo,
-    lever: last.ex.lever || 'reps'
+    lever: last.ex.lever || (effectiveBaseline > lastRepsTarget || weightBumped ? 'baseline-up' : 'reps')
   };
 
   if (twoConsecutiveSuccess) {
-    // Advance progression — 5 levers in sequence
-    if (lastRepsTarget < exercise.repsMax) {
-      // Leva 1: +1 rep
-      next.repsTarget = lastRepsTarget + 1;
+    // Advance progression
+    if (exercise.isTimed) {
+      // TIMED exercises (plank, wall sit, farmer walk): only lever is +5 sec, no cap
+      next.repsTarget = effectiveBaseline + 5;
       next.lever = 'reps';
-    } else if (lastTempo < 4) {
-      // Leva 2: +1 secondo discesa (max 4s)
-      next.tempoSec = lastTempo + 1;
-      next.lever = 'tempo';
-    } else if (lastNumSets < exercise.sets + 2) {
-      // Leva 3: +1 serie (max +2 dalla base)
-      next.sets = lastNumSets + 1;
-      next.tempoSec = 2; // reset tempo
-      next.lever = 'sets';
-    } else if (lastRest > 30) {
-      // Leva 4: -15s recupero (min 30s)
-      next.restSec = Math.max(30, lastRest - 15);
-      next.lever = 'rest';
+      // Suggerimento visivo se supera il repsMax originale (es. plank oltre 60s)
+      if (next.repsTarget > exercise.repsMax) {
+        next.beyondMaxSuggestion = true;
+      }
     } else {
-      // Leva 5: aumento carico (ma con manubri 5/10 → suggerisce mono-arm o passare a 15kg)
-      // Per ora resetta a base + 1 rep, e segnala al utente
-      next.weight = lastWeight;
-      next.repsTarget = exercise.repsMin;
-      next.tempoSec = 2;
-      next.sets = exercise.sets;
-      next.restSec = exercise.restSec;
-      next.lever = 'load-up';
-      next.loadUpSuggestion = true;
+      // REPS exercises: 5 leve in sequenza
+      if (effectiveBaseline < exercise.repsMax) {
+        // Leva 1: +1 rep
+        next.repsTarget = effectiveBaseline + 1;
+        next.lever = 'reps';
+      } else if (lastTempo < 4) {
+        // Leva 2: +1 secondo TUT (max 4s)
+        next.tempoSec = lastTempo + 1;
+        next.lever = 'tempo';
+      } else if (lastNumSets < exercise.sets + 2) {
+        // Leva 3: +1 serie (max +2 dalla base)
+        next.sets = lastNumSets + 1;
+        next.tempoSec = 2;
+        next.lever = 'sets';
+      } else if (lastRest > 30) {
+        // Leva 4: -15s recupero (min 30s)
+        next.restSec = Math.max(30, lastRest - 15);
+        next.lever = 'rest';
+      } else {
+        // Leva 5: aumento carico
+        next.weight = lastWeight;
+        next.repsTarget = exercise.repsMin;
+        next.tempoSec = 2;
+        next.sets = exercise.sets;
+        next.restSec = exercise.restSec;
+        next.lever = 'load-up';
+        next.loadUpSuggestion = true;
+      }
     }
   }
 
@@ -6587,6 +6612,7 @@ function suggestNextSession(exerciseId, sessionId) {
 // Lever labels for display
 const LEVER_LABELS = {
   'start': 'Sessione di partenza',
+  'baseline-up': '↑ Baseline aggiornata a quanto hai davvero fatto',
   'reps': 'Spingi sulle ripetizioni',
   'tempo': 'Rallenta la discesa (tempo sotto tensione)',
   'sets': 'Aggiungi una serie',
@@ -6616,7 +6642,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.16.9';
+const APP_VERSION = '3.17.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -10781,6 +10807,7 @@ function openWorkoutModal(sessionId) {
         tempoSec: suggested.tempoSec || 2,
         lever: suggested.lever || 'start',
         loadUpSuggestion: suggested.loadUpSuggestion || false,
+        beyondMaxSuggestion: suggested.beyondMaxSuggestion || false,
         sets: Array.from({length: numSets}, () => ({
           reps: null,
           weight: suggested.weight || ex.defaultWeight,
@@ -10814,13 +10841,14 @@ function openWorkoutModal(sessionId) {
     const leverBadge = (ex.lever !== 'start' && ex.lever !== 'reps')
       ? `<span class="lever-badge" title="${leverLabel}">${ex.lever}</span>` : '';
     const loadUpAlert = ex.loadUpSuggestion ? `<div style="background:var(--gold-soft);color:#8c5e1d;padding:6px 10px;font-size:11px;border-radius:6px;margin-top:6px;">⚡ ${LEVER_LABELS['load-up']}. Considera 12.5/15kg o passa a versione mono-arm.</div>` : '';
+    const beyondMaxAlert = ex.beyondMaxSuggestion ? `<div style="background:var(--accent-soft);color:var(--accent-deep);padding:6px 10px;font-size:11px;border-radius:6px;margin-top:6px;">🎯 Sei oltre il range originale (${exDef.repsMax}${ex.isTimed?'s':' reps'}) — ottimo lavoro. Continua a spingere.</div>` : '';
 
     card.innerHTML = `
       <div class="workout-ex-header">
         <span class="workout-ex-name">${ex.name}</span>
         <button class="workout-ex-info-btn" data-exid="${ex.exerciseId}" data-sessionid="${sessionId}">ⓘ</button>
       </div>
-      <div class="workout-ex-target">${targetText}${leverBadge}${loadUpAlert}</div>
+      <div class="workout-ex-target">${targetText}${leverBadge}${loadUpAlert}${beyondMaxAlert}</div>
       <div class="workout-set-row" style="background:var(--bg-soft); padding:6px 10px;">
         <span class="workout-set-input-label">set</span>
         <span class="workout-set-input-label">peso (kg)</span>
