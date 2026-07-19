@@ -517,6 +517,9 @@
   .cal-day-workout-letter.session-b {
     color: #a04a1f;
   }
+  .cal-day-workout-letter.session-c {
+    color: var(--berry);
+  }
   /* On dark heatmap cells, keep letters readable */
   .cal-day.level-3 .cal-day-workout-letter,
   .cal-day.level-4 .cal-day-workout-letter {
@@ -993,6 +996,34 @@
     -webkit-tap-highlight-color: transparent;
   }
   .ws-other-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .ws-c-section {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+  }
+  .ws-c-btn {
+    width: 100%;
+    background: var(--bg-card);
+    color: var(--berry);
+    border: 1.5px solid var(--berry);
+    border-radius: 10px;
+    padding: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.15s;
+  }
+  .ws-c-btn:active { transform: scale(0.98); }
+  .ws-c-btn:hover { background: var(--berry); color: white; }
+  .ws-c-hint {
+    font-size: 10.5px;
+    color: var(--ink-faint);
+    text-align: center;
+    margin-top: 6px;
+    font-style: italic;
+  }
   .workout-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1537,6 +1568,7 @@
   .workout-history-entry:hover { background: var(--bg-soft); }
   .workout-history-entry.session-a { border-left: 4px solid var(--accent); }
   .workout-history-entry.session-b { border-left: 4px solid var(--warm); }
+  .workout-history-entry.session-c { border-left: 4px solid var(--berry); }
   .workout-history-info {
     flex: 1;
   }
@@ -1565,6 +1597,10 @@
   .session-b .workout-history-badge {
     color: #a04a1f;
     background: var(--warm-soft);
+  }
+  .session-c .workout-history-badge {
+    color: var(--berry);
+    background: color-mix(in srgb, var(--berry) 12%, transparent);
   }
 
   /* Collapsed older sessions */
@@ -4770,6 +4806,10 @@
               <div class="ws-meta" id="ws-meta">—</div>
               <button class="ws-start-btn" id="ws-start-btn">▶ Inizia sessione</button>
               <button class="ws-other-btn" id="ws-other-btn">o fai l'altra sessione</button>
+              <div class="ws-c-section">
+                <button class="ws-c-btn" id="ws-c-btn">🧘 Scheda C — Core (indipendente)</button>
+                <div class="ws-c-hint">Non entra nella rotazione A/B — falla quando vuoi</div>
+              </div>
             </div>
 
             <!-- Stats summary -->
@@ -6520,6 +6560,64 @@ const WORKOUT_SESSIONS = {
         isTimed: true
       }
     ]
+  },
+  C: {
+    id: 'C',
+    name: 'Seduta C — Core',
+    subtitle: 'Stabilizzazione lombare + anti-rotazione (non traumatica)',
+    emoji: '🧘',
+    exercises: [
+      { id: 'dead-bug', name: 'Dead bug', sets: 3, repsMin: 8, repsMax: 12, defaultWeight: 0, weightUnit: 'rip/lato', restSec: 30,
+        category: 'core',
+        execution: 'Sdraiato supino. Braccia distese verso il soffitto, gambe piegate a 90° (femori perpendicolari al pavimento, tibie parallele). Zona lombare BEN aderente a terra (schiaccia i lombari contro il pavimento) — non ci devono essere spazi. Estendi contemporaneamente il braccio destro verso l\'alto/indietro e la gamba sinistra opposta verso il pavimento, fermandoti quando i lombari iniziano a staccarsi. Ritorna alla posizione di partenza controllato. Alterna i lati. Respirazione: espira quando estendi.',
+        notes: 'Anti-estensione lombare. Se senti che la schiena si inarca, ferma il movimento prima. Zero impatto.'
+      },
+      { id: 'bird-dog', name: 'Bird dog', sets: 3, repsMin: 8, repsMax: 12, defaultWeight: 0, weightUnit: 'rip/lato', restSec: 30,
+        category: 'core',
+        execution: 'A quattro zampe: mani sotto le spalle, ginocchia sotto le anche, colonna neutra (né incurvata né inarcata). Estendi contemporaneamente il braccio destro in avanti e la gamba sinistra opposta indietro, fino a portarli paralleli al pavimento. Mantieni il bacino stabile (non ruotarlo), fianchi allineati. Pausa 2 secondi in massima estensione. Ritorna controllato. Alterna i lati. Non guardare in alto: sguardo verso il pavimento.',
+        notes: 'Anti-rotazione + catena posteriore. Cerca la stabilità perfetta, non la velocità.'
+      },
+      { id: 'pallof-press', name: 'Pallof press', sets: 3, repsMin: 10, repsMax: 12, defaultWeight: 0, weightUnit: 'elastico/lato', restSec: 45,
+        category: 'core',
+        execution: 'Elastico fissato a un punto laterale all\'altezza dello sterno (maniglia porta, gamba mobile). In piedi laterale rispetto all\'ancoraggio, piedi larghezza spalle, ginocchia leggermente flesse. Impugna l\'estremità dell\'elastico con entrambe le mani davanti allo sterno. Spingi le braccia in avanti FINO ALLA COMPLETA ESTENSIONE, resistendo alla trazione laterale dell\'elastico (che vuole ruotarti). Il busto NON deve ruotare. Pausa 2 secondi con braccia tese. Ritorno controllato al petto. Alterna i lati.',
+        notes: 'Anti-rotazione pura — il transfer più utile per il padel. Se non hai elastico, usa un manubrio leggero con lo stesso schema.'
+      },
+      { id: 'side-plank', name: 'Side plank', sets: 3, repsMin: 20, repsMax: 40, defaultWeight: 0, weightUnit: 'sec/lato', restSec: 45,
+        category: 'core',
+        execution: 'Sdraiato su un fianco, appoggio su avambraccio (gomito sotto la spalla, avambraccio perpendicolare al corpo). Gambe distese, un piede sopra l\'altro. Solleva il bacino portando il corpo dritto: caviglie-anche-spalle-testa in linea. Braccio libero disteso lungo il fianco o alzato verso il soffitto. Mantieni la posizione. NON far cadere il bacino in basso. Se il polso o la spalla d\'appoggio danno fastidio, versione con ginocchio piegato a terra.',
+        notes: 'Anti-flessione laterale + obliqui + medio-gluteo. Se difficoltà, versione da ginocchio: piega la gamba d\'appoggio.',
+        isTimed: true
+      },
+      { id: 'hollow-hold', name: 'Hollow hold', sets: 3, repsMin: 15, repsMax: 30, defaultWeight: 0, weightUnit: 'sec', restSec: 45,
+        category: 'core',
+        execution: 'Sdraiato supino. Braccia distese sopra la testa (bicipiti vicino alle orecchie), gambe distese in avanti. Solleva contemporaneamente spalle e gambe di pochi centimetri dal pavimento (10-15 cm), mantenendo la zona lombare SCHIACCIATA a terra. Il corpo assume una forma "a banana". Se i lombari si staccano da terra, alza di più le gambe (avvicinandole al soffitto) o piega leggermente le ginocchia. Respira normalmente.',
+        notes: 'Core anteriore statico. Regola la difficoltà con l\'angolo delle gambe: più in basso = più duro. Priorità: lombari a terra.',
+        isTimed: true
+      },
+      { id: 'glute-bridge-march', name: 'Glute bridge march', sets: 3, repsMin: 8, repsMax: 12, defaultWeight: 0, weightUnit: 'rip/lato', restSec: 30,
+        category: 'core',
+        execution: 'Sdraiato supino, ginocchia piegate, piedi appoggiati a terra vicini ai glutei. Solleva il bacino fino ad allineare ginocchia-anche-spalle (posizione di bridge). MANTIENI il bacino alto e stabile. Solleva un ginocchio verso il petto SENZA far cadere il bacino dal lato scarico. Riappoggia il piede. Alterna. Il bacino deve restare fermo come una tavola: se ruota o cade, riduci l\'ampiezza del movimento.',
+        notes: 'Anti-rotazione dinamica + glutei. Simula il trasferimento di peso durante la corsa/padel.'
+      },
+      { id: 'farmer-walk-core', name: 'Farmer walk', sets: 3, repsMin: 30, repsMax: 45, defaultWeight: 10, weightUnit: 'kg/mano', restSec: 45,
+        category: 'core',
+        execution: 'In piedi con manubri ai lati, presa salda, spalle basse e indietro. Cammina in linea retta a passi normali, mantenendo il busto perfettamente verticale (né inclinato in avanti né lateralmente). Il core deve tenere fermo il busto contro la tendenza del carico a farti oscillare. Sguardo avanti. Se non hai spazio, cammina in cerchio piccolo o avanti/indietro. Non trattenere il respiro.',
+        notes: 'Stabilità dinamica del core sotto carico + presa. Sali di peso solo se il busto resta impeccabile.',
+        isTimed: true
+      },
+      { id: 'copenhagen-easy', name: 'Copenhagen plank (versione ginocchio)', sets: 3, repsMin: 15, repsMax: 25, defaultWeight: 0, weightUnit: 'sec/lato', restSec: 45,
+        category: 'core',
+        execution: 'Sdraiato su un fianco, appoggio su avambraccio (come side plank). Appoggia il GINOCCHIO della gamba superiore su una sedia bassa o divano (versione facilitata: no la caviglia, che è avanzata). Gamba inferiore distesa a terra. Solleva il bacino tenendo il corpo dritto. Il carico è sull\'avambraccio e sul ginocchio appoggiato. Mantieni.',
+        notes: 'Adduttori + core laterale — protegge da pubalgia e stiramenti inguinali (frequenti nel padel). Versione base col ginocchio. Zero traumi al ginocchio: appoggia dolcemente.',
+        isTimed: true
+      },
+      { id: 'wall-press-hollow', name: 'Wall press hollow (attivazione)', sets: 2, repsMin: 20, repsMax: 30, defaultWeight: 0, weightUnit: 'sec', restSec: 30,
+        category: 'core',
+        execution: 'Sdraiato supino a terra, ginocchia piegate a 90° con piedi appoggiati contro un muro (o divano). Braccia distese sopra la testa a terra. Spingi ATTIVAMENTE i piedi contro il muro (come per allontanarti) e contemporaneamente schiaccia i lombari a terra. Senti l\'addome che si "chiude" e i lombari perfettamente aderenti. Mantieni la spinta e la respirazione.',
+        notes: 'Attivazione del retto addominale profondo. Perfetto come ultimo esercizio di consolidamento del pattern respiratorio corretto.',
+        isTimed: true
+      }
+    ]
   }
 };
 
@@ -6658,8 +6756,10 @@ const LEVER_LABELS = {
 // Determine which session to suggest next (A or B alternating)
 function suggestNextSessionType() {
   const logs = state.workoutLogs || [];
-  if (logs.length === 0) return 'A';
-  const last = logs[logs.length - 1];
+  // Filter out C sessions: A/B alternation should ignore core sessions.
+  const abLogs = logs.filter(l => l.sessionId === 'A' || l.sessionId === 'B');
+  if (abLogs.length === 0) return 'A';
+  const last = abLogs[abLogs.length - 1];
   return last.sessionId === 'A' ? 'B' : 'A';
 }
 
@@ -6677,7 +6777,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.17.1';
+const APP_VERSION = '3.18.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -10624,6 +10724,7 @@ function renderWorkout() {
     const totSessions = logs.length;
     const sessA = logs.filter(l => l.sessionId === 'A').length;
     const sessB = logs.filter(l => l.sessionId === 'B').length;
+    const sessC = logs.filter(l => l.sessionId === 'C').length;
     const lastDate = logs.length > 0 ? logs[logs.length - 1].date : null;
     const lastDateLabel = lastDate ? daysAgoLabel(lastDate) : 'mai';
     stats.innerHTML = `
@@ -10632,8 +10733,8 @@ function renderWorkout() {
         <div class="ws-stat-value">${totSessions}</div>
       </div>
       <div class="workout-stat">
-        <div class="ws-stat-label">A / B</div>
-        <div class="ws-stat-value">${sessA} / ${sessB}</div>
+        <div class="ws-stat-label">A / B / C</div>
+        <div class="ws-stat-value">${sessA} / ${sessB} / ${sessC}</div>
       </div>
       <div class="workout-stat">
         <div class="ws-stat-label">Ultima sessione</div>
@@ -11771,6 +11872,11 @@ function initWorkoutHandlers() {
     const other = nextSessionId === 'A' ? 'B' : 'A';
     openWorkoutModal(other);
   });
+  // C session button — always available, independent from A/B rotation
+  const cBtn = document.getElementById('ws-c-btn');
+  if (cBtn) {
+    cBtn.addEventListener('click', () => openWorkoutModal('C'));
+  }
   // Modal close/cancel — only confirm if workout has actually started with progress
   const maybeClose = () => {
     const hasProgress = workoutStarted && workoutSession &&
