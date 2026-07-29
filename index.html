@@ -5468,7 +5468,8 @@
           <select id="cf-unit" style="padding:10px 12px; border:1.5px solid var(--line); border-radius:6px; font-size:14px; font-family:inherit;">
             <option value="g">grammi (g)</option>
             <option value="ml">millilitri (ml)</option>
-            <option value="pz">pezzi/unità</option>
+            <option value="pz">pezzi/unità (pz)</option>
+            <option value="porz">porzioni (porz)</option>
           </select>
         </div>
       </div>
@@ -6827,7 +6828,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.18.2';
+const APP_VERSION = '3.18.3';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -7251,13 +7252,25 @@ function allFoods() {
 }
 function findFood(id) { return allFoods().find(f => f.id === id); }
 
+// A unit is "count-based" when it represents pieces/portions rather than mass/volume.
+// For these units, the food defines gramsPerUnit to convert to grams.
+// Nutritional values in the DB are always per 100g/ml.
+function isCountUnit(unit) {
+  return unit && unit !== 'g' && unit !== 'ml';
+}
+
 function compute(food, qty) {
-  // qty is in food.unit. If unit is 'pz', use gramsPerUnit for ratio
+  // qty is in food.unit.
+  // For 'g' and 'ml' units, values are per 100g/ml → ratio = qty / 100.
+  // For any other unit ('pz', 'porz', etc.), quantity is a count of items:
+  //   the food defines gramsPerUnit (weight of one item) and kcal/macros are per 100g.
+  //   So ratio = (qty * gramsPerUnit) / 100.
   let ratio;
-  if (food.unit === 'pz') {
-    ratio = (qty * (food.gramsPerUnit || 100)) / 100;
-  } else {
+  if (food.unit === 'g' || food.unit === 'ml' || !food.unit) {
     ratio = qty / 100;
+  } else {
+    // count-based unit: pz, porz, tazza, cucchiaio, etc.
+    ratio = (qty * (food.gramsPerUnit || 100)) / 100;
   }
   return {
     kcal: food.kcal * ratio,
@@ -7438,14 +7451,18 @@ function renderMeals() {
         const isRecipeItem = !!item.isRecipe;
         const qtyStr = isRecipeItem
           ? `${fmt(item.qty,1)} porzion${item.qty === 1 ? 'e' : 'i'}`
-          : (item.unit === 'pz'
-            ? `${fmt(item.qty,1)} unità`
+          : (isCountUnit(item.unit)
+            ? `${fmt(item.qty,1)} ${item.unit === 'porz' ? (item.qty === 1 ? 'porzione' : 'porzioni') : (item.unit === 'pz' ? 'unità' : item.unit)}`
             : `${fmt(item.qty)} ${item.unit}`);
 
         // Classify food by health profile (using per-100 derived values)
         // The values in item are already computed for the consumed quantity.
         // Re-derive per-100 to classify the food (not the portion).
-        const ratio = item.unit === 'pz' ? (item.qty * 100) : (item.qty || 100);
+        // For count-based units, we need to know how many grams total were consumed.
+        const foodDef = findFood(item.foodId);
+        const gpu = (foodDef && foodDef.gramsPerUnit) || item.gramsPerUnit || 100;
+        const gramsTotal = isCountUnit(item.unit) ? (item.qty * gpu) : (item.qty || 100);
+        const ratio = gramsTotal;
         const per100 = {
           protein: (item.protein * 100) / Math.max(ratio, 0.01),
           kcal: (item.kcal * 100) / Math.max(ratio, 0.01),
@@ -7987,7 +8004,7 @@ function toggleCart(food, qty) {
   if (existing >= 0) {
     foodCart.splice(existing, 1);
   } else {
-    foodCart.push({ food, qty: qty != null ? qty : (food.defaultQty || (food.unit === 'pz' ? 1 : 100)), unit: food.unit });
+    foodCart.push({ food, qty: qty != null ? qty : (food.defaultQty || (isCountUnit(food.unit) ? 1 : 100)), unit: food.unit });
   }
   renderFoodCart();
 }
@@ -8018,7 +8035,7 @@ function renderFoodCart() {
       row.className = 'cart-item';
       row.innerHTML = `
         <span class="cart-item-name">${c.food.name}</span>
-        <input type="number" class="cart-item-qty" value="${c.qty}" min="0" step="${c.unit === 'pz' ? '0.5' : '1'}" inputmode="decimal">
+        <input type="number" class="cart-item-qty" value="${c.qty}" min="0" step="${isCountUnit(c.unit) ? '0.5' : '1'}" inputmode="decimal">
         <span class="cart-item-unit">${c.unit}</span>
         <button class="cart-item-remove" title="Rimuovi">✕</button>
       `;
@@ -8050,6 +8067,7 @@ async function addCartToMeal() {
       name: c.food.name,
       qty: qty,
       unit: c.food.unit,
+      gramsPerUnit: c.food.gramsPerUnit || undefined,
       ...computed
     });
   });
@@ -8283,10 +8301,14 @@ function openQtyModal(food, prefillQty, mealOverride) {
   if (isRecipe) {
     const s = food.recipe.servings;
     baseLabel = `${fmt(food.kcal)} kcal · ${fmt(food.protein,1)}g proteine · per porzione (ricetta da ${s} porzion${s===1?'e':'i'})`;
-  } else if (food.unit === 'pz') {
-    baseLabel = `1 unità ≈ ${food.gramsPerUnit || 100}g · ${fmt(food.kcal)} kcal/100g`;
+  } else if (food.unit === 'g' || food.unit === 'ml' || !food.unit) {
+    baseLabel = `${fmt(food.kcal)} kcal · ${fmt(food.protein,1)}g proteine · per 100${food.unit || 'g'}`;
   } else {
-    baseLabel = `${fmt(food.kcal)} kcal · ${fmt(food.protein,1)}g proteine · per 100${food.unit}`;
+    // count-based unit (pz, porz, tazza, ...) → show equivalence
+    const g = food.gramsPerUnit || 100;
+    const kcalPerUnit = Math.round((food.kcal * g) / 100);
+    const protPerUnit = ((food.protein * g) / 100).toFixed(1);
+    baseLabel = `1 ${food.unit} ≈ ${g}g · ${kcalPerUnit} kcal · ${protPerUnit}g proteine`;
   }
   qtyFoodBase.textContent = baseLabel;
   qtyUnit.textContent = isRecipe ? 'porz.' : food.unit;
@@ -8301,13 +8323,13 @@ function openQtyModal(food, prefillQty, mealOverride) {
   document.getElementById('qty-add').textContent = 'Aggiungi';
 
   // default quantity — use prefill (habitual) if provided
-  qtyInput.value = prefillQty != null ? prefillQty : (food.defaultQty || (food.unit === 'pz' ? 1 : 100));
+  qtyInput.value = prefillQty != null ? prefillQty : (food.defaultQty || (isCountUnit(food.unit) ? 1 : 100));
 
   // quick picks
   quickPicks.innerHTML = '';
   let picks;
   if (isRecipe) picks = [0.5, 1, 1.5, 2, 3];
-  else if (food.unit === 'pz') picks = [1, 2, 3, 4];
+  else if (isCountUnit(food.unit)) picks = [1, 2, 3, 4];
   else if (food.unit === 'ml') picks = [100, 150, 200, 250, 330, 500];
   else picks = [30, 50, 80, 100, 150, 200, 250];
   picks.forEach(p => {
@@ -8339,7 +8361,9 @@ function openEditModal(mealName, idx) {
   let baseFood = findFood(item.foodId);
   if (!baseFood) {
     // Fallback: derive per-100 values from stored item using its quantity
-    const ratio = item.unit === 'pz' ? (item.qty * 100) : (item.qty || 100);
+    // For count-based units, convert to grams via gramsPerUnit if available
+    const gpu = item.gramsPerUnit || 100;
+    const ratio = isCountUnit(item.unit) ? (item.qty * gpu) : (item.qty || 100);
     baseFood = {
       id: item.foodId || 'unknown',
       name: item.name,
@@ -8357,9 +8381,14 @@ function openEditModal(mealName, idx) {
   editMode = { meal: mealName, idx: idx };
   currentFood = baseFood;
   qtyFoodName.textContent = item.name;
-  const baseLabel = item.unit === 'pz'
-    ? `Modifica · 1 unità ≈ ${baseFood.gramsPerUnit || 100}g`
-    : `Modifica · ${fmt(baseFood.kcal)} kcal · ${fmt(baseFood.protein,1)}g prot / 100${item.unit}`;
+  let baseLabel;
+  if (isCountUnit(item.unit)) {
+    const g = baseFood.gramsPerUnit || item.gramsPerUnit || 100;
+    const kcalPerUnit = Math.round((baseFood.kcal * g) / 100);
+    baseLabel = `Modifica · 1 ${item.unit} ≈ ${g}g · ${kcalPerUnit} kcal`;
+  } else {
+    baseLabel = `Modifica · ${fmt(baseFood.kcal)} kcal · ${fmt(baseFood.protein,1)}g prot / 100${item.unit}`;
+  }
   qtyFoodBase.textContent = baseLabel;
   qtyUnit.textContent = item.unit;
 
@@ -8371,7 +8400,7 @@ function openEditModal(mealName, idx) {
 
   // quick picks
   quickPicks.innerHTML = '';
-  const picks = item.unit === 'pz' ? [1, 2, 3, 4]
+  const picks = isCountUnit(item.unit) ? [1, 2, 3, 4]
               : item.unit === 'ml' ? [100, 150, 200, 250, 330, 500]
               : [30, 50, 80, 100, 150, 200, 250];
   picks.forEach(p => {
@@ -8449,6 +8478,7 @@ document.getElementById('qty-add').addEventListener('click', async () => {
       name: oldItem.name,
       qty: qty,
       unit: oldItem.unit,
+      gramsPerUnit: oldItem.gramsPerUnit || currentFood.gramsPerUnit || undefined,
       isRecipe: oldItem.isRecipe || !!currentFood.recipe,
       ...c
     };
@@ -8470,6 +8500,7 @@ document.getElementById('qty-add').addEventListener('click', async () => {
       name: currentFood.name,
       qty: qty,
       unit: currentFood.unit,
+      gramsPerUnit: currentFood.gramsPerUnit || undefined,
       isRecipe: !!currentFood.recipe,
       ...c
     });
@@ -8701,10 +8732,10 @@ cfIngSearch.addEventListener('input', () => {
     item.style.cssText = 'padding:8px 10px; cursor:pointer; border-bottom:1px solid var(--bg-soft);';
     item.innerHTML = `
       <div style="font-size:13px; color:var(--ink);">${f.name}</div>
-      <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-soft);">${Math.round(f.kcal)} kcal/100${f.unit==='pz'?'pz':f.unit||'g'}</div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-soft);">${Math.round(f.kcal)} kcal/100${(f.unit==='g'||f.unit==='ml'||!f.unit)?(f.unit||'g'):'g'}</div>
     `;
     item.addEventListener('click', () => {
-      const defaultQty = f.unit === 'pz' ? 1 : (f.defaultQty || 100);
+      const defaultQty = isCountUnit(f.unit) ? 1 : (f.defaultQty || 100);
       cfRecipeIngredients.push({
         foodId: f.id,
         qty: defaultQty,
