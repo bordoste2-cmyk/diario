@@ -1108,6 +1108,13 @@
     background: var(--gold);
     color: white;
   }
+  /* When session is active, add space at the bottom of the exercise list
+     so the timer popups (rest at bottom:90px, set-timer at bottom:90px) don't
+     cover the last exercise's sets. 300px accommodates the tallest popup (set-timer
+     ~240px) plus a safety margin. */
+  #workout-modal.started-mode #workout-exercises-list {
+    padding-bottom: 300px;
+  }
   #workout-modal-time {
     font-family: 'JetBrains Mono', monospace;
     font-size: 16px;
@@ -6828,7 +6835,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.18.3';
+const APP_VERSION = '3.18.5';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -11135,14 +11142,17 @@ function openWorkoutModal(sessionId) {
           // Start rest timer (unless this was the last set of the last exercise)
           const isLastSetOfExercise = sIdx === exObj.sets.length - 1;
           const restSec = exObj.restSec || 60;
+          const totSets = exObj.sets.length;
           // Only start rest if there's a next set somewhere
           if (!isLastSetOfExercise) {
-            startRestTimer(restSec, `Prossima: ${exObj.name} — serie ${sIdx + 2}`);
+            const nextSetNum = sIdx + 2; // 1-indexed for display
+            startRestTimer(restSec, `Prossima: ${exObj.name} — serie ${nextSetNum}/${totSets}`);
           } else {
             // Last set of this exercise — suggest next exercise if any
             const nextEx = workoutSession.exercises[exIdx + 1];
             if (nextEx) {
-              startRestTimer(restSec, `Prossimo esercizio: ${nextEx.name}`);
+              const nextExTotSets = (nextEx.sets && nextEx.sets.length) || nextEx.targetSets || 3;
+              startRestTimer(restSec, `Prossimo: ${nextEx.name} — serie 1/${nextExTotSets}`);
             } else {
               stopRestTimer();
             }
@@ -11444,12 +11454,22 @@ function startSetTimer(exIdx, sIdx) {
   // Light haptic on open so user knows it's there
   if (navigator.vibrate) navigator.vibrate(30);
 
-  // Scroll the active row into view (so reps/weight inputs are accessible behind popup)
+  // Scroll the active row into view above the timer popup (which sits at bottom ~90-280px).
+  // We target the specific set row, and place it in the upper third of the visible area
+  // so the reps/weight inputs are accessible above the timer.
   try {
     const listEl = document.getElementById('workout-exercises-list');
     if (listEl) {
       const card = listEl.querySelector(`.workout-ex-card[data-exidx="${exIdx}"]`);
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const row = card && card.querySelector(`.workout-set-row[data-setidx="${sIdx}"]`);
+      const target = row || card;
+      if (target) {
+        // Center the active row: with the 260px bottom padding, the row lands
+        // safely above the timer popup at bottom ~90-280px.
+        setTimeout(() => {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 50);
+      }
     }
   } catch (e) {}
 }
