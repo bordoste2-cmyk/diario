@@ -6663,6 +6663,11 @@ const WORKOUT_SESSIONS = {
         execution: 'In piedi, manubri ai lati con palmi rivolti in avanti (o presa neutra). Gomiti fermi e attaccati ai fianchi per tutto il movimento. Solleva i manubri solo contraendo i bicipiti, senza slancio del busto. Stringi in alto. Discesa controllata in 2 secondi fino a braccia quasi tese (mai completamente bloccate).',
         notes: 'Bicipiti. Se ti viene da "buttare su" il peso, è troppo.'
       },
+      { id: 'face-pull', name: 'Face pull con elastico', sets: 3, repsMin: 12, repsMax: 15, defaultWeight: 0, weightUnit: 'elastico', restSec: 45,
+        category: 'accessory',
+        execution: 'Elastico fissato all\'altezza del viso (maniglia della porta, gancio, manubrio del peso pesante fermo). In piedi di fronte all\'ancoraggio, impugna l\'elastico con entrambe le mani, presa neutra (palmi rivolti verso terra). Braccia distese in avanti all\'altezza degli occhi. Tira l\'elastico verso il viso spostando i gomiti ALTI e LARGHI (paralleli al pavimento), come se stessi facendo un "arco". Alla fine del movimento le mani sono ai lati della fronte, le scapole strette dietro, i gomiti dietro le spalle. Pausa 1 secondo in massima contrazione. Ritorno lento in 2 secondi.',
+        notes: 'Deltoide posteriore + trapezio medio + rotatori esterni. Serve postura sana e prevenzione infortuni spalla (importante nel padel). NON pensare al peso: pensa alla contrazione delle scapole e alla posizione dei gomiti.'
+      },
       { id: 'plank', name: 'Plank', sets: 3, repsMin: 45, repsMax: 60, defaultWeight: 0, weightUnit: 'sec', restSec: 45,
         category: 'core',
         execution: 'Appoggio su avambracci (gomiti sotto le spalle) e punte dei piedi. Corpo dritto come una tavola: testa, schiena, glutei, talloni in linea. Stringi addome e glutei. NON alzare il sedere in alto (riduce lo sforzo) né lasciarlo cadere (sovraccarico lombare). Respira normalmente. Se 45" diventa facile, passa a 60".',
@@ -6718,6 +6723,11 @@ const WORKOUT_SESSIONS = {
         execution: 'In piedi con un manubrio per mano (i più pesanti che gestisci con buona postura). Spalle in basso e indietro, scapole "infilate in tasca". Petto in fuori, core contratto. Cammina con passi normali, manubri lungo i fianchi che non oscillano. Non guardare a terra, sguardo avanti. Andatura controllata, non corsa.',
         notes: 'Core + trapezi + grip. Postura conta più della velocità. Tempo in secondi di camminata continua.',
         isTimed: true
+      },
+      { id: 'french-press', name: 'French press manubrio', sets: 3, repsMin: 10, repsMax: 12, defaultWeight: 5, weightUnit: 'kg', restSec: 45,
+        category: 'accessory',
+        execution: 'In piedi o seduto su una sedia con schienale. Impugna un manubrio con entrambe le mani (presa a "cuore" attorno alla testa superiore del manubrio, palmi verso l\'alto). Solleva il manubrio sopra la testa a braccia distese, poi piega SOLO i gomiti abbassando il manubrio dietro la nuca (i gomiti restano fermi vicino alla testa, puntati verso l\'alto). Discesa controllata in 2 secondi fino a sentire lo stretch del tricipite. Riporta su estendendo i gomiti fino alle braccia dritte. NON allargare i gomiti, restano stretti e puntati in avanti.',
+        notes: 'Tricipiti isolati (parte lunga). Aiuta anche l\'estensione del gomito nel colpo tirato di padel. Se avverti fastidio al gomito o alla spalla, riduci il peso: la tecnica pulita conta più del carico.'
       },
       { id: 'plank', name: 'Plank', sets: 3, repsMin: 45, repsMax: 60, defaultWeight: 0, weightUnit: 'sec', restSec: 45,
         category: 'core',
@@ -6931,7 +6941,7 @@ const MAINTENANCE_GUIDE = {
       restart: 'Riparti da 6-8 reps per braccio, poi progredisci come normale.'
     }
   },
-  'rematore': {
+  'row-dumbbell': {
     threshold: 'Quando fai 12 reps con 10 kg × 5 serie, TUT 4s, con schiena stabile.',
     variant: {
       name: 'Rematore con pausa isometrica',
@@ -6971,7 +6981,7 @@ const MAINTENANCE_GUIDE = {
       restart: 'Riparti da 5-6 reps per gamba senza carico, poi aggiungi 5 kg per mano.'
     }
   },
-  'terminal-knee': {
+  'tke': {
     threshold: 'Quando fai 20 reps con 2 kg × 5 serie in modo pulito, senza dolore.',
     variant: {
       name: 'Wall squat statico + estensione',
@@ -6987,6 +6997,14 @@ const MAINTENANCE_GUIDE = {
       restart: 'Riparti da 6-8 reps con lo stesso peso (10 kg), TUT 2s.'
     }
   },
+  'face-pull': {
+    threshold: 'Quando fai 15 reps × 3 serie con elastico attuale, scapole ben strette in cima.',
+    variant: {
+      name: 'Face pull con elastico più duro + pausa isometrica',
+      how: 'Passa a un elastico di resistenza maggiore. Nel punto di massima contrazione (mani ai lati della fronte, gomiti larghi e alti) tieni 3 secondi invece di 1. La contrazione delle scapole è tutto: se allarghi/perdi la posizione, sei sceso.',
+      restart: 'Riparti da 10-12 reps con la resistenza nuova + pausa 3s.'
+    }
+  },
   'plank': {
     threshold: 'Quando tieni 60-75 secondi × 3 serie in modo pulito (senza far cadere il bacino).',
     variant: {
@@ -6996,6 +7014,38 @@ const MAINTENANCE_GUIDE = {
     }
   },
   // === Scheda B ===
+  'hip-bridge-vol': {
+    threshold: 'Quando fai 15 reps con 20 kg × 5 serie, TUT 4s (stessa soglia della versione in A).',
+    variant: {
+      name: 'Hip thrust monopodalico',
+      how: 'Uguale ma con una gamba sola sollevata (l\'altra piegata a 90° tenuta in aria). Bilancia peso corporeo + manubrio sul bacino su una gamba.',
+      restart: 'Riparti da 6-8 reps per gamba senza carico (solo corpo), poi aggiungi peso gradualmente.'
+    }
+  },
+  'lateral-raise': {
+    threshold: 'Quando fai 12 reps con 5 kg × 4 serie, TUT 4s, senza slancio con il tronco.',
+    variant: {
+      name: 'Alzate laterali con pausa isometrica in cima',
+      how: 'Uguali alle normali, ma quando i manubri raggiungono la posizione parallela al pavimento tieni 2-3 secondi prima di scendere. Movimento lento e controllato in discesa.',
+      restart: 'Riparti da 6-8 reps con 5 kg + pausa 2s, poi progredisci.'
+    }
+  },
+  'clam-shell': {
+    threshold: 'Quando fai 15 reps per lato × 4 serie con l\'elastico attuale, bacino stabile e senza dolore.',
+    variant: {
+      name: 'Clam shell con elastico più duro o hip abduction in piedi',
+      how: 'Passa a un elastico di resistenza maggiore mantenendo lo stesso movimento. In alternativa, hip abduction in piedi con elastico attorno alle caviglie (bilaterale) — trasferisce meglio nel padel perché carica il medio-gluteo in posizione funzionale.',
+      restart: 'Riparti da 10-12 reps per lato con la nuova resistenza, poi progredisci.'
+    }
+  },
+  'calf-raise': {
+    threshold: 'Quando fai 20 reps × 4 serie a corpo libero (bilaterale) in modo controllato.',
+    variant: {
+      name: 'Calf raise monopodalico',
+      how: 'Stesso movimento ma su una gamba sola. Puoi tenere in mano una parete o una sedia per equilibrio (senza scaricarci peso). Molto più impegnativo per il polpaccio e per la stabilità della caviglia.',
+      restart: 'Riparti da 8-10 reps per gamba, poi progredisci fino a 15-20.'
+    }
+  },
   'wall-sit': {
     threshold: 'Quando tieni 60-75 secondi × 3 serie con angolo del ginocchio a 90°.',
     variant: {
@@ -7010,6 +7060,14 @@ const MAINTENANCE_GUIDE = {
       name: 'Farmer walk con peso maggiore o monolaterale',
       how: 'Se hai manubri più pesanti (12,5-15 kg), usa quelli e riparti da 40 secondi. Se hai solo 10 kg, prova la versione monolaterale: cammini con un solo manubrio, l\'altro braccio libero. Il core lavora molto di più per contrastare lo sbilanciamento.',
       restart: 'Riparti da 30 secondi con peso maggiore, oppure 30 secondi mono-arm con 10 kg.'
+    }
+  },
+  'french-press': {
+    threshold: 'Quando fai 12 reps con 5 kg × 3 serie, TUT 4s, gomiti fermi senza allargarsi.',
+    variant: {
+      name: 'French press monobraccio + pausa isometrica',
+      how: 'Impugna un manubrio con UNA mano sola sopra la testa (braccio libero appoggiato al fianco o dietro la testa per stabilizzare). Nel punto più basso (manubrio dietro la nuca) tieni 2 secondi. Molto più impegnativo per la stabilità della spalla e per il tricipite.',
+      restart: 'Riparti da 6-8 reps per braccio con lo stesso peso (5 kg) + pausa 2s.'
     }
   },
   // === Scheda C — Core ===
@@ -7122,7 +7180,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.19.1';
+const APP_VERSION = '3.19.3';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
