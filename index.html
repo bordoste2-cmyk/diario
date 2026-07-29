@@ -1264,6 +1264,17 @@
     font-size: 9.5px;
     font-weight: 600;
   }
+  .workout-ex-target .lever-badge.maintenance-badge {
+    background: var(--gold-soft);
+    color: #8c5e1d;
+  }
+  .workout-ex-lock {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 11px;
+    vertical-align: baseline;
+    opacity: 0.75;
+  }
   .workout-set-row {
     display: grid;
     grid-template-columns: 38px 1fr 1fr 32px;
@@ -1673,6 +1684,86 @@
     color: var(--ink);
     font-weight: 600;
     text-align: right;
+  }
+
+  /* Maintenance lock button */
+  .exercise-info-lock-section {
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+  }
+  .exercise-info-guide-section {
+    background: var(--bg-soft);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 14px;
+  }
+  .guide-threshold {
+    font-size: 13px;
+    color: var(--ink);
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .guide-variant-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin: 10px 0 4px 0;
+    padding-top: 8px;
+    border-top: 1px dashed var(--line);
+  }
+  .guide-variant-name {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--accent-deep);
+    margin-bottom: 6px;
+  }
+  .guide-variant-how {
+    font-size: 12.5px;
+    color: var(--ink);
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+  .guide-variant-restart {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    font-style: italic;
+    padding-left: 10px;
+    border-left: 2px solid var(--accent);
+  }
+  .exercise-info-lock-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    background: var(--bg-card);
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: all 0.15s;
+  }
+  .exercise-info-lock-btn:hover { background: var(--bg-soft); }
+  .exercise-info-lock-btn:active { transform: scale(0.98); }
+  .exercise-info-lock-btn.is-locked {
+    background: var(--accent-soft);
+    color: var(--accent-deep);
+    border-color: var(--accent);
+  }
+  .exercise-info-lock-btn .lock-icon { font-size: 18px; }
+  .exercise-info-lock-hint {
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 8px;
+    line-height: 1.4;
+    font-style: italic;
   }
 
   /* Progression chart */
@@ -5217,6 +5308,23 @@
       <div class="step-label">Cronologia (ultime 6 sessioni)</div>
       <div id="exercise-info-history"></div>
     </div>
+    <div class="exercise-info-section exercise-info-guide-section" id="exercise-info-guide-section">
+      <div class="step-label">Quando passare in mantenimento</div>
+      <div class="guide-threshold" id="exercise-info-guide-threshold"></div>
+      <div class="guide-variant-title">Se vuoi ripartire con una nuova progressione</div>
+      <div class="guide-variant-name" id="exercise-info-guide-variant-name"></div>
+      <div class="guide-variant-how" id="exercise-info-guide-variant-how"></div>
+      <div class="guide-variant-restart" id="exercise-info-guide-variant-restart"></div>
+    </div>
+    <div class="exercise-info-section exercise-info-lock-section">
+      <button class="exercise-info-lock-btn" id="exercise-info-lock-btn" type="button">
+        <span class="lock-icon">🔓</span>
+        <span class="lock-label">Blocca in mantenimento</span>
+      </button>
+      <div class="exercise-info-lock-hint" id="exercise-info-lock-hint">
+        Quando bloccato, l'app terrà i parametri fermi al livello attuale — utile quando hai raggiunto un livello sufficiente e vuoi solo mantenere.
+      </div>
+    </div>
     <div class="modal-actions">
       <button class="btn-secondary" id="exercise-info-close">Chiudi</button>
     </div>
@@ -6755,6 +6863,16 @@ function suggestNextSession(exerciseId, sessionId) {
     lever: last.ex.lever || (effectiveBaseline > lastRepsTarget || weightBumped ? 'baseline-up' : 'reps')
   };
 
+  // Maintenance lock: if the user has locked this exercise, freeze at last-session parameters.
+  // The baseline update (if user did more than target) still applies — that's a state update,
+  // not progression — but no lever is activated.
+  const lockKey = sessionId + ':' + exerciseId;
+  const isLocked = !!(state.maintenanceLocks && state.maintenanceLocks[lockKey]);
+  if (isLocked) {
+    next.lever = 'maintenance';
+    return next;
+  }
+
   if (twoConsecutiveSuccess) {
     // Advance progression
     if (exercise.isTimed) {
@@ -6775,8 +6893,8 @@ function suggestNextSession(exerciseId, sessionId) {
         // Leva 2: +1 secondo TUT (max 4s)
         next.tempoSec = lastTempo + 1;
         next.lever = 'tempo';
-      } else if (lastNumSets < exercise.sets + 2) {
-        // Leva 3: +1 serie (max +2 dalla base)
+      } else if (lastNumSets < 5) {
+        // Leva 3: +1 serie (tetto assoluto di 5 serie totali)
         next.sets = lastNumSets + 1;
         next.tempoSec = 2;
         next.lever = 'sets';
@@ -6801,6 +6919,174 @@ function suggestNextSession(exerciseId, sessionId) {
 }
 
 // Lever labels for display
+// Guide per il mantenimento: soglia consigliata + variante più difficile
+// per ripartire con una nuova progressione. Chiavi = exerciseId.
+const MAINTENANCE_GUIDE = {
+  // === Scheda A ===
+  'floor-press': {
+    threshold: 'Quando fai 12 reps con 10 kg × 5 serie in modo pulito, con TUT 4s.',
+    variant: {
+      name: 'Floor press monobraccio',
+      how: 'Sdraiato a terra con un solo manubrio. Usi lo stesso peso (10 kg) su un braccio alla volta invece che due contemporaneamente. Molto più impegnativo per il core e per la stabilità della spalla.',
+      restart: 'Riparti da 6-8 reps per braccio, poi progredisci come normale.'
+    }
+  },
+  'rematore': {
+    threshold: 'Quando fai 12 reps con 10 kg × 5 serie, TUT 4s, con schiena stabile.',
+    variant: {
+      name: 'Rematore con pausa isometrica',
+      how: 'Uguale al rematore normale, ma in cima al movimento (manubrio vicino al fianco, scapola contratta) tieni la posizione 2-3 secondi prima di scendere.',
+      restart: 'Riparti da 6-8 reps con lo stesso peso, poi progredisci.'
+    }
+  },
+  'shoulder-press': {
+    threshold: 'Quando fai 12 reps con 5 kg × 4-5 serie, TUT 4s.',
+    variant: {
+      name: 'Shoulder press seduto con manubri più pesanti',
+      how: 'Seduto su una sedia con schienale, esegui il movimento con manubri leggermente più pesanti (es. 6-7 kg se hai i regolabili, o 5 kg tenendo la sedia più bassa e lavorando su range più ampio).',
+      restart: 'Riparti da 6-8 reps col nuovo peso, TUT 2s.'
+    }
+  },
+  'pullover': {
+    threshold: 'Quando fai 15 reps con 10 kg × 5 serie in modo controllato.',
+    variant: {
+      name: 'Pullover con pausa in stretch',
+      how: 'Stesso movimento, ma nel punto più basso (manubrio dietro la testa) tieni 2-3 secondi in massimo allungamento prima di riportare su.',
+      restart: 'Riparti da 10-12 reps stesso peso, poi progredisci.'
+    }
+  },
+  'hip-bridge': {
+    threshold: 'Quando fai 15 reps con 20 kg × 5 serie, TUT 4s.',
+    variant: {
+      name: 'Hip thrust monopodalico',
+      how: 'Uguale ma con una gamba sola sollevata (l\'altra piegata a 90° tenuta in aria). Bilancia peso corporeo + manubrio sul bacino su una gamba.',
+      restart: 'Riparti da 6-8 reps per gamba senza carico (solo corpo), poi aggiungi peso gradualmente.'
+    }
+  },
+  'sit-to-stand': {
+    threshold: 'Quando fai 12 reps con 10 kg per mano × 5 serie, controllato in fase di discesa.',
+    variant: {
+      name: 'Sit-to-stand monopodalico (o Bulgarian split squat)',
+      how: 'Alzati dalla sedia usando solo una gamba (l\'altra tenuta sollevata davanti). Se troppo difficile, appoggia la punta del piede posteriore su un rialzo (Bulgarian split squat con manubri).',
+      restart: 'Riparti da 5-6 reps per gamba senza carico, poi aggiungi 5 kg per mano.'
+    }
+  },
+  'terminal-knee': {
+    threshold: 'Quando fai 20 reps con 2 kg × 5 serie in modo pulito, senza dolore.',
+    variant: {
+      name: 'Wall squat statico + estensione',
+      how: 'Wall sit tenuto per 20-30 secondi seguito da 10 estensioni terminali con caviglia zavorrata. Fatica combinata isometrica + concentrica.',
+      restart: 'Riparti da 3 serie da 20s wall sit + 8 estensioni con lo stesso peso.'
+    }
+  },
+  'curl': {
+    threshold: 'Quando fai 12 reps con 10 kg × 3-4 serie, TUT 4s, senza slancio.',
+    variant: {
+      name: 'Curl con pausa isometrica a 90°',
+      how: 'A metà del curl (gomito a 90°) fermati 2-3 secondi, poi completa la salita e discendi controllato. Isometrico più concentrico più eccentrico in una sola rep.',
+      restart: 'Riparti da 6-8 reps con lo stesso peso (10 kg), TUT 2s.'
+    }
+  },
+  'plank': {
+    threshold: 'Quando tieni 60-75 secondi × 3 serie in modo pulito (senza far cadere il bacino).',
+    variant: {
+      name: 'Plank con shoulder tap',
+      how: 'Dalla posizione di plank, alza una mano e tocca la spalla opposta, poi cambia. Continua alternando. Il core lavora molto di più (anti-rotazione).',
+      restart: 'Riparti da 30 secondi × 3 serie (10 tap per lato al minuto), poi progredisci.'
+    }
+  },
+  // === Scheda B ===
+  'wall-sit': {
+    threshold: 'Quando tieni 60-75 secondi × 3 serie con angolo del ginocchio a 90°.',
+    variant: {
+      name: 'Wall sit con manubrio sulle cosce',
+      how: 'Stessa posizione di wall sit ma con un manubrio da 5-10 kg tenuto sulle cosce (aumenta il carico sul quadricipite).',
+      restart: 'Riparti da 30 secondi × 3 serie con 5 kg, poi progredisci sia in tempo che in peso.'
+    }
+  },
+  'farmer-walk': {
+    threshold: 'Quando cammini 60 secondi con 10 kg per mano, busto perfettamente stabile.',
+    variant: {
+      name: 'Farmer walk con peso maggiore o monolaterale',
+      how: 'Se hai manubri più pesanti (12,5-15 kg), usa quelli e riparti da 40 secondi. Se hai solo 10 kg, prova la versione monolaterale: cammini con un solo manubrio, l\'altro braccio libero. Il core lavora molto di più per contrastare lo sbilanciamento.',
+      restart: 'Riparti da 30 secondi con peso maggiore, oppure 30 secondi mono-arm con 10 kg.'
+    }
+  },
+  // === Scheda C — Core ===
+  'dead-bug': {
+    threshold: 'Quando fai 12 reps per lato × 3 serie con lombari sempre a terra.',
+    variant: {
+      name: 'Dead bug con manubrio leggero',
+      how: 'Tieni un manubrio da 2-3 kg con le mani, mantenendolo teso verso il soffitto. Il carico aggiuntivo aumenta la sfida per il core.',
+      restart: 'Riparti da 8 reps per lato con 2 kg.'
+    }
+  },
+  'bird-dog': {
+    threshold: 'Quando fai 12 reps per lato × 3 serie con bacino perfettamente stabile.',
+    variant: {
+      name: 'Bird dog con pausa isometrica',
+      how: 'In massima estensione (braccio e gamba opposta paralleli al pavimento) tieni 5 secondi invece che 2. Riduce la tolleranza al bruciore del core.',
+      restart: 'Stesse 8-10 reps per lato, ma con 5s di pausa. Progredisci a 12.'
+    }
+  },
+  'pallof-press': {
+    threshold: 'Quando fai 12 reps per lato × 3 serie senza mai far ruotare il busto.',
+    variant: {
+      name: 'Pallof press con elastico più duro o step laterale',
+      how: 'Passa a un elastico di resistenza maggiore, oppure aggiungi uno step laterale mentre le braccia sono estese (aumenta la fatica del core).',
+      restart: 'Riparti da 8 reps per lato con la nuova resistenza.'
+    }
+  },
+  'side-plank': {
+    threshold: 'Quando tieni 40 secondi per lato × 3 serie con bacino allineato.',
+    variant: {
+      name: 'Side plank con sollevamento gamba',
+      how: 'Dalla posizione di side plank, alza la gamba superiore lentamente e riabbassala. Ogni rep dura 3-4 secondi.',
+      restart: 'Riparti da 20 secondi + 5 sollevamenti gamba per lato.'
+    }
+  },
+  'hollow-hold': {
+    threshold: 'Quando tieni 30 secondi × 3 serie con lombari perfettamente a terra.',
+    variant: {
+      name: 'Hollow rock',
+      how: 'Dalla posizione di hollow hold, oscilla il corpo avanti e indietro come una banana in acqua. Il core lavora dinamicamente per mantenere la forma.',
+      restart: 'Riparti da 15 secondi di rock × 3 serie.'
+    }
+  },
+  'glute-bridge-march': {
+    threshold: 'Quando fai 12 reps per lato × 3 serie senza far ruotare il bacino.',
+    variant: {
+      name: 'Glute bridge march con manubrio',
+      how: 'Bridge con un manubrio da 5-10 kg tenuto sul bacino, poi alterna il sollevamento delle ginocchia.',
+      restart: 'Riparti da 8 reps per lato con 5 kg.'
+    }
+  },
+  'farmer-walk-core': {
+    threshold: 'Quando cammini 45 secondi × 3 serie con 10 kg per mano, busto stabile.',
+    variant: {
+      name: 'Farmer walk monolaterale',
+      how: 'Cammina con un solo manubrio (10 kg) e l\'altro braccio libero. Il core lavora anti-laterale contro il carico asimmetrico.',
+      restart: 'Riparti da 30 secondi per lato con 10 kg.'
+    }
+  },
+  'copenhagen-easy': {
+    threshold: 'Quando tieni 25 secondi per lato × 3 serie con ginocchio appoggiato sulla sedia.',
+    variant: {
+      name: 'Copenhagen plank (versione caviglia)',
+      how: 'Come la versione base ma appoggia la CAVIGLIA della gamba superiore sulla sedia invece del ginocchio. Il carico sull\'inguine è molto maggiore.',
+      restart: 'Riparti da 10 secondi per lato, poi progredisci lentamente (adduttori sono zona delicata).'
+    }
+  },
+  'wall-press-hollow': {
+    threshold: 'Quando tieni 30 secondi × 2-3 serie con spinta attiva costante contro il muro.',
+    variant: {
+      name: 'Hollow hold sospeso',
+      how: 'Passa direttamente all\'hollow hold libero (senza appoggiare i piedi al muro). Molto più impegnativo per il retto addominale profondo.',
+      restart: 'Riparti da 15 secondi × 3 serie.'
+    }
+  }
+};
+
 const LEVER_LABELS = {
   'start': 'Sessione di partenza',
   'baseline-up': '↑ Baseline aggiornata a quanto hai davvero fatto',
@@ -6808,7 +7094,8 @@ const LEVER_LABELS = {
   'tempo': 'Rallenta la discesa (tempo sotto tensione)',
   'sets': 'Aggiungi una serie',
   'rest': 'Riduci il recupero',
-  'load-up': '⚡ Tetto raggiunto — è ora di aumentare il carico'
+  'load-up': '⚡ Tetto raggiunto — è ora di aumentare il carico',
+  'maintenance': '🔒 Mantenimento — livello congelato'
 };
 
 // Determine which session to suggest next (A or B alternating)
@@ -6835,7 +7122,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.18.5';
+const APP_VERSION = '3.19.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -6849,6 +7136,7 @@ let state = {
   workoutLogs: [], // [{ts, date, sessionId: 'A'|'B', durationMin, exercises: [{exerciseId, targetSets, targetReps, targetWeight, restSec, tempoSec, lever, sets: [{reps, weight, done}], notes}]}]
   dayEmojis: {},   // { 'YYYY-MM-DD': ['😴','🍕'] } — manual emoji tags per day (max 4 incl. auto)
   collapsedLabGroups: {}, // { lipids: false, glucose: false, pressure: false }
+  maintenanceLocks: {}, // { 'A:floor-press': true, 'B:plank': true } — lock exercise at current level, no more progression
   targets: {
     kcal: 2100,
     protein: 140,
@@ -6960,6 +7248,12 @@ async function loadState() {
     if (de) state.dayEmojis = JSON.parse(de);
   } catch (e) { state.dayEmojis = {}; }
 
+  // Maintenance locks (per exercise, freeze progression)
+  try {
+    const ml = localStorage.getItem(KEY_PREFIX + 'maintenanceLocks');
+    if (ml) state.maintenanceLocks = JSON.parse(ml);
+  } catch (e) { state.maintenanceLocks = {}; }
+
   // Profile (height, age, sex)
   try {
     const p = localStorage.getItem(KEY_PREFIX + 'profile');
@@ -7066,6 +7360,12 @@ async function saveDayEmojis() {
     localStorage.setItem(KEY_PREFIX + 'dayEmojis', JSON.stringify(state.dayEmojis));
     markUnbackedChange();
   } catch (e) { console.error('save day emojis', e); }
+}
+async function saveMaintenanceLocks() {
+  try {
+    localStorage.setItem(KEY_PREFIX + 'maintenanceLocks', JSON.stringify(state.maintenanceLocks));
+    markUnbackedChange();
+  } catch (e) { console.error('save maintenance locks', e); }
 }
 
 // ========== LAB HELPERS ==========
@@ -11073,13 +11373,18 @@ function openWorkoutModal(sessionId) {
       ? `<span class="lever-badge" title="${leverLabel}">${ex.lever}</span>` : '';
     const loadUpAlert = ex.loadUpSuggestion ? `<div style="background:var(--gold-soft);color:#8c5e1d;padding:6px 10px;font-size:11px;border-radius:6px;margin-top:6px;">⚡ ${LEVER_LABELS['load-up']}. Considera 12.5/15kg o passa a versione mono-arm.</div>` : '';
     const beyondMaxAlert = ex.beyondMaxSuggestion ? `<div style="background:var(--accent-soft);color:var(--accent-deep);padding:6px 10px;font-size:11px;border-radius:6px;margin-top:6px;">🎯 Sei oltre il range originale (${exDef.repsMax}${ex.isTimed?'s':' reps'}) — ottimo lavoro. Continua a spingere.</div>` : '';
+    // Maintenance lock indicator (small padlock in header + label in target line)
+    const lockKey = sessionId + ':' + ex.exerciseId;
+    const isLocked = !!(state.maintenanceLocks && state.maintenanceLocks[lockKey]);
+    const lockIcon = isLocked ? '<span class="workout-ex-lock" title="In mantenimento — progressione bloccata">🔒</span>' : '';
+    const maintenanceLabel = isLocked ? '<span class="lever-badge maintenance-badge" title="Livello congelato. Sblocca dal modale info se vuoi riprendere la progressione.">mantenimento</span>' : '';
 
     card.innerHTML = `
       <div class="workout-ex-header">
-        <span class="workout-ex-name">${ex.name}</span>
+        <span class="workout-ex-name">${ex.name}${lockIcon}</span>
         <button class="workout-ex-info-btn" data-exid="${ex.exerciseId}" data-sessionid="${sessionId}">ⓘ</button>
       </div>
-      <div class="workout-ex-target">${targetText}${leverBadge}${loadUpAlert}${beyondMaxAlert}</div>
+      <div class="workout-ex-target">${targetText}${maintenanceLabel}${leverBadge}${loadUpAlert}${beyondMaxAlert}</div>
       <div class="workout-set-row" style="background:var(--bg-soft); padding:6px 10px;">
         <span class="workout-set-input-label">set</span>
         <span class="workout-set-input-label">peso (kg)</span>
@@ -11735,6 +12040,66 @@ function openExerciseInfoModal(exerciseId, sessionId) {
     });
   }
 
+  // Maintenance guide (threshold + harder variant to restart progression)
+  const guide = MAINTENANCE_GUIDE[exerciseId];
+  const guideSection = document.getElementById('exercise-info-guide-section');
+  if (guide && guideSection) {
+    document.getElementById('exercise-info-guide-threshold').textContent = guide.threshold;
+    document.getElementById('exercise-info-guide-variant-name').textContent = '→ ' + guide.variant.name;
+    document.getElementById('exercise-info-guide-variant-how').textContent = guide.variant.how;
+    document.getElementById('exercise-info-guide-variant-restart').textContent = '↺ ' + guide.variant.restart;
+    guideSection.style.display = '';
+  } else if (guideSection) {
+    guideSection.style.display = 'none';
+  }
+
+  // Maintenance lock — toggle for this specific exercise
+  const lockKey = sessionId + ':' + exerciseId;
+  const lockBtn = document.getElementById('exercise-info-lock-btn');
+  const lockHint = document.getElementById('exercise-info-lock-hint');
+  const refreshLockUI = () => {
+    const locked = !!(state.maintenanceLocks && state.maintenanceLocks[lockKey]);
+    if (locked) {
+      lockBtn.classList.add('is-locked');
+      lockBtn.querySelector('.lock-icon').textContent = '🔒';
+      lockBtn.querySelector('.lock-label').textContent = 'In mantenimento — clicca per sbloccare';
+      lockHint.textContent = 'Bloccato: la progressione automatica è ferma. I parametri della prossima sessione saranno gli stessi dell\'ultima.';
+    } else {
+      lockBtn.classList.remove('is-locked');
+      lockBtn.querySelector('.lock-icon').textContent = '🔓';
+      lockBtn.querySelector('.lock-label').textContent = 'Blocca in mantenimento';
+      lockHint.textContent = 'Quando bloccato, l\'app terrà i parametri fermi al livello attuale — utile quando hai raggiunto un livello sufficiente e vuoi solo mantenere.';
+    }
+  };
+  refreshLockUI();
+  // Replace click handler to avoid stacking listeners across opens
+  const newBtn = lockBtn.cloneNode(true);
+  lockBtn.parentNode.replaceChild(newBtn, lockBtn);
+  newBtn.addEventListener('click', async () => {
+    if (!state.maintenanceLocks) state.maintenanceLocks = {};
+    if (state.maintenanceLocks[lockKey]) {
+      delete state.maintenanceLocks[lockKey];
+    } else {
+      state.maintenanceLocks[lockKey] = true;
+    }
+    await saveMaintenanceLocks();
+    // Update the button (we cloned it, so refresh by re-querying)
+    const btnNow = document.getElementById('exercise-info-lock-btn');
+    const hintNow = document.getElementById('exercise-info-lock-hint');
+    const locked = !!state.maintenanceLocks[lockKey];
+    if (locked) {
+      btnNow.classList.add('is-locked');
+      btnNow.querySelector('.lock-icon').textContent = '🔒';
+      btnNow.querySelector('.lock-label').textContent = 'In mantenimento — clicca per sbloccare';
+      hintNow.textContent = 'Bloccato: la progressione automatica è ferma. I parametri della prossima sessione saranno gli stessi dell\'ultima.';
+    } else {
+      btnNow.classList.remove('is-locked');
+      btnNow.querySelector('.lock-icon').textContent = '🔓';
+      btnNow.querySelector('.lock-label').textContent = 'Blocca in mantenimento';
+      hintNow.textContent = 'Quando bloccato, l\'app terrà i parametri fermi al livello attuale — utile quando hai raggiunto un livello sufficiente e vuoi solo mantenere.';
+    }
+  });
+
   exerciseInfoModal.classList.add('show');
 }
 
@@ -12149,7 +12514,8 @@ function getAllData() {
       dayEmojis: state.dayEmojis,
       meds: state.meds,
       targets: state.targets,
-      profile: state.profile
+      profile: state.profile,
+      maintenanceLocks: state.maintenanceLocks
     }
   };
 }
@@ -12277,6 +12643,7 @@ document.getElementById('backup-file-input').addEventListener('change', async (e
     if (d.meds) state.meds = d.meds;
     if (d.targets) state.targets = d.targets;
     if (d.profile) state.profile = { ...state.profile, ...d.profile };
+    if (d.maintenanceLocks) state.maintenanceLocks = d.maintenanceLocks;
     await saveDiary();
     await saveCustomFoods();
     await saveWeights();
@@ -12287,6 +12654,7 @@ document.getElementById('backup-file-input').addEventListener('change', async (e
     await saveMeds();
     await saveTargets();
     await saveProfile();
+    await saveMaintenanceLocks();
     // Reset backup badge (just restored, equivalent to fresh state)
     lastBackupTime = Date.now();
     unbackedChanges = 0;
