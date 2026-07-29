@@ -6245,6 +6245,56 @@ const FOODS = [
   { id:'cheeseburger', name:'Cheeseburger (con cheddar)', cat:'Piatti pronti', kcal:285, protein:15, carbs:18, sugar:3, fat:16, sat:7, fiber:1.5, unit:'g' },
   { id:'bacon-cheeseburger', name:'Bacon cheeseburger', cat:'Piatti pronti', kcal:310, protein:17, carbs:17, sugar:3, fat:19, sat:8, fiber:1.5, unit:'g' },
   { id:'double-burger', name:'Double burger (doppio bun + 2 carni)', cat:'Piatti pronti', kcal:295, protein:17, carbs:17, sugar:3, fat:17, sat:6.5, fiber:1.4, unit:'g' },
+
+  // ===== McDONALD'S ITALIA (valori per 100g; unit 'porz' con gramsPerUnit = peso porzione) =====
+  // Fonte: schede prodotto mcdonalds.it. Le calorie mostrate accanto al nome sono per porzione intera.
+  // Panini
+  { id:'mcd-hamburger', name:'Hamburger (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:249, protein:12, carbs:31, sugar:6, fat:8, sat:3, fiber:1.9, unit:'porz', gramsPerUnit:105, defaultQty:1 },
+  { id:'mcd-cheeseburger', name:'Cheeseburger (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:263, protein:13.5, carbs:29, sugar:6, fat:10.5, sat:5, fiber:1.7, unit:'porz', gramsPerUnit:117, defaultQty:1 },
+  { id:'mcd-double-cheeseburger', name:'Double Cheeseburger (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:270, protein:18, carbs:19, sugar:5, fat:14, sat:7, fiber:1.5, unit:'porz', gramsPerUnit:167, defaultQty:1 },
+  { id:'mcd-big-mac', name:'Big Mac (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:231, protein:12, carbs:18, sugar:3.7, fat:12, sat:4.4, fiber:1.7, unit:'porz', gramsPerUnit:235, defaultQty:1 },
+  { id:'mcd-mcchicken', name:'McChicken (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:230, protein:11, carbs:24, sugar:3, fat:10, sat:1.5, fiber:1.5, unit:'porz', gramsPerUnit:194, defaultQty:1 },
+  { id:'mcd-mcroyal', name:'McRoyal / Quarter Pounder (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:230, protein:14.5, carbs:15, sugar:3.5, fat:12.5, sat:5.5, fiber:1.3, unit:'porz', gramsPerUnit:220, defaultQty:1 },
+  { id:'mcd-crispy-mcbacon', name:'Crispy McBacon (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:290, protein:14, carbs:19, sugar:3, fat:17, sat:7.5, fiber:1.2, unit:'porz', gramsPerUnit:210, defaultQty:1 },
+  { id:'mcd-filet-o-fish', name:'Filet-O-Fish (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:245, protein:11, carbs:26, sugar:4, fat:11, sat:2, fiber:1.5, unit:'porz', gramsPerUnit:140, defaultQty:1 },
+  // Nuggets & sfiziosità
+  { id:'mcd-nuggets-6', name:'Chicken McNuggets 6 pz (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:246, protein:14.5, carbs:14, sugar:0.7, fat:15, sat:1.4, fiber:1, unit:'porz', gramsPerUnit:106, defaultQty:1 },
+  { id:'mcd-nuggets-9', name:'Chicken McNuggets 9 pz (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:246, protein:14.5, carbs:14, sugar:0.7, fat:15, sat:1.4, fiber:1, unit:'porz', gramsPerUnit:159, defaultQty:1 },
+  { id:'mcd-chicken-select-3', name:'Chicken Select 3 pz (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:236, protein:16, carbs:15, sugar:0.5, fat:13, sat:1.3, fiber:1.2, unit:'porz', gramsPerUnit:132, defaultQty:1 },
+  // Patatine e contorni
+  { id:'mcd-patatine-small', name:'Patatine piccole (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:322, protein:3.6, carbs:37, sugar:0.3, fat:17, sat:1.4, fiber:3.9, unit:'porz', gramsPerUnit:80, defaultQty:1 },
+  { id:'mcd-patatine-medie', name:'Patatine medie (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:322, protein:3.6, carbs:37, sugar:0.3, fat:17, sat:1.4, fiber:3.9, unit:'porz', gramsPerUnit:117, defaultQty:1 },
+  { id:'mcd-patatine-grandi', name:'Patatine grandi (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:322, protein:3.6, carbs:37, sugar:0.3, fat:17, sat:1.4, fiber:3.9, unit:'porz', gramsPerUnit:150, defaultQty:1 },
+  // Dessert e gelati
+  { id:'mcd-sundae-caramel', name:'Sundae caramello (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:170, protein:3.5, carbs:31, sugar:26, fat:3.5, sat:2.3, fiber:0.2, unit:'porz', gramsPerUnit:150, defaultQty:1 },
+  { id:'mcd-mcflurry-oreo', name:'McFlurry Oreo (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:186, protein:3.7, carbs:28, sugar:20, fat:6.3, sat:3.5, fiber:0.7, unit:'porz', gramsPerUnit:170, defaultQty:1 },
+  { id:'mcd-mcflurry-smarties', name:'McFlurry Smarties (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:190, protein:3.5, carbs:29, sugar:23, fat:6.5, sat:4, fiber:0.4, unit:'porz', gramsPerUnit:170, defaultQty:1 },
+  { id:'mcd-torta-mele', name:'Torta di mele (McDonald\'s)', cat:'🍔 Fast Food', brand:'McDonald\'s', kcal:314, protein:2.5, carbs:32, sugar:11, fat:19, sat:9, fiber:1.7, unit:'porz', gramsPerUnit:77, defaultQty:1 },
+
+  // ===== BURGER KING ITALIA =====
+  // Panini
+  { id:'bk-hamburger', name:'Hamburger (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:260, protein:13, carbs:29, sugar:5.5, fat:9.5, sat:3.5, fiber:1.6, unit:'porz', gramsPerUnit:107, defaultQty:1 },
+  { id:'bk-cheeseburger', name:'Cheeseburger (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:262, protein:14, carbs:26, sugar:5.5, fat:11, sat:5.5, fiber:1.4, unit:'porz', gramsPerUnit:120, defaultQty:1 },
+  { id:'bk-double-cheeseburger', name:'Double Cheeseburger (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:275, protein:18, carbs:19, sugar:5, fat:15, sat:8, fiber:1.3, unit:'porz', gramsPerUnit:172, defaultQty:1 },
+  { id:'bk-whopper', name:'Whopper (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:236, protein:11, carbs:19, sugar:4, fat:13, sat:4, fiber:1.5, unit:'porz', gramsPerUnit:290, defaultQty:1 },
+  { id:'bk-whopper-jr', name:'Whopper Junior (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:240, protein:12, carbs:20, sugar:4, fat:13, sat:4, fiber:1.5, unit:'porz', gramsPerUnit:150, defaultQty:1 },
+  { id:'bk-double-whopper', name:'Double Whopper (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:280, protein:17, carbs:14, sugar:3, fat:17, sat:6, fiber:1.2, unit:'porz', gramsPerUnit:375, defaultQty:1 },
+  { id:'bk-bacon-king', name:'Bacon King (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:307, protein:18, carbs:12, sugar:3, fat:22, sat:9, fiber:0.9, unit:'porz', gramsPerUnit:325, defaultQty:1 },
+  { id:'bk-steakhouse', name:'Steakhouse (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:275, protein:14, carbs:20, sugar:4, fat:15, sat:5.5, fiber:1.5, unit:'porz', gramsPerUnit:250, defaultQty:1 },
+  // Pollo
+  { id:'bk-chicken-royale', name:'Chicken Royale (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:255, protein:11, carbs:25, sugar:2.5, fat:12.5, sat:1.7, fiber:1.7, unit:'porz', gramsPerUnit:190, defaultQty:1 },
+  { id:'bk-crispy-chicken', name:'Crispy Chicken (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:280, protein:11.5, carbs:22, sugar:3, fat:15, sat:2, fiber:1.5, unit:'porz', gramsPerUnit:150, defaultQty:1 },
+  { id:'bk-summer-krispper', name:'Summer Krispper — pollo, datterino, Parmigiano (Burger King, stima)', cat:'🍔 Fast Food', brand:'Burger King', kcal:250, protein:11, carbs:17, sugar:1.6, fat:12.5, sat:3.7, fiber:1.1, unit:'porz', gramsPerUnit:190, defaultQty:1 },
+  { id:'bk-nuggets-6', name:'King Nuggets 6 pz (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:245, protein:13, carbs:15, sugar:0.6, fat:14, sat:1.3, fiber:1.1, unit:'porz', gramsPerUnit:104, defaultQty:1 },
+  { id:'bk-nuggets-9', name:'King Nuggets 9 pz (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:245, protein:13, carbs:15, sugar:0.6, fat:14, sat:1.3, fiber:1.1, unit:'porz', gramsPerUnit:156, defaultQty:1 },
+  // Patatine e contorni
+  { id:'bk-patatine-small', name:'Patatine piccole (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:290, protein:3.5, carbs:36, sugar:0.4, fat:14.5, sat:1.4, fiber:3.5, unit:'porz', gramsPerUnit:85, defaultQty:1 },
+  { id:'bk-patatine-medie', name:'Patatine medie (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:290, protein:3.5, carbs:36, sugar:0.4, fat:14.5, sat:1.4, fiber:3.5, unit:'porz', gramsPerUnit:117, defaultQty:1 },
+  { id:'bk-patatine-grandi', name:'Patatine grandi (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:290, protein:3.5, carbs:36, sugar:0.4, fat:14.5, sat:1.4, fiber:3.5, unit:'porz', gramsPerUnit:154, defaultQty:1 },
+  { id:'bk-onion-rings', name:'Onion Rings (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:332, protein:4.5, carbs:38, sugar:4, fat:18, sat:3, fiber:1.3, unit:'porz', gramsPerUnit:105, defaultQty:1 },
+  // Dessert
+  { id:'bk-milkshake-vaniglia', name:'Milkshake vaniglia (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:127, protein:2.7, carbs:22, sugar:22, fat:3, sat:2, fiber:0, unit:'porz', gramsPerUnit:300, defaultQty:1 },
+  { id:'bk-milkshake-cioccolato', name:'Milkshake cioccolato (Burger King)', cat:'🍔 Fast Food', brand:'Burger King', kcal:133, protein:3, carbs:23, sugar:22, fat:3, sat:2, fiber:0.3, unit:'porz', gramsPerUnit:300, defaultQty:1 },
 ];
 
 // ========== ACTIVITIES DATABASE ==========
@@ -6777,7 +6827,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.18.0';
+const APP_VERSION = '3.18.2';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
