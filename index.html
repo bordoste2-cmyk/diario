@@ -520,6 +520,9 @@
   .cal-day-workout-letter.session-c {
     color: var(--berry);
   }
+  .cal-day-workout-letter.session-d {
+    color: var(--gold);
+  }
   /* On dark heatmap cells, keep letters readable */
   .cal-day.level-3 .cal-day-workout-letter,
   .cal-day.level-4 .cal-day-workout-letter {
@@ -1017,6 +1020,12 @@
   }
   .ws-c-btn:active { transform: scale(0.98); }
   .ws-c-btn:hover { background: var(--berry); color: white; }
+  .ws-d-btn {
+    color: var(--gold);
+    border-color: var(--gold);
+    margin-top: 6px;
+  }
+  .ws-d-btn:hover { background: var(--gold); color: white; }
   .ws-c-hint {
     font-size: 10.5px;
     color: var(--ink-faint);
@@ -1587,6 +1596,7 @@
   .workout-history-entry.session-a { border-left: 4px solid var(--accent); }
   .workout-history-entry.session-b { border-left: 4px solid var(--warm); }
   .workout-history-entry.session-c { border-left: 4px solid var(--berry); }
+  .workout-history-entry.session-d { border-left: 4px solid var(--gold); }
   .workout-history-info {
     flex: 1;
   }
@@ -1619,6 +1629,10 @@
   .session-c .workout-history-badge {
     color: var(--berry);
     background: color-mix(in srgb, var(--berry) 12%, transparent);
+  }
+  .session-d .workout-history-badge {
+    color: #a07617;
+    background: var(--gold-soft);
   }
 
   /* Collapsed older sessions */
@@ -4906,7 +4920,8 @@
               <button class="ws-other-btn" id="ws-other-btn">o fai l'altra sessione</button>
               <div class="ws-c-section">
                 <button class="ws-c-btn" id="ws-c-btn">🧘 Scheda C — Core (indipendente)</button>
-                <div class="ws-c-hint">Non entra nella rotazione A/B — falla quando vuoi</div>
+                <button class="ws-c-btn ws-d-btn" id="ws-d-btn">🌊 Scheda D — Mobilità (indipendente)</button>
+                <div class="ws-c-hint">Non entrano nella rotazione A/B — falle quando vuoi</div>
               </div>
             </div>
 
@@ -6794,6 +6809,55 @@ const WORKOUT_SESSIONS = {
         isTimed: true
       }
     ]
+  },
+  D: {
+    id: 'D',
+    name: 'Seduta D — Mobilità',
+    subtitle: 'Anche, torace, spalle, caviglie — 20 minuti',
+    emoji: '🌊',
+    exercises: [
+      { id: 'cat-cow', name: 'Cat-cow (gatto-mucca)', sets: 2, repsMin: 10, repsMax: 12, defaultWeight: 0, weightUnit: 'rip', restSec: 20,
+        category: 'mobility',
+        execution: 'A quattro zampe, mani sotto le spalle, ginocchia sotto le anche. Inspira: arrotonda la schiena verso il soffitto come un gatto arrabbiato (mento verso il petto, ombelico "tirato in su"). Espira: incurva la schiena verso il basso portando il petto in avanti e lo sguardo verso l\'alto (posizione della mucca). Movimento lento e controllato, respirazione sincronizzata. Ogni ciclo (cat+cow) = 1 rep.',
+        notes: 'Riscaldamento generale della colonna. Ottimo primo esercizio: prepara torace lombare e cervicale. Zero traumi.'
+      },
+      { id: 'thoracic-rotation', name: 'Rotazione toracica a quattro zampe', sets: 2, repsMin: 8, repsMax: 10, defaultWeight: 0, weightUnit: 'rip/lato', restSec: 20,
+        category: 'mobility',
+        execution: 'A quattro zampe. Porta una mano dietro la testa (gomito verso fuori). Ruota il busto portando il gomito verso il pavimento sotto il braccio d\'appoggio (fase di "inserimento"). Poi ruota nella direzione opposta portando il gomito verso il soffitto, aprendo il petto (fase di apertura). Il bacino resta stabile: solo il torace ruota. Movimento lento e ampio. Alterna i lati.',
+        notes: 'Sblocca la rotazione toracica — fondamentale per il padel (ogni colpo è una rotazione) e per prevenire compensi lombari.'
+      },
+      { id: 'world-greatest-stretch', name: '"Il migliore stretch del mondo"', sets: 2, repsMin: 5, repsMax: 8, defaultWeight: 0, weightUnit: 'rip/lato', restSec: 20,
+        category: 'mobility',
+        execution: 'Dalla posizione di plank, porta il piede destro accanto alla mano destra (affondo laterale profondo). Con la mano sinistra a terra per appoggio, ruota il torso portando il braccio destro verso il soffitto (guarda il pollice). Tieni 2 secondi. Riappoggia la mano, torna in plank e alterna. Un rep = un lato completo.',
+        notes: 'Stretch composto: anca (flessore anteriore), torace, spalle. Uno dei movimenti più completi in assoluto per la mobilità. 5-8 per lato bastano.'
+      },
+      { id: '90-90-hip', name: '90/90 hip switch', sets: 2, repsMin: 8, repsMax: 12, defaultWeight: 0, weightUnit: 'rip', restSec: 20,
+        category: 'mobility',
+        execution: 'Seduto a terra, gamba anteriore piegata a 90° davanti (rotazione esterna dell\'anca), gamba posteriore piegata a 90° dietro (rotazione interna dell\'anca). Busto eretto, sguardo avanti. Sposta il peso dall\'ischio a un lato all\'altro senza usare le mani, poi RUOTA le ginocchia dall\'altra parte (l\'anca anteriore diventa posteriore e viceversa). Un cambio completo = 1 rep. Se non arrivi con le ginocchia a terra, resta all\'altezza che gestisci senza forzare.',
+        notes: 'Mobilità rotazionale dell\'anca — la più trascurata negli adulti. Cruciale per padel (scatti laterali) e per prevenire lombalgie da anca rigida.'
+      },
+      { id: 'ankle-rocker', name: 'Ankle rocker (mobilità caviglia)', sets: 2, repsMin: 10, repsMax: 15, defaultWeight: 0, weightUnit: 'rip/lato', restSec: 20,
+        category: 'mobility',
+        execution: 'In ginocchio con la gamba destra avanti (piede piatto a terra), gamba sinistra dietro (ginocchio a terra). Il ginocchio destro parte allineato al piede. Spingi il ginocchio destro IN AVANTI oltre la punta del piede senza staccare il tallone da terra. Vai fino a dove riesci mantenendo il tallone incollato. Torna e ripeti. Alterna i lati dopo il numero previsto di rep.',
+        notes: 'Mobilità dorsiflessione caviglia — critica per sit-to-stand, corsa e padel. Molti hanno caviglie rigide senza saperlo. Se il tallone si stacca, sei arrivato al limite.'
+      },
+      { id: 'wall-slide', name: 'Wall slide (mobilità spalla)', sets: 2, repsMin: 8, repsMax: 12, defaultWeight: 0, weightUnit: 'rip', restSec: 20,
+        category: 'mobility',
+        execution: 'In piedi con la schiena appoggiata al muro. Piedi 30 cm dal muro, glutei/schiena/testa aderenti. Braccia a "W" contro il muro (gomiti a 90°, dorsi delle mani contro il muro). Scivola le braccia verso l\'alto lungo il muro allungandole (posizione a "Y"), mantenendo i dorsi delle mani il più possibile a contatto col muro. Torna alla "W". Se non riesci a mantenere il contatto in cima, non ci sei ancora — è un\'indicazione di rigidità toracica/spalla, che l\'esercizio stesso migliora.',
+        notes: 'Sblocco delle spalle e del torace superiore. Fantastico per contrastare la postura "chiusa" tipica di chi lavora al computer o gioca a padel.'
+      },
+      { id: 'deep-squat-hold', name: 'Deep squat hold (accovacciamento profondo)', sets: 2, repsMin: 30, repsMax: 60, defaultWeight: 0, weightUnit: 'sec', restSec: 30,
+        category: 'mobility',
+        execution: 'In piedi con piedi larghezza spalle o poco più. Scendi in accovacciamento profondo (glutei verso i talloni), mantenendo talloni a terra, schiena dritta, sguardo avanti. Le mani possono unirsi davanti al petto e i gomiti spingono le ginocchia verso l\'esterno per aiutare l\'apertura dell\'anca. Se non arrivi a fondo, tieni un rialzo (libro, mattoncino) sotto i glutei. Mantieni la posizione respirando profondamente.',
+        notes: 'Mobilità globale gambe-anche-caviglie. Se non ci arrivi, inizia da 20 secondi e progredisci. Se ci arrivi comodo, allunga fino a 60s.',
+        isTimed: true
+      },
+      { id: 'child-thread-needle', name: 'Child pose + thread the needle', sets: 2, repsMin: 8, repsMax: 10, defaultWeight: 0, weightUnit: 'rip/lato', restSec: 20,
+        category: 'mobility',
+        execution: 'A quattro zampe. Passa il braccio destro SOTTO il torso portandolo il più lontano possibile verso sinistra, con il palmo verso l\'alto. Segui col torso: la spalla destra si appoggia a terra, la guancia destra tocca il pavimento. Il braccio sinistro può restare a terra come appoggio o allungarsi in avanti sopra la testa. Tieni 3-5 secondi. Torna e alterna. Un rep = un lato.',
+        notes: 'Stretch profondo delle spalle e del romboide/trapezio. Perfetto come esercizio finale defatigante. Zero impatto, molto rilassante.'
+      }
+    ]
   }
 };
 
@@ -7142,6 +7206,71 @@ const MAINTENANCE_GUIDE = {
       how: 'Passa direttamente all\'hollow hold libero (senza appoggiare i piedi al muro). Molto più impegnativo per il retto addominale profondo.',
       restart: 'Riparti da 15 secondi × 3 serie.'
     }
+  },
+  // === Scheda D — Mobilità ===
+  'cat-cow': {
+    threshold: 'Quando fai 12 cicli × 2 serie con movimento pieno e respirazione sincronizzata.',
+    variant: {
+      name: 'Cat-cow con estensione braccio-gamba',
+      how: 'Fase mucca: estendi il braccio destro in avanti e la gamba sinistra indietro (bird dog). Fase gatto: riportali sotto il torso e tocca ginocchio con gomito. Aggiunge lavoro coordinativo.',
+      restart: 'Riparti da 6-8 cicli per lato.'
+    }
+  },
+  'thoracic-rotation': {
+    threshold: 'Quando fai 10 rotazioni per lato × 2 serie con ampiezza piena, bacino stabile.',
+    variant: {
+      name: 'Thoracic rotation seduto sui talloni',
+      how: 'Seduto sui talloni (o su un cuscino), mani dietro la testa. Ruota il torso a destra e sinistra alternando. Meno ampiezza ma richiede maggiore controllo attivo del torace.',
+      restart: 'Riparti da 8 per lato.'
+    }
+  },
+  'world-greatest-stretch': {
+    threshold: 'Quando fai 8 reps per lato × 2 serie con transizioni fluide e stretch profondo.',
+    variant: {
+      name: 'World greatest stretch con push-up',
+      how: 'Nella fase di plank tra un lato e l\'altro, aggiungi un push-up. Trasforma lo stretch in un movimento composto forza + mobilità.',
+      restart: 'Riparti da 4-5 reps per lato.'
+    }
+  },
+  '90-90-hip': {
+    threshold: 'Quando fai 12 switch × 2 serie con ginocchia che arrivano a terra senza forzare.',
+    variant: {
+      name: '90/90 con lift attivo dalle mani',
+      how: 'Nel movimento di transizione tra un lato e l\'altro, cerca di sollevarti solo con la forza delle anche, senza appoggiare le mani a terra. Aggiunge lavoro isometrico dell\'anca e del core.',
+      restart: 'Riparti da 6-8 switch.'
+    }
+  },
+  'ankle-rocker': {
+    threshold: 'Quando fai 15 reps per lato con ginocchio che va OLTRE la punta del piede mantenendo il tallone a terra.',
+    variant: {
+      name: 'Ankle rocker con carico (manubrio sul ginocchio)',
+      how: 'Stessa posizione ma con un manubrio leggero (5 kg) tenuto sul ginocchio anteriore. Il peso aggiunge stretch dinamico alla caviglia.',
+      restart: 'Riparti da 8-10 reps per lato con 5 kg.'
+    }
+  },
+  'wall-slide': {
+    threshold: 'Quando fai 12 reps × 2 serie mantenendo i dorsi delle mani in contatto col muro anche in cima.',
+    variant: {
+      name: 'Wall slide con elastico',
+      how: 'Passa un elastico tra i polsi (leggero) e mantieni tensione mentre esegui lo slide. Attiva più intensamente i rotatori esterni della spalla.',
+      restart: 'Riparti da 8 reps con l\'elastico più leggero disponibile.'
+    }
+  },
+  'deep-squat-hold': {
+    threshold: 'Quando tieni 60 secondi × 2 serie in posizione profonda, schiena dritta, talloni a terra.',
+    variant: {
+      name: 'Deep squat con rotazione (Cossack squat mobility)',
+      how: 'Dalla posizione di deep squat, sposta il peso da un lato all\'altro (una gamba distesa lateralmente, l\'altra piegata profonda). Lento e controllato.',
+      restart: 'Riparti da 6-8 spostamenti alternati.'
+    }
+  },
+  'child-thread-needle': {
+    threshold: 'Quando fai 10 reps per lato × 2 serie con spalla e guancia che toccano terra comodamente.',
+    variant: {
+      name: 'Thread the needle con estensione superiore',
+      how: 'Dopo la fase di "infilaggio", ruota il braccio libero verso il soffitto seguendo con lo sguardo, poi ritorna nella posizione infilata. Aggiunge rotazione toracica alla mobilità della spalla.',
+      restart: 'Riparti da 5-6 reps per lato.'
+    }
   }
 };
 
@@ -7180,7 +7309,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.19.4';
+const APP_VERSION = '3.20.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -11171,6 +11300,7 @@ function renderWorkout() {
     const sessA = logs.filter(l => l.sessionId === 'A').length;
     const sessB = logs.filter(l => l.sessionId === 'B').length;
     const sessC = logs.filter(l => l.sessionId === 'C').length;
+    const sessD = logs.filter(l => l.sessionId === 'D').length;
     const lastDate = logs.length > 0 ? logs[logs.length - 1].date : null;
     const lastDateLabel = lastDate ? daysAgoLabel(lastDate) : 'mai';
     stats.innerHTML = `
@@ -11179,8 +11309,8 @@ function renderWorkout() {
         <div class="ws-stat-value">${totSessions}</div>
       </div>
       <div class="workout-stat">
-        <div class="ws-stat-label">A / B / C</div>
-        <div class="ws-stat-value">${sessA} / ${sessB} / ${sessC}</div>
+        <div class="ws-stat-label">A / B / C / D</div>
+        <div class="ws-stat-value" style="font-size:16px;">${sessA} / ${sessB} / ${sessC} / ${sessD}</div>
       </div>
       <div class="workout-stat">
         <div class="ws-stat-label">Ultima sessione</div>
@@ -12400,6 +12530,11 @@ function initWorkoutHandlers() {
   const cBtn = document.getElementById('ws-c-btn');
   if (cBtn) {
     cBtn.addEventListener('click', () => openWorkoutModal('C'));
+  }
+  // D session button — always available, independent from A/B rotation
+  const dBtn = document.getElementById('ws-d-btn');
+  if (dBtn) {
+    dBtn.addEventListener('click', () => openWorkoutModal('D'));
   }
   // Modal close/cancel — only confirm if workout has actually started with progress
   const maybeClose = () => {
