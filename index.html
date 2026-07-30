@@ -7309,7 +7309,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.20.0';
+const APP_VERSION = '3.20.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -11003,11 +11003,16 @@ function kcalTargetLevel(dateKey) {
 // Build emoji list for a day: auto (workout A/B + activities) + manual, capped at 4
 function dayEmojiList(dateKey) {
   const auto = [];
-  // Workout sessions first
+  // Workout sessions first — use session emoji if available, fallback to session letter icon
+  const sessionEmoji = { 'A': '🅰️', 'B': '🅱️', 'C': '🧘', 'D': '🌊' };
   const workouts = (state.workoutLogs || []).filter(w => w.date === dateKey);
   const seenSess = new Set();
   workouts.forEach(w => {
-    if (!seenSess.has(w.sessionId)) { seenSess.add(w.sessionId); auto.push({ e: w.sessionId === 'A' ? '🅰️' : '🅱️', auto: true }); }
+    if (!seenSess.has(w.sessionId)) {
+      seenSess.add(w.sessionId);
+      const em = sessionEmoji[w.sessionId] || '🏋️';
+      auto.push({ e: em, auto: true });
+    }
   });
   // Activity emojis
   const acts = state.activities[dateKey] || [];
