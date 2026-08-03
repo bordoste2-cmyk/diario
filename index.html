@@ -4920,7 +4920,7 @@
               <button class="ws-other-btn" id="ws-other-btn">o fai l'altra sessione</button>
               <div class="ws-c-section">
                 <button class="ws-c-btn" id="ws-c-btn">🧘 Scheda C — Core (indipendente)</button>
-                <button class="ws-c-btn ws-d-btn" id="ws-d-btn">🌊 Scheda D — Mobilità (indipendente)</button>
+                <button class="ws-c-btn ws-d-btn" id="ws-d-btn">🤸 Scheda D — Mobilità (indipendente)</button>
                 <div class="ws-c-hint">Non entrano nella rotazione A/B — falle quando vuoi</div>
               </div>
             </div>
@@ -6814,7 +6814,7 @@ const WORKOUT_SESSIONS = {
     id: 'D',
     name: 'Seduta D — Mobilità',
     subtitle: 'Anche, torace, spalle, caviglie — 20 minuti',
-    emoji: '🌊',
+    emoji: '🤸',
     exercises: [
       { id: 'cat-cow', name: 'Cat-cow (gatto-mucca)', sets: 2, repsMin: 10, repsMax: 12, defaultWeight: 0, weightUnit: 'rip', restSec: 20,
         category: 'mobility',
@@ -7309,7 +7309,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.20.1';
+const APP_VERSION = '3.20.3';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -11004,7 +11004,7 @@ function kcalTargetLevel(dateKey) {
 function dayEmojiList(dateKey) {
   const auto = [];
   // Workout sessions first — use session emoji if available, fallback to session letter icon
-  const sessionEmoji = { 'A': '🅰️', 'B': '🅱️', 'C': '🧘', 'D': '🌊' };
+  const sessionEmoji = { 'A': '🅰️', 'B': '🅱️', 'C': '🧘', 'D': '🤸' };
   const workouts = (state.workoutLogs || []).filter(w => w.date === dateKey);
   const seenSess = new Set();
   workouts.forEach(w => {
@@ -11558,7 +11558,28 @@ function openWorkoutModal(sessionId) {
     card.className = 'workout-ex-card ' + (ex.category || 'compound');
     card.dataset.exidx = exIdx;
     // Build target line — show weight unit, reps target, tempo info
-    let targetText = `${ex.targetSets}×${ex.targetReps} ${ex.isTimed ? 'sec' : 'rip'} @ ${ex.targetWeight}${ex.weightUnit.includes('elastico') || ex.weightUnit === 'sec' ? '' : 'kg'}`;
+    // weightUnit determines display: 'rip/lato', 'sec/lato', 'kg', 'kg/braccio', 'elastico', 'sec' etc.
+    const unit = ex.weightUnit || '';
+    // Reps unit: if unit contains a slash (rip/lato, sec/lato) use full string, else use isTimed sec/rip
+    let repsUnit;
+    if (unit === 'rip/lato' || unit === 'sec/lato') {
+      repsUnit = unit;
+    } else if (ex.isTimed) {
+      repsUnit = 'sec';
+    } else {
+      repsUnit = 'rip';
+    }
+    // Weight suffix: only show weight when > 0 and unit is not just a body-weight indicator
+    let weightSuffix = '';
+    const isBodyweight = ex.targetWeight === 0 || unit === 'sec' || unit === 'sec/lato' || unit === 'rip' || unit === 'rip/lato';
+    if (unit === 'elastico' || unit === 'elastico/lato') {
+      weightSuffix = ' · elastico';
+    } else if (!isBodyweight) {
+      // Show weight with unit (defaults to kg if not specified)
+      const wu = unit === 'kg/braccio' ? ' kg/braccio' : (unit === 'kg/mano' ? ' kg/mano' : ' kg');
+      weightSuffix = ` @ ${ex.targetWeight}${wu}`;
+    }
+    let targetText = `${ex.targetSets}×${ex.targetReps} ${repsUnit}${weightSuffix}`;
     if (ex.tempoSec > 2) targetText += ` · discesa ${ex.tempoSec}s`;
     if (ex.restSec < exDef.restSec) targetText += ` · rec. ${ex.restSec}s`;
     const leverLabel = LEVER_LABELS[ex.lever] || '';
