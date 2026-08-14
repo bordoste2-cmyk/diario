@@ -4172,6 +4172,41 @@
   .range-btn:hover:not(.active) {
     color: var(--ink);
   }
+  .metric-selector {
+    display: flex;
+    gap: 4px;
+    margin: 4px 0 8px;
+    padding: 3px;
+    background: var(--bg-soft);
+    border-radius: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .metric-selector::-webkit-scrollbar { display: none; }
+  .metric-btn {
+    flex: 0 0 auto;
+    background: transparent;
+    border: none;
+    padding: 8px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s, box-shadow 0.15s;
+    -webkit-tap-highlight-color: rgba(45,134,89,0.15);
+    white-space: nowrap;
+    touch-action: manipulation;
+  }
+  .metric-btn:active { background: var(--accent-soft); }
+  .metric-btn.active {
+    background: var(--bg-card);
+    color: var(--accent-deep);
+    box-shadow: 0 1px 3px rgba(42,42,38,0.08);
+  }
+  .metric-btn:hover:not(.active) { color: var(--ink); }
   .range-info {
     color: var(--ink-faint) !important;
     font-style: italic;
@@ -4832,16 +4867,34 @@
             <div id="macros"></div>
           </div>
 
-          <!-- WEEK -->
+          <!-- MACRO CHART -->
           <div class="card">
-            <h2>Calorie assunte <span class="sub">7 giorni</span></h2>
-            <div class="week-chart">
-              <div class="week-bars" id="week-bars"></div>
-              <div class="week-labels" id="week-labels"></div>
+            <h2>Andamento diario <span class="sub" id="kcal-chart-sub">—</span></h2>
+            <div class="metric-selector" id="kcal-metric-selector">
+              <button class="metric-btn" data-metric="kcal">🔥 kcal</button>
+              <button class="metric-btn" data-metric="protein">🥩 proteine</button>
+              <button class="metric-btn" data-metric="carbs">🌾 carbo</button>
+              <button class="metric-btn" data-metric="fat">🥑 grassi</button>
+              <button class="metric-btn" data-metric="saturated">🧈 saturi</button>
+              <button class="metric-btn" data-metric="fiber">🌿 fibre</button>
             </div>
-            <div id="week-summary" style="margin-top:14px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-soft); display:flex; justify-content:space-between;">
-              <span>Media <strong id="week-avg-kcal" style="color:var(--ink)">—</strong> kcal</span>
-              <span>Proteine medie <strong id="week-avg-prot" style="color:var(--accent)">—</strong> g</span>
+            <div class="range-selector" id="kcal-range-selector">
+              <button class="range-btn" data-kcalrange="30">30g</button>
+              <button class="range-btn" data-kcalrange="90">90g</button>
+              <button class="range-btn" data-kcalrange="180">6m</button>
+              <button class="range-btn" data-kcalrange="365">1a</button>
+              <button class="range-btn" data-kcalrange="0">tutto</button>
+            </div>
+            <div class="weight-chart-wrap" id="kcal-chart-wrap"></div>
+            <div class="weight-legend">
+              <span><span class="legend-dot" style="background:var(--ink-faint)"></span>giornaliero</span>
+              <span><span class="legend-line" style="background:var(--accent)"></span>media mobile 7gg</span>
+              <span class="range-info" id="kcal-range-info">—</span>
+            </div>
+            <div id="kcal-chart-summary" style="margin-top:14px; font-family:'JetBrains Mono', monospace; font-size:11px; color:var(--ink-soft); display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+              <span>Media <strong id="kcal-avg" style="color:var(--ink)">—</strong></span>
+              <span id="kcal-target-info">target <strong id="kcal-target-val" style="color:var(--accent)">—</strong></span>
+              <span id="kcal-days-info">— giorni</span>
             </div>
           </div>
 
@@ -7309,7 +7362,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.20.3';
+const APP_VERSION = '3.21.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -7346,6 +7399,8 @@ let state = {
   currentDate: todayISO(),
   selectedMeal: 'Colazione',
   weightRange: 90, // days; 0 = all
+  kcalRange: 30, // days; 0 = all
+  kcalMetric: 'kcal', // kcal | protein | carbs | fat | saturated | fiber
   activityRange: 7 // days for weekly activity chart
 };
 
@@ -7467,6 +7522,12 @@ async function loadState() {
   // Weight range preference
   const wr = localStorage.getItem(KEY_PREFIX + 'weightRange');
   if (wr !== null) state.weightRange = parseInt(wr);
+
+  // Kcal chart range/metric preferences
+  const kr = localStorage.getItem(KEY_PREFIX + 'kcalRange');
+  if (kr !== null) state.kcalRange = parseInt(kr);
+  const km = localStorage.getItem(KEY_PREFIX + 'kcalMetric');
+  if (km && ['kcal','protein','carbs','fat','saturated','fiber'].includes(km)) state.kcalMetric = km;
 
   // Activity range preference
   const ar = localStorage.getItem(KEY_PREFIX + 'activityRange');
@@ -8234,66 +8295,175 @@ function renderTotals() {
   });
 }
 
+// Metric metadata for the interactive kcal chart
+const KCAL_METRIC_INFO = {
+  kcal:      { label: 'kcal',     unit: '',    color: '#c4634f', target: () => state.targets.kcal },
+  protein:   { label: 'proteine', unit: 'g',   color: '#2d8659', target: () => state.targets.protein },
+  carbs:     { label: 'carbo',    unit: 'g',   color: '#c88a3b', target: () => state.targets.carbs },
+  fat:       { label: 'grassi',   unit: 'g',   color: '#8c5e1d', target: () => state.targets.fat },
+  saturated: { label: 'saturi',   unit: 'g',   color: '#a04a1f', target: () => state.targets.saturated },
+  fiber:     { label: 'fibre',    unit: 'g',   color: '#7c9c5b', target: () => state.targets.fiber }
+};
+
 function renderWeekChart() {
-  const today = new Date(state.currentDate);
-  const days = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - i);
-    days.push(d);
+  // Kept the name for backward compat with renderAll; body is the new interactive chart.
+  const wrap = document.getElementById('kcal-chart-wrap');
+  if (!wrap) return;
+
+  const metric = state.kcalMetric || 'kcal';
+  const info = KCAL_METRIC_INFO[metric] || KCAL_METRIC_INFO.kcal;
+  const rangeDays = state.kcalRange || 30;
+
+  // Update selectors visual state
+  document.querySelectorAll('#kcal-metric-selector .metric-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.metric === metric);
+  });
+  document.querySelectorAll('#kcal-range-selector .range-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.kcalrange) === rangeDays);
+  });
+
+  // Collect all days that have any diary entry
+  const allDates = Object.keys(state.diary).sort();
+  if (allDates.length === 0) {
+    wrap.innerHTML = '<div style="text-align:center;padding:32px 12px;color:var(--ink-faint);font-size:12px;font-style:italic;">Nessun dato ancora registrato — inizia oggi.</div>';
+    document.getElementById('kcal-chart-sub').textContent = '';
+    document.getElementById('kcal-avg').textContent = '—';
+    document.getElementById('kcal-target-val').textContent = '—';
+    document.getElementById('kcal-days-info').textContent = '—';
+    document.getElementById('kcal-range-info').textContent = '';
+    return;
   }
 
-  const dayLabels = ['DOM','LUN','MAR','MER','GIO','VEN','SAB'];
-  const todayStr = todayISO();
+  // Filter by range window from today
+  let filteredDates;
+  if (rangeDays === 0) {
+    filteredDates = allDates;
+  } else {
+    const cutoffTs = Date.now() - rangeDays * 24 * 60 * 60 * 1000;
+    filteredDates = allDates.filter(d => new Date(d).getTime() >= cutoffTs);
+  }
 
-  const dataPoints = days.map(d => {
-    const key = dateKeyISO(d);
-    const t = dayTotals(key);
-    return { date: key, kcal: t.kcal, protein: t.protein, dayName: dayLabels[d.getDay()] };
+  // Compute value for the chosen metric on each date; exclude zeros for average only
+  const points = filteredDates.map(d => {
+    const t = dayTotals(d);
+    return { date: d, ts: new Date(d).getTime(), v: t[metric] || 0 };
+  });
+  const nonZero = points.filter(p => p.v > 0);
+  const avgVal = nonZero.length > 0 ? nonZero.reduce((s,p)=>s+p.v,0)/nonZero.length : 0;
+
+  // Update summary bar
+  const rangeLabels = { 30: '30 giorni', 90: '90 giorni', 180: '6 mesi', 365: '1 anno', 0: 'tutto' };
+  const target = info.target();
+  document.getElementById('kcal-chart-sub').textContent = info.label;
+  document.getElementById('kcal-avg').innerHTML = `<strong style="color:var(--ink)">${fmt(avgVal)}</strong>${info.unit ? ' ' + info.unit : ''}`;
+  const targetSpan = document.getElementById('kcal-target-info');
+  if (target) {
+    targetSpan.style.display = '';
+    document.getElementById('kcal-target-val').innerHTML = `<strong style="color:${info.color}">${fmt(target)}</strong>${info.unit ? ' ' + info.unit : ''}`;
+  } else {
+    targetSpan.style.display = 'none';
+  }
+  document.getElementById('kcal-days-info').textContent = `${nonZero.length}/${points.length} giorni con dati`;
+  document.getElementById('kcal-range-info').textContent = `vista: ${rangeLabels[rangeDays]}`;
+
+  // Draw
+  drawKcalChart(points, target, info);
+}
+
+function drawKcalChart(points, target, info) {
+  const wrap = document.getElementById('kcal-chart-wrap');
+  if (points.length === 0) { wrap.innerHTML = '<div style="text-align:center;padding:32px 12px;color:var(--ink-faint);font-size:12px;font-style:italic;">Nessun dato nel periodo selezionato.</div>'; return; }
+
+  // 7-day moving average — computed on ALL points (including zeros count as missing days for the average)
+  // Average only over days with data in the 7-day window
+  const movingAvg = points.map((p) => {
+    const sevenAgo = p.ts - 6 * 24 * 60 * 60 * 1000;
+    const window = points.filter(q => q.ts >= sevenAgo && q.ts <= p.ts && q.v > 0);
+    if (window.length === 0) return null;
+    return window.reduce((s, q) => s + q.v, 0) / window.length;
   });
 
-  const target = state.targets.kcal;
-  const maxKcal = Math.max(target * 1.2, ...dataPoints.map(p => p.kcal), 100);
+  const width = 340;
+  const height = 200;
+  const padding = { top: 14, right: 10, bottom: 24, left: 40 };
+  const chartW = width - padding.left - padding.right;
+  const chartH = height - padding.top - padding.bottom;
 
-  const barsContainer = document.getElementById('week-bars');
-  const labelsContainer = document.getElementById('week-labels');
-  barsContainer.innerHTML = '';
-  labelsContainer.innerHTML = '';
+  const minTs = points[0].ts;
+  const maxTs = points[points.length - 1].ts;
+  const tsRange = Math.max(maxTs - minTs, 1);
 
-  // target line
-  const targetLine = document.createElement('div');
-  targetLine.className = 'target-line';
-  targetLine.style.bottom = `${(target / maxKcal) * 100}%`;
-  barsContainer.appendChild(targetLine);
+  // Y-range: consider all non-null values plus target
+  const allVals = [...points.filter(p => p.v > 0).map(p => p.v), ...movingAvg.filter(v => v != null)];
+  if (target) allVals.push(target);
+  if (allVals.length === 0) { wrap.innerHTML = '<div style="text-align:center;padding:32px 12px;color:var(--ink-faint);font-size:12px;font-style:italic;">Tutti i giorni a zero nel periodo.</div>'; return; }
+  const rawMin = Math.min(...allVals);
+  const rawMax = Math.max(...allVals);
+  const pad = (rawMax - rawMin) * 0.1 || rawMax * 0.1 || 1;
+  const yMin = Math.max(0, rawMin - pad);
+  const yMax = rawMax + pad;
+  const yRange = Math.max(yMax - yMin, 1);
 
-  dataPoints.forEach(p => {
-    const isToday = p.date === todayStr;
-    const isSelected = p.date === state.currentDate;
-    const bar = document.createElement('div');
-    bar.className = 'day-bar' + (isToday ? ' today' : '');
-    const height = p.kcal > 0 ? Math.max((p.kcal / maxKcal) * 100, 2) : 0;
-    bar.innerHTML = `
-      <div class="day-bar-val">${fmt(p.kcal)}</div>
-      <div class="day-bar-fill" style="height:${height}%; ${isSelected && !isToday ? 'background: var(--ink-soft);' : ''}"></div>
-    `;
-    bar.addEventListener('click', () => {
-      state.currentDate = p.date;
-      renderAll();
+  function xPos(ts) { return padding.left + ((ts - minTs) / tsRange) * chartW; }
+  function yPos(v) { return padding.top + chartH - ((v - yMin) / yRange) * chartH; }
+
+  let svg = `<svg class="weight-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`;
+
+  // Y-axis gridlines and labels
+  const yTicks = 4;
+  for (let i = 0; i <= yTicks; i++) {
+    const v = yMin + (yRange / yTicks) * i;
+    const y = yPos(v);
+    svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#e8e1d4" stroke-width="0.5"/>`;
+    svg += `<text x="${padding.left - 5}" y="${y + 3}" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" fill="#a8a8a0">${Math.round(v)}</text>`;
+  }
+
+  // Target line (dashed)
+  if (target && target >= yMin && target <= yMax) {
+    const ty = yPos(target);
+    svg += `<line x1="${padding.left}" y1="${ty}" x2="${width - padding.right}" y2="${ty}" stroke="${info.color}" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>`;
+  }
+
+  // X-axis date labels (first, middle, last)
+  function formatShortDate(dateStr) {
+    const d = new Date(dateStr);
+    const months = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+    return `${d.getDate()} ${months[d.getMonth()]}`;
+  }
+  const labelDates = points.length === 1 ? [points[0]]
+    : points.length <= 4 ? points
+    : [points[0], points[Math.floor(points.length/2)], points[points.length - 1]];
+  labelDates.forEach(p => {
+    const x = xPos(p.ts);
+    svg += `<text x="${x}" y="${height - 8}" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#a8a8a0">${formatShortDate(p.date)}</text>`;
+  });
+
+  // Raw daily dots (skip zero days — they're "no data")
+  const nonZeroPts = points.filter(p => p.v > 0);
+  const dotRadius = nonZeroPts.length > 200 ? 1 : nonZeroPts.length > 100 ? 1.3 : nonZeroPts.length > 50 ? 1.8 : 2.5;
+  const dotOpacity = nonZeroPts.length > 100 ? 0.4 : 0.65;
+  nonZeroPts.forEach(p => {
+    svg += `<circle cx="${xPos(p.ts)}" cy="${yPos(p.v)}" r="${dotRadius}" fill="#a8a8a0" opacity="${dotOpacity}"/>`;
+  });
+
+  // Moving average line — connects only defined points
+  const validAvg = points.map((p, i) => ({ x: xPos(p.ts), y: movingAvg[i] != null ? yPos(movingAvg[i]) : null }))
+                          .filter(pt => pt.y !== null);
+  if (validAvg.length >= 2) {
+    let d = '';
+    validAvg.forEach((pt, i) => {
+      d += (i === 0 ? 'M' : 'L') + pt.x.toFixed(1) + ',' + pt.y.toFixed(1) + ' ';
     });
-    barsContainer.appendChild(bar);
+    svg += `<path d="${d}" fill="none" stroke="${info.color}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+    const last = validAvg[validAvg.length - 1];
+    svg += `<circle cx="${last.x}" cy="${last.y}" r="4" fill="${info.color}"/>`;
+    svg += `<circle cx="${last.x}" cy="${last.y}" r="7" fill="${info.color}" opacity="0.2"/>`;
+  } else if (validAvg.length === 1) {
+    svg += `<circle cx="${validAvg[0].x}" cy="${validAvg[0].y}" r="4" fill="${info.color}"/>`;
+  }
 
-    const label = document.createElement('span');
-    if (isToday) label.classList.add('today');
-    label.textContent = p.dayName;
-    labelsContainer.appendChild(label);
-  });
-
-  // averages over days with data
-  const daysWithData = dataPoints.filter(p => p.kcal > 0);
-  const avgKcal = daysWithData.length > 0 ? daysWithData.reduce((s,p)=>s+p.kcal,0) / daysWithData.length : 0;
-  const avgProt = daysWithData.length > 0 ? daysWithData.reduce((s,p)=>s+p.protein,0) / daysWithData.length : 0;
-  document.getElementById('week-avg-kcal').textContent = fmt(avgKcal);
-  document.getElementById('week-avg-prot').textContent = fmt(avgProt);
+  svg += '</svg>';
+  wrap.innerHTML = svg;
 }
 
 function renderAll() {
@@ -9666,6 +9836,40 @@ function initRangeSelector() {
       console.error('renderWeight failed:', err);
     }
   });
+}
+
+// Initialize event delegation for the interactive kcal chart (metric + range)
+function initKcalChartSelectors() {
+  // Metric selector
+  const metricSel = document.getElementById('kcal-metric-selector');
+  if (metricSel && metricSel.dataset.bound !== 'true') {
+    metricSel.dataset.bound = 'true';
+    metricSel.addEventListener('click', (e) => {
+      const btn = e.target.closest('.metric-btn');
+      if (!btn) return;
+      e.preventDefault();
+      const m = btn.dataset.metric;
+      if (!['kcal','protein','carbs','fat','saturated','fiber'].includes(m)) return;
+      state.kcalMetric = m;
+      try { localStorage.setItem(KEY_PREFIX + 'kcalMetric', m); } catch(err) {}
+      try { renderWeekChart(); } catch (err) { console.error('renderKcalChart failed:', err); }
+    });
+  }
+  // Range selector (separate from weight's range-selector — uses data-kcalrange)
+  const rangeSel = document.getElementById('kcal-range-selector');
+  if (rangeSel && rangeSel.dataset.bound !== 'true') {
+    rangeSel.dataset.bound = 'true';
+    rangeSel.addEventListener('click', (e) => {
+      const btn = e.target.closest('.range-btn');
+      if (!btn) return;
+      e.preventDefault();
+      const r = parseInt(btn.dataset.kcalrange);
+      if (isNaN(r)) return;
+      state.kcalRange = r;
+      try { localStorage.setItem(KEY_PREFIX + 'kcalRange', String(r)); } catch(err) {}
+      try { renderWeekChart(); } catch (err) { console.error('renderKcalChart failed:', err); }
+    });
+  }
 }
 
 // Simple on-screen debug logger (visible toast for diagnostics)
@@ -13548,6 +13752,7 @@ function initHomeSettingsBtn() {
   await loadState();
   renderAll();
   initRangeSelector();
+  initKcalChartSelectors();
   initMetabolismToggle();
   initCollapseAllButton();
   initTabbar();
