@@ -7362,7 +7362,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.21.0';
+const APP_VERSION = '3.21.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -8393,15 +8393,17 @@ function drawKcalChart(points, target, info) {
   const maxTs = points[points.length - 1].ts;
   const tsRange = Math.max(maxTs - minTs, 1);
 
-  // Y-range: consider all non-null values plus target
-  const allVals = [...points.filter(p => p.v > 0).map(p => p.v), ...movingAvg.filter(v => v != null)];
-  if (target) allVals.push(target);
-  if (allVals.length === 0) { wrap.innerHTML = '<div style="text-align:center;padding:32px 12px;color:var(--ink-faint);font-size:12px;font-style:italic;">Tutti i giorni a zero nel periodo.</div>'; return; }
-  const rawMin = Math.min(...allVals);
-  const rawMax = Math.max(...allVals);
-  const pad = (rawMax - rawMin) * 0.1 || rawMax * 0.1 || 1;
-  const yMin = Math.max(0, rawMin - pad);
-  const yMax = rawMax + pad;
+  // Y-range: -10% del minimo, +10% del massimo (solo su valori reali, ignora target).
+  // Il target viene disegnato SOPRA il grafico ma non entra nel calcolo del range,
+  // così le fluttuazioni giornaliere restano ben visibili.
+  const realVals = [...points.filter(p => p.v > 0).map(p => p.v), ...movingAvg.filter(v => v != null)];
+  if (realVals.length === 0) { wrap.innerHTML = '<div style="text-align:center;padding:32px 12px;color:var(--ink-faint);font-size:12px;font-style:italic;">Tutti i giorni a zero nel periodo.</div>'; return; }
+  const rawMin = Math.min(...realVals);
+  const rawMax = Math.max(...realVals);
+  // -10% del minimo e +10% del massimo. Non forzo yMin a 0: se stai tra 1800 e 2400 kcal,
+  // vedere il grafico da 0 lo appiattisce. Meglio da 1620 (=1800-10%) a 2640 (=2400+10%).
+  const yMin = Math.max(0, rawMin * 0.9);
+  const yMax = rawMax * 1.1;
   const yRange = Math.max(yMax - yMin, 1);
 
   function xPos(ts) { return padding.left + ((ts - minTs) / tsRange) * chartW; }
