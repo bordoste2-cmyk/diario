@@ -841,6 +841,18 @@
     font-size: 10px;
   }
   .detail-set-pill.pressing .pill-num { color: rgba(255,255,255,0.8); }
+  .detail-set-pill.detail-set-pill-add {
+    background: transparent;
+    color: var(--accent-deep);
+    border: 1px dashed var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .detail-set-pill.detail-set-pill-add:hover {
+    background: var(--accent-soft);
+  }
   .detail-set-ex-notes {
     font-size: 11px;
     color: var(--ink-faint);
@@ -1152,6 +1164,24 @@
   }
   #workout-modal-time.paused::before {
     content: '▶';
+  }
+  .workout-progress-pill {
+    display: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-soft);
+    background: var(--bg-soft);
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.02em;
+    min-width: 40px;
+    text-align: center;
+  }
+  #workout-modal.started-mode .workout-progress-pill { display: inline-block; }
+  .workout-progress-pill.done {
+    background: var(--accent-soft);
+    color: var(--accent-deep);
   }
   .workout-pause-overlay {
     display: none;
@@ -5202,6 +5232,7 @@
     <div class="workout-modal-header">
       <h3 id="workout-modal-title">Sessione</h3>
       <div class="workout-modal-meta">
+        <span class="workout-progress-pill" id="workout-progress-pill" title="Serie completate">0%</span>
         <button id="workout-modal-time" title="Tocca per pausa/riprendi">00:00</button>
         <button class="workout-modal-close" id="workout-modal-close" title="Chiudi senza salvare">✕</button>
       </div>
@@ -5353,8 +5384,8 @@
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn-danger" id="set-edit-uncomplete" style="flex:0.9; font-size:12px;">Annulla serie</button>
-      <button class="btn-secondary" id="set-edit-cancel">Annulla</button>
+      <button class="btn-danger" id="set-edit-delete" style="flex:0.9; font-size:12px;">Elimina</button>
+      <button class="btn-secondary" id="set-edit-cancel" style="flex:0.7; font-size:12px;">Chiudi</button>
       <button class="btn-primary" id="set-edit-save">Salva</button>
     </div>
   </div>
@@ -7362,7 +7393,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.21.2';
+const APP_VERSION = '3.22.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -8349,7 +8380,10 @@ function renderWeekChart() {
     return { date: d, ts: new Date(d).getTime(), v: t[metric] || 0 };
   });
   const nonZero = points.filter(p => p.v > 0);
-  const avgVal = nonZero.length > 0 ? nonZero.reduce((s,p)=>s+p.v,0)/nonZero.length : 0;
+  // Media = solo giorni chiusi (esclude oggi che è ancora in corso), come per la moving average.
+  const todayKeyForStats = todayISO();
+  const closedDays = nonZero.filter(p => p.date !== todayKeyForStats);
+  const avgVal = closedDays.length > 0 ? closedDays.reduce((s,p)=>s+p.v,0)/closedDays.length : 0;
 
   // Update summary bar
   const rangeLabels = { 30: '30 giorni', 90: '90 giorni', 180: '6 mesi', 365: '1 anno', 0: 'tutto' };
@@ -8363,7 +8397,7 @@ function renderWeekChart() {
   } else {
     targetSpan.style.display = 'none';
   }
-  document.getElementById('kcal-days-info').textContent = `${nonZero.length}/${points.length} giorni con dati`;
+  document.getElementById('kcal-days-info').textContent = `${closedDays.length}/${points.length - (points.some(p=>p.date===todayKeyForStats)?1:0)} giorni con dati`;
   document.getElementById('kcal-range-info').textContent = `vista: ${rangeLabels[rangeDays]}`;
 
   // Draw
@@ -8374,11 +8408,13 @@ function drawKcalChart(points, target, info) {
   const wrap = document.getElementById('kcal-chart-wrap');
   if (points.length === 0) { wrap.innerHTML = '<div style="text-align:center;padding:32px 12px;color:var(--ink-faint);font-size:12px;font-style:italic;">Nessun dato nel periodo selezionato.</div>'; return; }
 
-  // 7-day moving average — computed on ALL points (including zeros count as missing days for the average)
-  // Average only over days with data in the 7-day window
+  // 7-day moving average — computed on days with data.
+  // ESCLUDE anche il valore di oggi dal window, perché è ancora parziale (giorno in corso).
+  // Sul giorno di oggi la media mobile mostrata è quella dei 7 giorni precedenti.
+  const todayKeyForAvg = todayISO();
   const movingAvg = points.map((p) => {
     const sevenAgo = p.ts - 6 * 24 * 60 * 60 * 1000;
-    const window = points.filter(q => q.ts >= sevenAgo && q.ts <= p.ts && q.v > 0);
+    const window = points.filter(q => q.ts >= sevenAgo && q.ts <= p.ts && q.v > 0 && q.date !== todayKeyForAvg);
     if (window.length === 0) return null;
     return window.reduce((s, q) => s + q.v, 0) / window.length;
   });
@@ -8395,13 +8431,25 @@ function drawKcalChart(points, target, info) {
 
   // Y-range: -10% del minimo, +10% del massimo — includendo anche il target
   // così la linea obiettivo tratteggiata è sempre visibile nel grafico.
-  const realVals = [...points.filter(p => p.v > 0).map(p => p.v), ...movingAvg.filter(v => v != null)];
-  if (realVals.length === 0) { wrap.innerHTML = '<div style="text-align:center;padding:32px 12px;color:var(--ink-faint);font-size:12px;font-style:italic;">Tutti i giorni a zero nel periodo.</div>'; return; }
+  // ESCLUDE il giorno di oggi dal calcolo: oggi è ancora "in crescita" durante la giornata
+  // (solo colazione registrata la mattina, cena aggiunta la sera), e se lo includessimo
+  // il range si ricalibrerebbe di continuo distorcendo la scala storica.
+  const todayKey = todayISO();
+  const historicalPoints = points.filter(p => p.date !== todayKey && p.v > 0);
+  const historicalAvg = movingAvg.filter((v, i) => v != null && points[i].date !== todayKey);
+  const realVals = [...historicalPoints.map(p => p.v), ...historicalAvg];
+  // Fallback: se non ci sono ancora giorni storici (primo giorno d'uso), usa comunque oggi
+  if (realVals.length === 0) {
+    const anyVals = points.filter(p => p.v > 0).map(p => p.v);
+    if (anyVals.length === 0) {
+      wrap.innerHTML = '<div style="text-align:center;padding:32px 12px;color:var(--ink-faint);font-size:12px;font-style:italic;">Tutti i giorni a zero nel periodo.</div>';
+      return;
+    }
+    realVals.push(...anyVals);
+  }
   const rangeVals = target ? [...realVals, target] : realVals;
   const rawMin = Math.min(...rangeVals);
   const rawMax = Math.max(...rangeVals);
-  // -10% del minimo e +10% del massimo. Non forzo yMin a 0: se stai tra 1800 e 2400 kcal,
-  // vedere il grafico da 0 lo appiattisce.
   const yMin = Math.max(0, rawMin * 0.9);
   const yMax = rawMax * 1.1;
   const yRange = Math.max(yMax - yMin, 1);
@@ -8441,11 +8489,32 @@ function drawKcalChart(points, target, info) {
   });
 
   // Raw daily dots (skip zero days — they're "no data")
+  // Today's dot is drawn with a distinctive style (hollow, contoured) so it's clear
+  // the day is still in progress.
   const nonZeroPts = points.filter(p => p.v > 0);
   const dotRadius = nonZeroPts.length > 200 ? 1 : nonZeroPts.length > 100 ? 1.3 : nonZeroPts.length > 50 ? 1.8 : 2.5;
   const dotOpacity = nonZeroPts.length > 100 ? 0.4 : 0.65;
   nonZeroPts.forEach(p => {
-    svg += `<circle cx="${xPos(p.ts)}" cy="${yPos(p.v)}" r="${dotRadius}" fill="#a8a8a0" opacity="${dotOpacity}"/>`;
+    const isToday = p.date === todayKey;
+    // Clamp y position within visible chart area (with small padding) so an out-of-range
+    // "today" dot still shows near the edge instead of disappearing off-canvas.
+    let y = yPos(p.v);
+    const yTop = padding.top;
+    const yBottom = padding.top + chartH;
+    if (y < yTop) y = yTop;
+    else if (y > yBottom) y = yBottom;
+    const x = xPos(p.ts);
+    if (isToday) {
+      // Today: hollow circle with metric color, larger, to signal "in progress".
+      const r = Math.max(dotRadius + 1, 3);
+      svg += `<circle cx="${x}" cy="${y}" r="${r}" fill="white" stroke="${info.color}" stroke-width="1.5" opacity="0.95"/>`;
+      // Little tag "oggi" if there's space
+      if (points.length <= 60) {
+        svg += `<text x="${x + r + 3}" y="${y + 3}" font-family="JetBrains Mono, monospace" font-size="9" fill="${info.color}" opacity="0.8">oggi</text>`;
+      }
+    } else {
+      svg += `<circle cx="${x}" cy="${y}" r="${dotRadius}" fill="#a8a8a0" opacity="${dotOpacity}"/>`;
+    }
   });
 
   // Moving average line — connects only defined points
@@ -11711,47 +11780,122 @@ let workoutElapsedSec = 0;      // accumulated seconds (survives pauses)
 let workoutPaused = false;
 let workoutSegmentStart = 0;    // when the current running segment started
 let workoutStarted = false;     // false = preview/read mode, true = active workout
+let autosaveDebounceTimer = null;
 
-function openWorkoutModal(sessionId) {
+// ========== ACTIVE WORKOUT AUTOSAVE ==========
+// Persists the running workout to localStorage so it can be restored after app close.
+// Saved on every set toggle and (debounced) on every input change.
+const ACTIVE_WORKOUT_KEY = KEY_PREFIX + 'workoutActive';
+
+function saveActiveWorkout() {
+  if (!workoutStarted || !workoutSession) return;
+  try {
+    const snapshot = {
+      session: workoutSession,
+      startTime: workoutStartTime,
+      elapsedSec: workoutElapsedSec,
+      paused: workoutPaused,
+      segmentStart: workoutSegmentStart,
+      savedAt: Date.now()
+    };
+    localStorage.setItem(ACTIVE_WORKOUT_KEY, JSON.stringify(snapshot));
+  } catch (e) {
+    console.error('saveActiveWorkout failed', e);
+  }
+}
+
+// Update the progress pill in the workout modal header (X/Y — Z%)
+function updateWorkoutProgress() {
+  if (!workoutSession) return;
+  const pill = document.getElementById('workout-progress-pill');
+  if (!pill) return;
+  const totSets = workoutSession.exercises.reduce((s, ex) => s + (ex.sets ? ex.sets.length : 0), 0);
+  const doneSets = workoutSession.exercises.reduce((s, ex) => s + (ex.sets ? ex.sets.filter(x => x.done).length : 0), 0);
+  const pct = totSets > 0 ? Math.round((doneSets / totSets) * 100) : 0;
+  pill.textContent = `${doneSets}/${totSets} · ${pct}%`;
+  pill.classList.toggle('done', pct === 100);
+  pill.title = `${doneSets} serie completate su ${totSets}`;
+}
+
+// Debounced version for input events (fires 400ms after last keystroke)
+function saveActiveWorkoutDebounced() {
+  if (autosaveDebounceTimer) clearTimeout(autosaveDebounceTimer);
+  autosaveDebounceTimer = setTimeout(() => {
+    autosaveDebounceTimer = null;
+    saveActiveWorkout();
+  }, 400);
+}
+
+function clearActiveWorkout() {
+  try { localStorage.removeItem(ACTIVE_WORKOUT_KEY); } catch (e) {}
+  if (autosaveDebounceTimer) { clearTimeout(autosaveDebounceTimer); autosaveDebounceTimer = null; }
+}
+
+function loadActiveWorkout() {
+  try {
+    const raw = localStorage.getItem(ACTIVE_WORKOUT_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error('loadActiveWorkout failed', e);
+    return null;
+  }
+}
+
+function openWorkoutModal(sessionId, existingSnapshot) {
   const session = WORKOUT_SESSIONS[sessionId];
   if (!session) return;
 
-  // Build workout session object from suggestions
-  const workoutData = {
-    sessionId: sessionId,
-    sessionName: session.name,
-    startTs: Date.now(),
-    exercises: session.exercises.map(ex => {
-      const suggested = suggestNextSession(ex.id, sessionId);
-      const numSets = suggested.sets || ex.sets;
-      return {
-        exerciseId: ex.id,
-        name: ex.name,
-        category: ex.category,
-        weightUnit: ex.weightUnit,
-        isTimed: !!ex.isTimed,
-        targetSets: numSets,
-        targetReps: suggested.repsTarget || ex.repsMin,
-        targetWeight: suggested.weight || ex.defaultWeight,
-        restSec: suggested.restSec || ex.restSec,
-        tempoSec: suggested.tempoSec || 2,
-        lever: suggested.lever || 'start',
-        loadUpSuggestion: suggested.loadUpSuggestion || false,
-        beyondMaxSuggestion: suggested.beyondMaxSuggestion || false,
-        sets: Array.from({length: numSets}, () => ({
-          reps: null,
-          weight: suggested.weight || ex.defaultWeight,
-          done: false
-        })),
-        notes: ''
-      };
-    })
-  };
+  let workoutData;
+  if (existingSnapshot && existingSnapshot.session) {
+    // Restoring a paused/interrupted session: reuse the saved workoutData verbatim.
+    workoutData = existingSnapshot.session;
+  } else {
+    // Build workout session object from suggestions
+    workoutData = {
+      sessionId: sessionId,
+      sessionName: session.name,
+      startTs: Date.now(),
+      exercises: session.exercises.map(ex => {
+        const suggested = suggestNextSession(ex.id, sessionId);
+        const numSets = suggested.sets || ex.sets;
+        return {
+          exerciseId: ex.id,
+          name: ex.name,
+          category: ex.category,
+          weightUnit: ex.weightUnit,
+          isTimed: !!ex.isTimed,
+          targetSets: numSets,
+          targetReps: suggested.repsTarget || ex.repsMin,
+          targetWeight: suggested.weight || ex.defaultWeight,
+          restSec: suggested.restSec || ex.restSec,
+          tempoSec: suggested.tempoSec || 2,
+          lever: suggested.lever || 'start',
+          loadUpSuggestion: suggested.loadUpSuggestion || false,
+          beyondMaxSuggestion: suggested.beyondMaxSuggestion || false,
+          sets: Array.from({length: numSets}, () => ({
+            reps: null,
+            weight: suggested.weight || ex.defaultWeight,
+            done: false
+          })),
+          notes: ''
+        };
+      })
+    };
+  }
   workoutSession = workoutData;
-  workoutStartTime = Date.now();
-  workoutElapsedSec = 0;
-  workoutPaused = false;
-  workoutSegmentStart = Date.now();
+  // Restore timer state from snapshot, or reset
+  if (existingSnapshot) {
+    workoutStartTime = existingSnapshot.startTime || Date.now();
+    workoutElapsedSec = existingSnapshot.elapsedSec || 0;
+    workoutPaused = false; // always resume in active state; user can pause manually
+    workoutSegmentStart = Date.now();
+  } else {
+    workoutStartTime = Date.now();
+    workoutElapsedSec = 0;
+    workoutPaused = false;
+    workoutSegmentStart = Date.now();
+  }
 
   document.getElementById('workout-modal-title').textContent = `${session.emoji} ${session.name}`;
 
@@ -11837,10 +11981,12 @@ function openWorkoutModal(sessionId) {
       weightIn.addEventListener('input', () => {
         const v = parseFloat(weightIn.value);
         if (!isNaN(v)) workoutSession.exercises[exIdx].sets[sIdx].weight = v;
+        saveActiveWorkoutDebounced();
       });
       repsIn.addEventListener('input', () => {
         const v = parseInt(repsIn.value);
         if (!isNaN(v)) workoutSession.exercises[exIdx].sets[sIdx].reps = v;
+        saveActiveWorkoutDebounced();
       });
       doneBtn.addEventListener('click', () => {
         if (!workoutStarted) return; // ignore in preview mode
@@ -11884,11 +12030,14 @@ function openWorkoutModal(sessionId) {
           }
         }
         updateNextSetHighlight();
+        updateWorkoutProgress();
+        saveActiveWorkout(); // autosave after set done/undone
       });
     });
     const notesArea = card.querySelector('.ex-notes');
     notesArea.addEventListener('input', () => {
       workoutSession.exercises[exIdx].notes = notesArea.value;
+      saveActiveWorkoutDebounced();
     });
   });
 
@@ -11905,21 +12054,38 @@ function openWorkoutModal(sessionId) {
   if (workoutTimerInterval) { clearInterval(workoutTimerInterval); workoutTimerInterval = null; }
   const timerEl = document.getElementById('workout-modal-time');
   if (timerEl) timerEl.textContent = '00:00';
-  // Toggle modal into preview state (CSS hides ✓ buttons, shows "Via" button)
-  workoutModal.classList.add('preview-mode');
-  workoutModal.classList.remove('started-mode');
-
-  workoutModal.classList.add('show');
+  if (existingSnapshot) {
+    // Restore: go straight to started-mode, skip preview
+    workoutModal.classList.remove('preview-mode');
+    workoutModal.classList.add('started-mode');
+    workoutModal.classList.add('show');
+    startWorkout();
+    // Sync the visible sets state: mark ✓ on the sets that were already done
+    workoutSession.exercises.forEach((ex, exIdx) => {
+      ex.sets.forEach((s, sIdx) => {
+        if (s.done) {
+          const rows = document.querySelectorAll(`.workout-ex-card[data-exidx="${exIdx}"] .workout-set-row[data-setidx="${sIdx}"]`);
+          rows.forEach(r => r.classList.add('done'));
+        }
+      });
+    });
+    updateWorkoutProgress();
+  } else {
+    // Toggle modal into preview state (CSS hides ✓ buttons, shows "Via" button)
+    workoutModal.classList.add('preview-mode');
+    workoutModal.classList.remove('started-mode');
+    workoutModal.classList.add('show');
+  }
 }
 
-// Called when user taps "Via! Inizia l'allenamento"
+// Called when user taps "Via! Inizia l'allenamento" — OR when restoring a saved session
 function startWorkout() {
   if (!workoutSession || workoutStarted) return;
   workoutStarted = true;
-  workoutStartTime = Date.now();
-  workoutElapsedSec = 0;
-  workoutPaused = false;
-  workoutSegmentStart = Date.now();
+  // Preserve elapsed time if we're resuming (openWorkoutModal set startTime/elapsedSec).
+  // For a fresh start these are already 0 / just now, so no harm.
+  if (!workoutStartTime) workoutStartTime = Date.now();
+  if (!workoutSegmentStart) workoutSegmentStart = Date.now();
 
   workoutModal.classList.remove('preview-mode');
   workoutModal.classList.add('started-mode');
@@ -11939,11 +12105,14 @@ function startWorkout() {
   // Wake lock + highlight first set
   requestWakeLock();
   updateNextSetHighlight();
+  updateWorkoutProgress();
   // Scroll back to top so user starts at first exercise
   const listEl = document.getElementById('workout-exercises-list');
   if (listEl) listEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
   // Auto-open the set timer for the first set
   triggerNextSetTimer();
+  // Initial autosave — from now on the workout can survive app close
+  saveActiveWorkout();
 }
 
 // ===== PAUSE TOGGLE =====
@@ -11992,6 +12161,7 @@ function toggleWorkoutPause() {
     }
     requestWakeLock();
   }
+  saveActiveWorkout(); // pause state changed
 }
 let restWasPausedWithSession = false;
 
@@ -12325,6 +12495,8 @@ function closeWorkoutModal(saved) {
   const overlay = document.getElementById('workout-pause-overlay');
   if (overlay) overlay.classList.remove('show');
   if (!saved) workoutSession = null;
+  // Clear the autosaved active workout: either it was saved to workoutLogs, or user discarded.
+  clearActiveWorkout();
 }
 
 let pendingWorkoutLog = null;
@@ -12584,6 +12756,13 @@ function openWorkoutDetailModal(log) {
       attachLongPress(pill, () => openSetEditModal(exIdx, s._sIdx));
       pillsRow.appendChild(pill);
     });
+    // "+ serie" pill at the end — tap to add a new set to this exercise
+    const addPill = document.createElement('span');
+    addPill.className = 'detail-set-pill detail-set-pill-add';
+    addPill.title = 'Aggiungi una serie';
+    addPill.textContent = '+ serie';
+    addPill.addEventListener('click', () => openSetEditModal(exIdx, -1));
+    pillsRow.appendChild(addPill);
     block.appendChild(pillsRow);
 
     if (ex.notes) {
@@ -12648,26 +12827,42 @@ function openSetEditModal(exIdx, sIdx) {
   if (!log) return;
   const ex = log.exercises[exIdx];
   if (!ex) return;
-  const set = ex.sets[sIdx];
-  if (!set) return;
+  const isAdd = sIdx === -1;
+  // For add mode, use the last done set as template (or defaults)
+  const doneSetsList = (ex.sets || []).filter(s => s.done);
+  const templateSet = isAdd
+    ? (doneSetsList[doneSetsList.length - 1] || { weight: ex.targetWeight || 0, reps: ex.targetReps || 0 })
+    : ex.sets[sIdx];
+  if (!templateSet) return;
   setEditExIdx = exIdx;
   setEditSetIdx = sIdx;
-  document.getElementById('set-edit-title').textContent = `${ex.name}`;
-  document.getElementById('set-edit-sub').textContent = `Serie ${sIdx + 1} di ${ex.sets.length}`;
-  document.getElementById('set-edit-weight').value = set.weight;
+  document.getElementById('set-edit-title').textContent = ex.name;
+  document.getElementById('set-edit-sub').textContent = isAdd
+    ? `Aggiungi una serie (n° ${(ex.sets || []).length + 1})`
+    : `Serie ${sIdx + 1} di ${ex.sets.length}`;
+  document.getElementById('set-edit-weight').value = templateSet.weight;
   const repsInput = document.getElementById('set-edit-reps');
-  repsInput.value = set.reps;
+  repsInput.value = isAdd ? '' : templateSet.reps; // empty for add so user types the actual result
+  repsInput.placeholder = templateSet.reps || '';
   // If exercise is time-based, use bigger step and update label
-  // Fallback: for legacy logs missing isTimed, look up the exercise definition
   let isTimed = !!ex.isTimed;
   if (!isTimed && log.sessionId && WORKOUT_SESSIONS[log.sessionId]) {
     const defEx = WORKOUT_SESSIONS[log.sessionId].exercises.find(e => e.id === ex.exerciseId);
     if (defEx && defEx.isTimed) isTimed = true;
   }
   repsInput.step = isTimed ? 5 : 1;
-  // Update the "Ripetizioni" label to "Secondi" when relevant
   const repsLabel = repsInput.parentElement.querySelector('.step-label');
   if (repsLabel) repsLabel.textContent = isTimed ? 'Secondi' : 'Ripetizioni';
+  // Show/hide delete button based on mode
+  const delBtn = document.getElementById('set-edit-delete');
+  const saveBtn = document.getElementById('set-edit-save');
+  if (isAdd) {
+    if (delBtn) delBtn.style.display = 'none';
+    if (saveBtn) saveBtn.textContent = 'Aggiungi';
+  } else {
+    if (delBtn) delBtn.style.display = '';
+    if (saveBtn) saveBtn.textContent = 'Salva';
+  }
   document.getElementById('set-edit-modal').classList.add('show');
 }
 
@@ -12677,15 +12872,44 @@ async function saveSetEdit() {
   if (!log) return;
   const ex = log.exercises[setEditExIdx];
   if (!ex) return;
-  const set = ex.sets[setEditSetIdx];
-  if (!set) return;
   const w = parseFloat(document.getElementById('set-edit-weight').value);
   const r = parseInt(document.getElementById('set-edit-reps').value);
-  if (!isNaN(w) && w >= 0) set.weight = w;
-  if (!isNaN(r) && r >= 0) set.reps = r;
+  if (setEditSetIdx === -1) {
+    // Add mode: append a new set to the exercise
+    if (isNaN(w) || w < 0 || isNaN(r) || r <= 0) {
+      alert('Inserisci peso (o 0) e ripetizioni prima di aggiungere la serie.');
+      return;
+    }
+    if (!ex.sets) ex.sets = [];
+    ex.sets.push({ weight: w, reps: r, done: true });
+    // Bump targetSets so future progression sees the new count
+    ex.targetSets = ex.sets.length;
+  } else {
+    // Edit mode
+    const set = ex.sets[setEditSetIdx];
+    if (!set) return;
+    if (!isNaN(w) && w >= 0) set.weight = w;
+    if (!isNaN(r) && r >= 0) set.reps = r;
+  }
   await saveWorkoutLogs();
   document.getElementById('set-edit-modal').classList.remove('show');
-  // Re-render the detail modal contents (without closing it)
+  openWorkoutDetailModal(log);
+  renderAll();
+}
+
+async function deleteSet() {
+  if (setEditExIdx == null || setEditSetIdx == null) return;
+  if (setEditSetIdx === -1) return; // can't delete in add mode
+  if (!confirm('Vuoi eliminare completamente questa serie? L\'azione è irreversibile.')) return;
+  const log = state.workoutLogs[workoutDetailLogIdx];
+  if (!log) return;
+  const ex = log.exercises[setEditExIdx];
+  if (!ex || !ex.sets) return;
+  ex.sets.splice(setEditSetIdx, 1);
+  // Update targetSets to reflect real remaining
+  ex.targetSets = ex.sets.length;
+  await saveWorkoutLogs();
+  document.getElementById('set-edit-modal').classList.remove('show');
   openWorkoutDetailModal(log);
   renderAll();
 }
@@ -12845,7 +13069,8 @@ function initWorkoutHandlers() {
   document.getElementById('set-edit-cancel').addEventListener('click', () => setEditModal.classList.remove('show'));
   setEditModal.addEventListener('click', (e) => { if (e.target === setEditModal) setEditModal.classList.remove('show'); });
   document.getElementById('set-edit-save').addEventListener('click', saveSetEdit);
-  document.getElementById('set-edit-uncomplete').addEventListener('click', uncompleteSet);
+  const setEditDelBtn = document.getElementById('set-edit-delete');
+  if (setEditDelBtn) setEditDelBtn.addEventListener('click', deleteSet);
 
   // Editable duration in detail modal
   const wdDurInput = document.getElementById('wd-duration-input');
@@ -13762,6 +13987,32 @@ function initHomeSettingsBtn() {
   initWorkoutHandlers();
   initCalendar();
   initHomeCalendar();
+  // Check for a saved active workout — if present, ask user to resume or discard
+  const savedWorkout = loadActiveWorkout();
+  if (savedWorkout && savedWorkout.session && savedWorkout.session.sessionId) {
+    const sess = savedWorkout.session;
+    // Small friendly description
+    const totSets = sess.exercises.reduce((s, e) => s + (e.sets ? e.sets.length : 0), 0);
+    const doneSets = sess.exercises.reduce((s, e) => s + (e.sets ? e.sets.filter(x => x.done).length : 0), 0);
+    const savedAgo = savedWorkout.savedAt ? Math.round((Date.now() - savedWorkout.savedAt) / 60000) : null;
+    const agoText = savedAgo != null
+      ? (savedAgo < 60 ? `${savedAgo} min fa` : savedAgo < 1440 ? `${Math.round(savedAgo/60)}h fa` : `${Math.round(savedAgo/1440)}g fa`)
+      : '';
+    const msg = `Hai una sessione ${sess.sessionId} in sospeso (${doneSets}/${totSets} serie completate${agoText ? ', ' + agoText : ''}).\n\nRiprendere?`;
+    if (confirm(msg)) {
+      openWorkoutModal(sess.sessionId, savedWorkout);
+    } else {
+      clearActiveWorkout();
+    }
+  }
+  // Save the active workout also when the user is about to close/reload the app.
+  // This is best-effort (some browsers restrict beforeunload) but harmless.
+  window.addEventListener('beforeunload', () => {
+    if (workoutStarted) saveActiveWorkout();
+  });
+  window.addEventListener('pagehide', () => {
+    if (workoutStarted) saveActiveWorkout();
+  });
 })();
 </script>
 </body>
