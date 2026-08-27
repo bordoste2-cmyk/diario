@@ -2874,6 +2874,104 @@
     border-radius: 8px;
     border: 1px dashed var(--line);
   }
+
+  /* BODY MEASURES */
+  .body-ratios-card {
+    background: linear-gradient(135deg, var(--accent-soft), var(--gold-soft));
+    border: 1px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin: 12px 0;
+  }
+  .body-ratios-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+  .body-ratio-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    font-size: 13px;
+  }
+  .body-ratio-item:last-child { border-bottom: none; }
+  .body-ratio-label {
+    flex: 1 1 auto;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .body-ratio-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--ink);
+    min-width: 60px;
+    text-align: right;
+  }
+  .body-ratio-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    text-transform: lowercase;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .body-ratio-tag.tone-ok { background: var(--accent-soft); color: var(--accent-deep); }
+  .body-ratio-tag.tone-warn { background: var(--gold-soft); color: #8c5e1d; }
+  .body-ratio-tag.tone-bad { background: color-mix(in srgb, tomato 20%, transparent); color: #a03020; }
+  .body-ratio-tag.tone-neutral { background: var(--bg-soft); color: var(--ink-soft); }
+
+  .body-group {
+    margin: 14px 0;
+  }
+  .body-group-title {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--ink);
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .body-param-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 6px 0;
+    font-size: 13px;
+  }
+  .body-param-name {
+    color: var(--ink);
+  }
+  .body-param-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .body-param-unit {
+    font-size: 10px;
+    color: var(--ink-faint);
+    font-weight: 400;
+    margin-left: 2px;
+  }
+  .body-param-trend {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 10px;
+    color: var(--ink-soft);
+    background: var(--bg-soft);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
   .lab-last-date {
     display: flex;
     justify-content: space-between;
@@ -5065,6 +5163,15 @@
             <div id="labs-content"></div>
           </div>
 
+          <!-- BODY MEASURES -->
+          <div class="card">
+            <h2>Misure corporee <span class="sub" id="body-measures-sub">—</span></h2>
+            <button class="add-lab-btn" id="add-body-measure-btn">
+              <span class="add-icon">+</span> Nuova misurazione
+            </button>
+            <div id="body-measures-content"></div>
+          </div>
+
           <!-- MEDICATIONS -->
           <div class="card">
             <h2>Farmaci <span class="sub" id="meds-sub">—</span></h2>
@@ -5493,6 +5600,44 @@
       <button class="btn-secondary" id="lab-cancel">Annulla</button>
       <button class="btn-danger" id="lab-delete" style="display:none;">Elimina</button>
       <button class="btn-primary" id="lab-save">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- BODY MEASURE MODAL -->
+<div class="modal-overlay" id="body-measure-modal">
+  <div class="modal" style="max-width: 540px;">
+    <h3 id="body-measure-modal-title">Nuova misurazione</h3>
+    <div class="modal-sub">Inserisci solo i valori che hai. I campi vuoti vengono ignorati.</div>
+
+    <div class="lab-date-row">
+      <label class="step-label">Data</label>
+      <input type="date" id="body-measure-date-input">
+    </div>
+
+    <div id="body-measure-groups-container"></div>
+
+    <div class="lab-notes-row">
+      <label class="step-label">Note (opzionale)</label>
+      <textarea id="body-measure-notes-input" rows="2" placeholder="Es. dopo padel intenso, prima colazione..."></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-secondary" id="body-measure-cancel">Annulla</button>
+      <button class="btn-danger" id="body-measure-delete" style="display:none;">Elimina</button>
+      <button class="btn-primary" id="body-measure-save">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- BODY MEASURE HISTORY MODAL -->
+<div class="modal-overlay" id="body-measure-history-modal">
+  <div class="modal" style="max-width: 540px;">
+    <h3>Storico misurazioni</h3>
+    <div class="modal-sub" id="body-measure-history-sub">—</div>
+    <div id="body-measure-history-content" style="max-height:65vh; overflow-y:auto;"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="body-measure-history-close">Chiudi</button>
     </div>
   </div>
 </div>
@@ -6667,6 +6812,159 @@ const PRELOADED_LAB = {
   notes: 'Esami del sangue di partenza, peso 81 kg'
 };
 
+// ========== BODY MEASURES SCHEMA ==========
+// Misure antropometriche casalinghe con rapporti derivati.
+// Ogni gruppo ha param con id, name, unit, e opzionali range di riferimento maschili.
+const BODY_MEASURES_SCHEMA = [
+  {
+    id: 'general',
+    name: 'Generali',
+    emoji: '📏',
+    params: [
+      { id: 'weight', name: 'Peso', unit: 'kg', hint: 'Mattina a digiuno' },
+      { id: 'height', name: 'Altezza', unit: 'cm', hint: 'Cambia molto raramente' }
+    ]
+  },
+  {
+    id: 'girths',
+    name: 'Circonferenze centrali',
+    emoji: '🎯',
+    params: [
+      { id: 'waistClinical', name: 'Girovita clinico', unit: 'cm', hint: '4 cm sopra ombelico, fine espirazione' },
+      { id: 'waistOmbelico', name: 'Girovita ombelico', unit: 'cm', hint: 'All\'ombelico, fine espirazione' },
+      { id: 'hips', name: 'Fianchi', unit: 'cm', hint: 'Punto più largo dei glutei' },
+      { id: 'neck', name: 'Collo', unit: 'cm', hint: 'Sotto il pomo d\'Adamo' }
+    ]
+  },
+  {
+    id: 'skeletal',
+    name: 'Struttura ossea',
+    emoji: '🦴',
+    params: [
+      { id: 'wrist', name: 'Polso', unit: 'cm', hint: 'Sopra le ossa del carpo, mano dominante' }
+    ]
+  },
+  {
+    id: 'muscles',
+    name: 'Muscolari',
+    emoji: '💪',
+    params: [
+      { id: 'shoulders', name: 'Spalle', unit: 'cm', hint: 'Nel punto più largo' },
+      { id: 'bicepRelaxed', name: 'Bicipite rilassato', unit: 'cm', hint: 'Braccio pendente, punto medio spalla-gomito' },
+      { id: 'bicepContracted', name: 'Bicipite contratto', unit: 'cm', hint: 'Braccio piegato a 90°, bicipite teso' },
+      { id: 'thigh', name: 'Coscia', unit: 'cm', hint: 'Metà tra piega inguinale e rotula' },
+      { id: 'calf', name: 'Polpaccio', unit: 'cm', hint: 'Punto più largo' }
+    ]
+  },
+  {
+    id: 'composition',
+    name: 'Composizione',
+    emoji: '📐',
+    params: [
+      { id: 'pinchSuprailiac', name: 'Pinch sovrailiaco', unit: 'cm', hint: 'Piega verticale sopra la cresta iliaca' },
+      { id: 'pinchAbdominal', name: 'Pinch addominale', unit: 'cm', hint: 'Piega verticale a lato dell\'ombelico' },
+      { id: 'pinchTricep', name: 'Pinch tricipite', unit: 'cm', hint: 'Piega verticale, metà retro del braccio' }
+    ]
+  }
+];
+
+// Prima misurazione baseline
+const PRELOADED_BODY_MEASURE = {
+  date: '2026-08-27',
+  ts: new Date('2026-08-27T08:00:00').getTime(),
+  values: {
+    weight: 78.6,
+    height: 180,
+    waistClinical: 83,
+    waistOmbelico: 87,
+    hips: 102.5,
+    neck: 38,
+    wrist: 17.5,
+    shoulders: 117,
+    bicepRelaxed: 30,
+    bicepContracted: 33,
+    thigh: 54.5,
+    calf: 36.5,
+    pinchSuprailiac: 1.1
+  },
+  notes: 'Prima misurazione baseline'
+};
+
+// Compute derived ratios from a values object
+function computeBodyRatios(v) {
+  const r = {};
+  if (v.height && v.weight) {
+    r.bmi = v.weight / Math.pow(v.height / 100, 2);
+  }
+  if (v.waistClinical && v.height) {
+    r.whtr = v.waistClinical / v.height;
+  }
+  if (v.waistClinical && v.hips) {
+    r.whr = v.waistClinical / v.hips;
+  }
+  if (v.shoulders && v.waistClinical) {
+    r.swr = v.shoulders / v.waistClinical;
+  }
+  if (v.bicepContracted && v.bicepRelaxed) {
+    r.bicepDiff = v.bicepContracted - v.bicepRelaxed;
+  }
+  // US Navy body fat % formula (male)
+  if (v.waistClinical && v.neck && v.height) {
+    const wcNeck = v.waistClinical - v.neck;
+    if (wcNeck > 0) {
+      const bf = 86.010 * Math.log10(wcNeck) - 70.041 * Math.log10(v.height) + 36.76;
+      if (bf > 0 && bf < 60) r.bodyFatUSNavy = bf;
+    }
+  }
+  // Height/wrist ratio (frame size)
+  if (v.height && v.wrist) {
+    r.frameRatio = v.height / v.wrist;
+  }
+  return r;
+}
+
+// Interpret a ratio and return a short qualifier + color hint
+function interpretBodyRatio(id, value) {
+  if (value == null) return null;
+  switch (id) {
+    case 'bmi':
+      if (value < 18.5) return { label: 'sottopeso', tone: 'warn' };
+      if (value < 25) return { label: 'normopeso', tone: 'ok' };
+      if (value < 30) return { label: 'sovrappeso', tone: 'warn' };
+      return { label: 'obesità', tone: 'bad' };
+    case 'whtr':
+      if (value < 0.43) return { label: 'molto asciutto', tone: 'ok' };
+      if (value < 0.52) return { label: 'salutare', tone: 'ok' };
+      if (value < 0.57) return { label: 'rischio moderato', tone: 'warn' };
+      return { label: 'rischio alto', tone: 'bad' };
+    case 'whr':
+      if (value < 0.85) return { label: 'ottimo', tone: 'ok' };
+      if (value < 0.90) return { label: 'buono', tone: 'ok' };
+      if (value < 1.0) return { label: 'rischio moderato', tone: 'warn' };
+      return { label: 'rischio alto', tone: 'bad' };
+    case 'swr':
+      if (value < 1.3) return { label: 'rettangolare', tone: 'neutral' };
+      if (value < 1.5) return { label: 'atletico', tone: 'ok' };
+      if (value < 1.7) return { label: 'profilo V', tone: 'ok' };
+      return { label: 'molto sviluppato', tone: 'ok' };
+    case 'bicepDiff':
+      if (value < 2) return { label: 'poco tono', tone: 'warn' };
+      if (value < 4) return { label: 'buon tono', tone: 'ok' };
+      return { label: 'molto sviluppato', tone: 'ok' };
+    case 'bodyFatUSNavy':
+      if (value < 10) return { label: 'agonistico', tone: 'ok' };
+      if (value < 18) return { label: 'atletico', tone: 'ok' };
+      if (value < 25) return { label: 'normale attivo', tone: 'ok' };
+      if (value < 30) return { label: 'sovrappeso', tone: 'warn' };
+      return { label: 'alto', tone: 'bad' };
+    case 'frameRatio':
+      if (value > 10.4) return { label: 'struttura piccola', tone: 'neutral' };
+      if (value > 9.6) return { label: 'struttura media', tone: 'neutral' };
+      return { label: 'struttura robusta', tone: 'neutral' };
+    default: return null;
+  }
+}
+
 // ========== MEDS DATABASE (common Italian OTC + supplements) ==========
 // Suggested doses for autocomplete only. Diary-style, not medical advice.
 const MEDS_DB = [
@@ -7393,7 +7691,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.22.1';
+const APP_VERSION = '3.23.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -7403,6 +7701,7 @@ let state = {
   weights: {},     // { 'YYYY-MM-DD': 78.5 }
   activities: {},  // { 'YYYY-MM-DD': [{activityId, name, emoji, level, mets, durationMin, weightKg, kcalBurned, ts}] }
   labs: [],        // [{ts, date, values: {paramId: number, ...}, notes}] - sorted by ts asc
+  bodyMeasures: [], // [{ts, date, values: {paramId: number, ...}, notes}] - sorted by ts asc
   meds: [],        // [{id, ts, date, time, drugId, name, dose, reason, effects, notes}]
   workoutLogs: [], // [{ts, date, sessionId: 'A'|'B', durationMin, exercises: [{exerciseId, targetSets, targetReps, targetWeight, restSec, tempoSec, lever, sets: [{reps, weight, done}], notes}]}]
   dayEmojis: {},   // { 'YYYY-MM-DD': ['😴','🍕'] } — manual emoji tags per day (max 4 incl. auto)
@@ -7496,6 +7795,17 @@ async function loadState() {
       localStorage.setItem(KEY_PREFIX + 'labs', JSON.stringify(state.labs));
     }
   } catch (e) { state.labs = []; }
+
+  // Body measures — bootstrap with baseline if first time
+  try {
+    const bm = localStorage.getItem(KEY_PREFIX + 'bodyMeasures');
+    if (bm) {
+      state.bodyMeasures = JSON.parse(bm);
+    } else {
+      state.bodyMeasures = [PRELOADED_BODY_MEASURE];
+      localStorage.setItem(KEY_PREFIX + 'bodyMeasures', JSON.stringify(state.bodyMeasures));
+    }
+  } catch (e) { state.bodyMeasures = []; }
 
   // Collapsed lab groups
   try {
@@ -7619,6 +7929,13 @@ async function saveLabs() {
     localStorage.setItem(KEY_PREFIX + 'labs', JSON.stringify(state.labs));
     markUnbackedChange();
   } catch (e) { console.error('save labs', e); }
+}
+async function saveBodyMeasures() {
+  try {
+    state.bodyMeasures.sort((a, b) => a.ts - b.ts);
+    localStorage.setItem(KEY_PREFIX + 'bodyMeasures', JSON.stringify(state.bodyMeasures));
+    markUnbackedChange();
+  } catch (e) { console.error('save body measures', e); }
 }
 async function saveMeds() {
   try {
@@ -8547,6 +8864,7 @@ function renderAll() {
   renderActivities();
   renderActivityWeekChart();
   renderLabs();
+  renderBodyMeasures();
   renderMeds();
   renderHome();
   renderWorkout();
@@ -10724,6 +11042,24 @@ document.getElementById('add-lab-btn').addEventListener('click', openLabModalNew
 document.getElementById('lab-cancel').addEventListener('click', () => labModal.classList.remove('show'));
 labModal.addEventListener('click', (e) => { if (e.target === labModal) labModal.classList.remove('show'); });
 
+// Body measures buttons wiring
+(function wireBodyMeasureButtons() {
+  const addBtn = document.getElementById('add-body-measure-btn');
+  if (addBtn) addBtn.addEventListener('click', openBodyMeasureModalNew);
+  const modal = document.getElementById('body-measure-modal');
+  const cancelBtn = document.getElementById('body-measure-cancel');
+  if (cancelBtn) cancelBtn.addEventListener('click', () => modal.classList.remove('show'));
+  if (modal) modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('show'); });
+  const saveBtn = document.getElementById('body-measure-save');
+  if (saveBtn) saveBtn.addEventListener('click', saveBodyMeasureEdit);
+  const delBtn = document.getElementById('body-measure-delete');
+  if (delBtn) delBtn.addEventListener('click', deleteBodyMeasure);
+  const histModal = document.getElementById('body-measure-history-modal');
+  const histClose = document.getElementById('body-measure-history-close');
+  if (histClose) histClose.addEventListener('click', () => histModal.classList.remove('show'));
+  if (histModal) histModal.addEventListener('click', (e) => { if (e.target === histModal) histModal.classList.remove('show'); });
+})();
+
 document.getElementById('lab-save').addEventListener('click', async () => {
   const dateVal = document.getElementById('lab-date-input').value;
   if (!dateVal) {
@@ -10820,6 +11156,247 @@ function openLabHistory() {
     list.appendChild(div);
   });
   histModal.classList.add('show');
+}
+
+// ========== BODY MEASURES ==========
+let bodyMeasureEditIdx = null; // null = new, index = editing
+
+function renderBodyMeasures() {
+  const content = document.getElementById('body-measures-content');
+  const sub = document.getElementById('body-measures-sub');
+  if (!content) return;
+
+  const measures = state.bodyMeasures || [];
+  if (sub) sub.textContent = measures.length === 0 ? 'nessuna misura' : (measures.length === 1 ? '1 rilevazione' : `${measures.length} rilevazioni`);
+  content.innerHTML = '';
+
+  if (measures.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'lab-empty';
+    empty.textContent = '— nessuna misurazione ancora registrata —';
+    content.appendChild(empty);
+    return;
+  }
+
+  const latest = measures[measures.length - 1];
+
+  // Header con data + link storico/modifica
+  const dateRow = document.createElement('div');
+  dateRow.className = 'lab-last-date';
+  const dateLabel = new Date(latest.date).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+  dateRow.innerHTML = `
+    <span>Ultima misurazione: <strong>${dateLabel}</strong></span>
+    <button class="lab-history-link" id="body-measure-history-btn">${measures.length > 1 ? `storico (${measures.length})` : 'modifica'}</button>
+  `;
+  content.appendChild(dateRow);
+
+  // Rapporti calcolati (in evidenza)
+  const ratios = computeBodyRatios(latest.values);
+  if (Object.keys(ratios).length > 0) {
+    const ratiosCard = document.createElement('div');
+    ratiosCard.className = 'body-ratios-card';
+    const ratioRows = [];
+    if (ratios.bmi != null) {
+      const int = interpretBodyRatio('bmi', ratios.bmi);
+      ratioRows.push(`<div class="body-ratio-item"><span class="body-ratio-label">BMI</span><span class="body-ratio-value">${ratios.bmi.toFixed(1)}</span>${int?`<span class="body-ratio-tag tone-${int.tone}">${int.label}</span>`:''}</div>`);
+    }
+    if (ratios.bodyFatUSNavy != null) {
+      const int = interpretBodyRatio('bodyFatUSNavy', ratios.bodyFatUSNavy);
+      ratioRows.push(`<div class="body-ratio-item"><span class="body-ratio-label">% grasso (stima)</span><span class="body-ratio-value">${ratios.bodyFatUSNavy.toFixed(0)}%</span>${int?`<span class="body-ratio-tag tone-${int.tone}">${int.label}</span>`:''}</div>`);
+    }
+    if (ratios.whtr != null) {
+      const int = interpretBodyRatio('whtr', ratios.whtr);
+      ratioRows.push(`<div class="body-ratio-item"><span class="body-ratio-label">Vita / altezza</span><span class="body-ratio-value">${ratios.whtr.toFixed(2)}</span>${int?`<span class="body-ratio-tag tone-${int.tone}">${int.label}</span>`:''}</div>`);
+    }
+    if (ratios.whr != null) {
+      const int = interpretBodyRatio('whr', ratios.whr);
+      ratioRows.push(`<div class="body-ratio-item"><span class="body-ratio-label">Vita / fianchi</span><span class="body-ratio-value">${ratios.whr.toFixed(2)}</span>${int?`<span class="body-ratio-tag tone-${int.tone}">${int.label}</span>`:''}</div>`);
+    }
+    if (ratios.swr != null) {
+      const int = interpretBodyRatio('swr', ratios.swr);
+      ratioRows.push(`<div class="body-ratio-item"><span class="body-ratio-label">Spalle / vita</span><span class="body-ratio-value">${ratios.swr.toFixed(2)}</span>${int?`<span class="body-ratio-tag tone-${int.tone}">${int.label}</span>`:''}</div>`);
+    }
+    if (ratios.bicepDiff != null) {
+      const int = interpretBodyRatio('bicepDiff', ratios.bicepDiff);
+      ratioRows.push(`<div class="body-ratio-item"><span class="body-ratio-label">Δ bicipite</span><span class="body-ratio-value">+${ratios.bicepDiff.toFixed(1)} cm</span>${int?`<span class="body-ratio-tag tone-${int.tone}">${int.label}</span>`:''}</div>`);
+    }
+    if (ratios.frameRatio != null) {
+      const int = interpretBodyRatio('frameRatio', ratios.frameRatio);
+      ratioRows.push(`<div class="body-ratio-item"><span class="body-ratio-label">Frame (h/polso)</span><span class="body-ratio-value">${ratios.frameRatio.toFixed(1)}</span>${int?`<span class="body-ratio-tag tone-${int.tone}">${int.label}</span>`:''}</div>`);
+    }
+    ratiosCard.innerHTML = `<div class="body-ratios-title">Rapporti derivati</div>${ratioRows.join('')}`;
+    content.appendChild(ratiosCard);
+  }
+
+  // Valori misurati per gruppo con trend rispetto alla misura precedente (se esiste)
+  const prev = measures.length > 1 ? measures[measures.length - 2] : null;
+  BODY_MEASURES_SCHEMA.forEach(group => {
+    // Ci sono valori per questo gruppo?
+    const hasValues = group.params.some(p => latest.values[p.id] != null);
+    if (!hasValues) return;
+
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'body-group';
+    const title = document.createElement('div');
+    title.className = 'body-group-title';
+    title.innerHTML = `<span>${group.emoji}</span> ${group.name}`;
+    groupDiv.appendChild(title);
+
+    group.params.forEach(p => {
+      const val = latest.values[p.id];
+      if (val == null) return;
+      const row = document.createElement('div');
+      row.className = 'body-param-row';
+      let trend = '';
+      if (prev && prev.values[p.id] != null) {
+        const delta = val - prev.values[p.id];
+        if (Math.abs(delta) >= 0.05) {
+          const arrow = delta > 0 ? '↑' : '↓';
+          trend = `<span class="body-param-trend">${arrow} ${Math.abs(delta).toFixed(1)}</span>`;
+        }
+      }
+      row.innerHTML = `
+        <span class="body-param-name">${p.name}</span>
+        <span class="body-param-value">${val} <span class="body-param-unit">${p.unit}</span>${trend}</span>
+      `;
+      groupDiv.appendChild(row);
+    });
+
+    content.appendChild(groupDiv);
+  });
+
+  // Note
+  if (latest.notes) {
+    const notes = document.createElement('div');
+    notes.className = 'lab-notes-display';
+    notes.textContent = '📝 ' + latest.notes;
+    content.appendChild(notes);
+  }
+
+  // Bind history/edit button
+  const histBtn = document.getElementById('body-measure-history-btn');
+  if (histBtn) {
+    if (measures.length > 1) {
+      histBtn.addEventListener('click', openBodyMeasureHistory);
+    } else {
+      histBtn.addEventListener('click', () => openBodyMeasureModalEdit(0));
+    }
+  }
+}
+
+function openBodyMeasureModalNew() {
+  bodyMeasureEditIdx = null;
+  document.getElementById('body-measure-modal-title').textContent = 'Nuova misurazione';
+  document.getElementById('body-measure-date-input').value = todayISO();
+  document.getElementById('body-measure-notes-input').value = '';
+  document.getElementById('body-measure-delete').style.display = 'none';
+  buildBodyMeasureInputs({});
+  document.getElementById('body-measure-modal').classList.add('show');
+}
+
+function openBodyMeasureModalEdit(idx) {
+  const m = state.bodyMeasures[idx];
+  if (!m) return;
+  bodyMeasureEditIdx = idx;
+  document.getElementById('body-measure-modal-title').textContent = 'Modifica misurazione';
+  document.getElementById('body-measure-date-input').value = m.date;
+  document.getElementById('body-measure-notes-input').value = m.notes || '';
+  document.getElementById('body-measure-delete').style.display = state.bodyMeasures.length > 1 ? '' : 'none';
+  buildBodyMeasureInputs(m.values || {});
+  document.getElementById('body-measure-modal').classList.add('show');
+  // Chiudi storico se aperto
+  const hist = document.getElementById('body-measure-history-modal');
+  if (hist) hist.classList.remove('show');
+}
+
+function buildBodyMeasureInputs(prefill) {
+  const container = document.getElementById('body-measure-groups-container');
+  container.innerHTML = '';
+  BODY_MEASURES_SCHEMA.forEach(group => {
+    const groupDiv = document.createElement('div');
+    groupDiv.className = 'lab-group';
+    const title = document.createElement('div');
+    title.className = 'lab-group-title';
+    title.innerHTML = `<span>${group.emoji}</span> ${group.name}`;
+    groupDiv.appendChild(title);
+    group.params.forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'lab-param-input-row';
+      row.innerHTML = `
+        <div class="lab-param-input-label">
+          <div>${p.name}</div>
+          ${p.hint ? `<div class="lab-param-hint">${p.hint}</div>` : ''}
+        </div>
+        <div class="lab-param-input-value">
+          <input type="number" step="0.1" min="0" data-param="${p.id}"
+                 value="${prefill[p.id] != null ? prefill[p.id] : ''}"
+                 placeholder="—" inputmode="decimal">
+          <span class="lab-param-unit">${p.unit}</span>
+        </div>
+      `;
+      groupDiv.appendChild(row);
+    });
+    container.appendChild(groupDiv);
+  });
+}
+
+async function saveBodyMeasureEdit() {
+  const date = document.getElementById('body-measure-date-input').value;
+  if (!date) { alert('Data mancante'); return; }
+  const notes = document.getElementById('body-measure-notes-input').value.trim();
+  const inputs = document.querySelectorAll('#body-measure-groups-container input[data-param]');
+  const values = {};
+  inputs.forEach(inp => {
+    const v = parseFloat(inp.value);
+    if (!isNaN(v) && v > 0) values[inp.dataset.param] = v;
+  });
+  if (Object.keys(values).length === 0) { alert('Inserisci almeno una misura'); return; }
+  const entry = {
+    date,
+    ts: new Date(date + 'T08:00:00').getTime(),
+    values,
+    notes
+  };
+  if (bodyMeasureEditIdx != null) {
+    state.bodyMeasures[bodyMeasureEditIdx] = entry;
+  } else {
+    state.bodyMeasures.push(entry);
+  }
+  await saveBodyMeasures();
+  document.getElementById('body-measure-modal').classList.remove('show');
+  renderBodyMeasures();
+}
+
+async function deleteBodyMeasure() {
+  if (bodyMeasureEditIdx == null) return;
+  if (!confirm('Eliminare questa misurazione?')) return;
+  state.bodyMeasures.splice(bodyMeasureEditIdx, 1);
+  await saveBodyMeasures();
+  document.getElementById('body-measure-modal').classList.remove('show');
+  renderBodyMeasures();
+}
+
+function openBodyMeasureHistory() {
+  const modal = document.getElementById('body-measure-history-modal');
+  const list = document.getElementById('body-measure-history-content');
+  const sub = document.getElementById('body-measure-history-sub');
+  const measures = state.bodyMeasures.slice().reverse();
+  sub.textContent = `${measures.length} rilevazioni · tocca per modificare`;
+  list.innerHTML = '';
+  measures.forEach(m => {
+    const realIdx = state.bodyMeasures.indexOf(m);
+    const dateLabel = new Date(m.date).toLocaleDateString('it-IT', { day:'numeric', month:'short', year:'numeric' });
+    const nParams = Object.keys(m.values || {}).length;
+    const div = document.createElement('div');
+    div.className = 'lab-history-entry';
+    div.innerHTML = `
+      <div class="lab-history-date">${dateLabel}</div>
+      <div class="lab-history-summary">${nParams} misur${nParams===1?'a':'e'}${m.notes ? ' · ' + m.notes : ''}</div>
+    `;
+    div.addEventListener('click', () => openBodyMeasureModalEdit(realIdx));
+    list.appendChild(div);
+  });
+  modal.classList.add('show');
 }
 
 // ========== MEDS ==========
@@ -13165,7 +13742,8 @@ function getAllData() {
       meds: state.meds,
       targets: state.targets,
       profile: state.profile,
-      maintenanceLocks: state.maintenanceLocks
+      maintenanceLocks: state.maintenanceLocks,
+      bodyMeasures: state.bodyMeasures
     }
   };
 }
@@ -13177,6 +13755,7 @@ function formatBackupStats() {
   const actDays = Object.keys(state.activities || {}).filter(d => state.activities[d].length > 0).length;
   const labCount = (state.labs || []).length;
   const workoutCount = (state.workoutLogs || []).length;
+  const bodyMeasureCount = (state.bodyMeasures || []).length;
   let lastBackupStr = 'mai';
   if (lastBackupTime) {
     const d = new Date(lastBackupTime);
@@ -13185,7 +13764,7 @@ function formatBackupStats() {
     else if (daysAgo === 1) lastBackupStr = 'ieri';
     else lastBackupStr = `${daysAgo} giorni fa`;
   }
-  return `${days} giorni di pasti registrati<br>${actDays} giorni con attività<br>${weights} misurazioni di peso<br>${labCount} esami del sangue<br>${workoutCount} sessioni allenamento<br>${custom} alimenti personalizzati<br><br>Ultimo backup: <strong>${lastBackupStr}</strong>${unbackedChanges > 0 ? `<br>(${unbackedChanges} modifiche da allora)` : ''}`;
+  return `${days} giorni di pasti registrati<br>${actDays} giorni con attività<br>${weights} misurazioni di peso<br>${labCount} esami del sangue<br>${bodyMeasureCount} misurazioni corporee<br>${workoutCount} sessioni allenamento<br>${custom} alimenti personalizzati<br><br>Ultimo backup: <strong>${lastBackupStr}</strong>${unbackedChanges > 0 ? `<br>(${unbackedChanges} modifiche da allora)` : ''}`;
 }
 
 function openBackupModal() {
@@ -13294,6 +13873,7 @@ document.getElementById('backup-file-input').addEventListener('change', async (e
     if (d.targets) state.targets = d.targets;
     if (d.profile) state.profile = { ...state.profile, ...d.profile };
     if (d.maintenanceLocks) state.maintenanceLocks = d.maintenanceLocks;
+    if (d.bodyMeasures) state.bodyMeasures = d.bodyMeasures;
     await saveDiary();
     await saveCustomFoods();
     await saveWeights();
@@ -13305,6 +13885,7 @@ document.getElementById('backup-file-input').addEventListener('change', async (e
     await saveTargets();
     await saveProfile();
     await saveMaintenanceLocks();
+    await saveBodyMeasures();
     // Reset backup badge (just restored, equivalent to fresh state)
     lastBackupTime = Date.now();
     unbackedChanges = 0;
