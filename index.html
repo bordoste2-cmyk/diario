@@ -7136,58 +7136,54 @@ const WORKOUT_SESSIONS = {
   },
   C: {
     id: 'C',
-    name: 'Seduta C — Core',
-    subtitle: 'Stabilizzazione lombare + anti-rotazione (non traumatica)',
-    emoji: '🧘',
+    name: 'Seduta C — Rescue Ginocchio',
+    subtitle: 'Attivo senza carico sulle ginocchia — quando c\'è fastidio o infiammazione',
+    emoji: '🛡️',
     exercises: [
-      { id: 'dead-bug', name: 'Dead bug', sets: 3, repsMin: 8, repsMax: 12, defaultWeight: 0, weightUnit: 'rip/lato', restSec: 30,
-        category: 'core',
-        execution: 'Sdraiato supino. Braccia distese verso il soffitto, gambe piegate a 90° (femori perpendicolari al pavimento, tibie parallele). Zona lombare BEN aderente a terra (schiaccia i lombari contro il pavimento) — non ci devono essere spazi. Estendi contemporaneamente il braccio destro verso l\'alto/indietro e la gamba sinistra opposta verso il pavimento, fermandoti quando i lombari iniziano a staccarsi. Ritorna alla posizione di partenza controllato. Alterna i lati. Respirazione: espira quando estendi.',
-        notes: 'Anti-estensione lombare. Se senti che la schiena si inarca, ferma il movimento prima. Zero impatto.'
+      { id: 'floor-press-c', name: 'Floor press', sets: 4, repsMin: 8, repsMax: 12, defaultWeight: 10, weightUnit: 'kg/mano', restSec: 45,
+        category: 'push',
+        execution: 'Sdraiato a terra, manubri in mano, piedi appoggiati o gambe piegate. Braccia perpendicolari al pavimento, gomiti a ~45° dal busto. Discendi finché i gomiti toccano dolcemente il pavimento, poi spingi verso l\'alto. Gambe rilassate e stabili — nessun impegno del ginocchio.',
+        notes: 'Spinta orizzontale. Stesso esercizio della A/B ma qui è il piatto forte di parte alta. Zero coinvolgimento ginocchio.'
       },
-      { id: 'bird-dog', name: 'Bird dog', sets: 3, repsMin: 8, repsMax: 12, defaultWeight: 0, weightUnit: 'rip/lato', restSec: 30,
-        category: 'core',
-        execution: 'A quattro zampe: mani sotto le spalle, ginocchia sotto le anche, colonna neutra (né incurvata né inarcata). Estendi contemporaneamente il braccio destro in avanti e la gamba sinistra opposta indietro, fino a portarli paralleli al pavimento. Mantieni il bacino stabile (non ruotarlo), fianchi allineati. Pausa 2 secondi in massima estensione. Ritorna controllato. Alterna i lati. Non guardare in alto: sguardo verso il pavimento.',
-        notes: 'Anti-rotazione + catena posteriore. Cerca la stabilità perfetta, non la velocità.'
+      { id: 'row-supported', name: 'Rematore appoggiato (tavolo o elastico)', sets: 4, repsMin: 8, repsMax: 12, defaultWeight: 10, weightUnit: 'kg/mano', restSec: 45,
+        category: 'pull',
+        execution: 'TRE OPZIONI a seconda di cosa hai a portata:\n\n(A) SUL TAVOLO CON MANUBRI — In piedi davanti a un tavolo robusto della cucina. Appoggia il petto sul bordo del tavolo (metti un asciugamano piegato per non farti male allo sterno). Busto inclinato in avanti a ~45°, gambe leggermente flesse, piedi ben piantati a terra. Manubri in mano che pendono verso il basso. Tira i gomiti verso l\'alto e leggermente indietro, avvicinando le scapole. Il busto resta immobile (supportato dal tavolo). Discesa controllata.\n\n(B) IN PIEDI CON ELASTICO — Elastico ancorato alla maniglia della porta chiusa (~90-100 cm da terra, altezza ombelico). In piedi davanti alla porta, ginocchia leggermente flesse (non caricate), busto quasi verticale o inclinato max 10-15° in avanti. Impugna le estremità dell\'elastico, braccia distese verso la porta. Tira i gomiti indietro lungo i fianchi avvicinando le scapole, mani che arrivano ai fianchi/addome. Ritorno controllato. Il busto NON oscilla — attenzione a non "aiutarsi" con la schiena.\n\n(C) SEDUTO A TERRA CON ELASTICO — Elastico ancorato alla maniglia della porta. Seduto a terra con gambe distese davanti verso l\'ancoraggio. Impugna le estremità e tira verso l\'addome stringendo le scapole. Busto eretto. Se seduto dà fastidio al ginocchio, torna all\'opzione (B) in piedi.',
+        notes: 'Tre varianti "senza panca": (A) massimo carico con manubri e tavolo, (B) in piedi con elastico — la più pratica, (C) seduto se preferisci. Con elastico, nel campo peso segna il livello da 0 a 4. Per il rematore parti da liv. 2 (i muscoli sono grandi, tollerano più carico del face pull).'
       },
-      { id: 'pallof-press', name: 'Pallof press', sets: 3, repsMin: 10, repsMax: 12, defaultWeight: 0, weightUnit: 'elastico/lato', restSec: 45,
-        category: 'core',
-        execution: 'Elastico fissato a un punto laterale all\'altezza dello sterno (maniglia porta, gamba mobile). In piedi laterale rispetto all\'ancoraggio, piedi larghezza spalle, ginocchia leggermente flesse. Impugna l\'estremità dell\'elastico con entrambe le mani davanti allo sterno. Spingi le braccia in avanti FINO ALLA COMPLETA ESTENSIONE, resistendo alla trazione laterale dell\'elastico (che vuole ruotarti). Il busto NON deve ruotare. Pausa 2 secondi con braccia tese. Ritorno controllato al petto. Alterna i lati.',
-        notes: 'Anti-rotazione pura — il transfer più utile per il padel. Se non hai elastico, usa un manubrio leggero con lo stesso schema.'
+      { id: 'shoulder-press-c', name: 'Shoulder press', sets: 4, repsMin: 8, repsMax: 12, defaultWeight: 5, weightUnit: 'kg/mano', restSec: 45,
+        category: 'push',
+        execution: 'Seduto (schienale eretto) o in piedi. Manubri all\'altezza delle spalle, gomiti a 90°. Spingi verso l\'alto fino a estendere le braccia, senza bloccare i gomiti al massimo. Discesa controllata. Se in piedi, ginocchia leggermente flesse ma senza tensione — il carico è tutto sulle spalle.',
+        notes: 'Spinta verticale. Stesso schema della scheda A. Attenzione a non "spingere" con le gambe.'
       },
-      { id: 'side-plank', name: 'Side plank', sets: 3, repsMin: 20, repsMax: 40, defaultWeight: 0, weightUnit: 'sec/lato', restSec: 45,
-        category: 'core',
-        execution: 'Sdraiato su un fianco, appoggio su avambraccio (gomito sotto la spalla, avambraccio perpendicolare al corpo). Gambe distese, un piede sopra l\'altro. Solleva il bacino portando il corpo dritto: caviglie-anche-spalle-testa in linea. Braccio libero disteso lungo il fianco o alzato verso il soffitto. Mantieni la posizione. NON far cadere il bacino in basso. Se il polso o la spalla d\'appoggio danno fastidio, versione con ginocchio piegato a terra.',
-        notes: 'Anti-flessione laterale + obliqui + medio-gluteo. Se difficoltà, versione da ginocchio: piega la gamba d\'appoggio.',
-        isTimed: true
+      { id: 'curl-c', name: 'Curl bicipiti', sets: 3, repsMin: 8, repsMax: 12, defaultWeight: 10, weightUnit: 'kg/mano', restSec: 45,
+        category: 'arms',
+        execution: 'Seduto o in piedi. Manubri lungo i fianchi, palmi verso l\'esterno. Fletti i gomiti portando i manubri verso le spalle, senza usare slancio del busto. Discesa controllata a piena estensione. Se seduto: schiena appoggiata allo schienale, gambe rilassate.',
+        notes: 'Isolamento bicipiti. Preferibilmente seduto quando il ginocchio dà fastidio, per non tenerlo sotto tensione statica in piedi.'
       },
-      { id: 'hollow-hold', name: 'Hollow hold', sets: 3, repsMin: 15, repsMax: 30, defaultWeight: 0, weightUnit: 'sec', restSec: 45,
-        category: 'core',
-        execution: 'Sdraiato supino. Braccia distese sopra la testa (bicipiti vicino alle orecchie), gambe distese in avanti. Solleva contemporaneamente spalle e gambe di pochi centimetri dal pavimento (10-15 cm), mantenendo la zona lombare SCHIACCIATA a terra. Il corpo assume una forma "a banana". Se i lombari si staccano da terra, alza di più le gambe (avvicinandole al soffitto) o piega leggermente le ginocchia. Respira normalmente.',
-        notes: 'Core anteriore statico. Regola la difficoltà con l\'angolo delle gambe: più in basso = più duro. Priorità: lombari a terra.',
-        isTimed: true
+      { id: 'french-press-c', name: 'French press manubrio', sets: 3, repsMin: 8, repsMax: 12, defaultWeight: 5, weightUnit: 'kg', restSec: 45,
+        category: 'arms',
+        execution: 'Seduto con schienale eretto. Un manubrio impugnato con entrambe le mani sopra la testa, braccia distese. Fletti i gomiti portando il peso dietro la nuca, mantenendo i gomiti VICINI alla testa (non aprirli). Estendi tornando in cima. Zero coinvolgimento gambe.',
+        notes: 'Isolamento tricipiti. Seduto per stabilità massima e zero carico sulle ginocchia.'
       },
-      { id: 'glute-bridge-march', name: 'Glute bridge march', sets: 3, repsMin: 8, repsMax: 12, defaultWeight: 0, weightUnit: 'rip/lato', restSec: 30,
-        category: 'core',
-        execution: 'Sdraiato supino, ginocchia piegate, piedi appoggiati a terra vicini ai glutei. Solleva il bacino fino ad allineare ginocchia-anche-spalle (posizione di bridge). MANTIENI il bacino alto e stabile. Solleva un ginocchio verso il petto SENZA far cadere il bacino dal lato scarico. Riappoggia il piede. Alterna. Il bacino deve restare fermo come una tavola: se ruota o cade, riduci l\'ampiezza del movimento.',
-        notes: 'Anti-rotazione dinamica + glutei. Simula il trasferimento di peso durante la corsa/padel.'
+      { id: 'face-pull-c', name: 'Face pull elastico', sets: 3, repsMin: 12, repsMax: 15, defaultWeight: 0, weightUnit: 'elastico', restSec: 45,
+        category: 'pull',
+        execution: 'Elastico fissato a un punto all\'altezza degli occhi (maniglia porta alta, ancoraggio muro). Impugna entrambi i capi. In piedi o seduto, tira l\'elastico verso il viso separando le mani ai lati, gomiti ALTI e larghi (come se stessi facendo una "W" con le braccia). In contrazione massima: gomiti alti, mani vicine alle tempie, scapole strette. Ritorno controllato.',
+        notes: 'Protettivo spalla — bonus per l\'ex-pallavolista. Fai in versione seduta se preferisci scaricare completamente le gambe.'
       },
-      { id: 'farmer-walk-core', name: 'Farmer walk', sets: 3, repsMin: 30, repsMax: 45, defaultWeight: 10, weightUnit: 'kg/mano', restSec: 45,
-        category: 'core',
-        execution: 'In piedi con manubri ai lati, presa salda, spalle basse e indietro. Cammina in linea retta a passi normali, mantenendo il busto perfettamente verticale (né inclinato in avanti né lateralmente). Il core deve tenere fermo il busto contro la tendenza del carico a farti oscillare. Sguardo avanti. Se non hai spazio, cammina in cerchio piccolo o avanti/indietro. Non trattenere il respiro.',
-        notes: 'Stabilità dinamica del core sotto carico + presa. Sali di peso solo se il busto resta impeccabile.',
-        isTimed: true
+      { id: 'clam-shell-c', name: 'Clam shell con elastico', sets: 3, repsMin: 12, repsMax: 15, defaultWeight: 0, weightUnit: 'elastico', restSec: 30,
+        category: 'glutes',
+        execution: 'Sdraiato su un fianco, ginocchia piegate a 45° una sopra l\'altra, talloni uniti. Elastico avvolto attorno alle cosce sopra le ginocchia. Solleva il ginocchio superiore mantenendo i talloni uniti e il bacino stabile (non ruotarlo indietro). Contrai il medio-gluteo in cima. Ritorno controllato. Nessun peso sulle ginocchia — il carico è dell\'elastico.',
+        notes: 'Rinforzo del medio-gluteo — protegge il ginocchio a lungo termine allineando meglio la catena inferiore. Sicuro anche a ginocchio infiammato.'
       },
-      { id: 'copenhagen-easy', name: 'Copenhagen plank (versione ginocchio)', sets: 3, repsMin: 15, repsMax: 25, defaultWeight: 0, weightUnit: 'sec/lato', restSec: 45,
-        category: 'core',
-        execution: 'Sdraiato su un fianco, appoggio su avambraccio (come side plank). Appoggia il GINOCCHIO della gamba superiore su una sedia bassa o divano (versione facilitata: no la caviglia, che è avanzata). Gamba inferiore distesa a terra. Solleva il bacino tenendo il corpo dritto. Il carico è sull\'avambraccio e sul ginocchio appoggiato. Mantieni.',
-        notes: 'Adduttori + core laterale — protegge da pubalgia e stiramenti inguinali (frequenti nel padel). Versione base col ginocchio. Zero traumi al ginocchio: appoggia dolcemente.',
-        isTimed: true
+      { id: 'glute-bridge-c', name: 'Glute bridge a terra', sets: 3, repsMin: 15, repsMax: 20, defaultWeight: 0, weightUnit: 'rip', restSec: 30,
+        category: 'glutes',
+        execution: 'Sdraiato supino a terra, ginocchia piegate, piedi appoggiati al pavimento a larghezza spalle, vicino ai glutei. Spingi il bacino verso il soffitto contraendo i glutei fino ad allineare spalle-anca-ginocchia. Mantieni 2 secondi in cima. Discesa controllata. A corpo libero: ROM ridotto rispetto all\'hip thrust classico, nessun carico che spinga sul ginocchio.',
+        notes: 'Versione "sicura" dell\'hip thrust. Attivazione glutei senza carico sul ginocchio, con schiena aderente al pavimento. Se vuoi progredire in carico, aggiungi un manubrio leggero sul bacino, ma solo se non c\'è fastidio.'
       },
-      { id: 'wall-press-hollow', name: 'Wall press hollow (attivazione)', sets: 2, repsMin: 20, repsMax: 30, defaultWeight: 0, weightUnit: 'sec', restSec: 30,
+      { id: 'plank-c', name: 'Plank', sets: 3, repsMin: 45, repsMax: 90, defaultWeight: 0, weightUnit: 'sec', restSec: 45,
         category: 'core',
-        execution: 'Sdraiato supino a terra, ginocchia piegate a 90° con piedi appoggiati contro un muro (o divano). Braccia distese sopra la testa a terra. Spingi ATTIVAMENTE i piedi contro il muro (come per allontanarti) e contemporaneamente schiaccia i lombari a terra. Senti l\'addome che si "chiude" e i lombari perfettamente aderenti. Mantieni la spinta e la respirazione.',
-        notes: 'Attivazione del retto addominale profondo. Perfetto come ultimo esercizio di consolidamento del pattern respiratorio corretto.',
+        execution: 'Appoggio su avambracci e punte dei piedi. Gomiti sotto le spalle, corpo perfettamente in linea da caviglie a spalle. Contrai glutei e addome, guarda tra le mani. Non lasciare cadere il bacino, non alzarlo. Respira normalmente. Se posizione classica dà fastidio al ginocchio operato: appoggia una ginocchia (versione da ginocchio, come plank facilitato).',
+        notes: 'Core statico. In versione classica il ginocchio è disteso (senza carico) — sicuro. Se anche disteso a terra dà fastidio, versione da ginocchio.',
         isTimed: true
       }
     ]
@@ -7670,7 +7666,7 @@ const LEVER_LABELS = {
 // Determine which session to suggest next (A or B alternating)
 function suggestNextSessionType() {
   const logs = state.workoutLogs || [];
-  // Filter out C sessions: A/B alternation should ignore core sessions.
+  // Skip C (Rescue Ginocchio, on-demand) and D (Mobility, on-demand) from A/B alternation.
   const abLogs = logs.filter(l => l.sessionId === 'A' || l.sessionId === 'B');
   if (abLogs.length === 0) return 'A';
   const last = abLogs[abLogs.length - 1];
@@ -7691,7 +7687,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.23.0';
+const APP_VERSION = '3.24.2';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -11856,7 +11852,7 @@ function kcalTargetLevel(dateKey) {
 function dayEmojiList(dateKey) {
   const auto = [];
   // Workout sessions first — use session emoji if available, fallback to session letter icon
-  const sessionEmoji = { 'A': '🅰️', 'B': '🅱️', 'C': '🧘', 'D': '🤸' };
+  const sessionEmoji = { 'A': '🅰️', 'B': '🅱️', 'C': '🛡️', 'D': '🤸' };
   const workouts = (state.workoutLogs || []).filter(w => w.date === dateKey);
   const seenSess = new Set();
   workouts.forEach(w => {
