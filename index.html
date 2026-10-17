@@ -7697,7 +7697,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.24.4';
+const APP_VERSION = '3.24.5';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -8931,11 +8931,13 @@ function renderHome() {
   const wDates = Object.keys(weights).sort();
   const wEl = document.getElementById('home-weight-val');
   const wMa = document.getElementById('home-weight-ma7');
-  if (wDates.length > 0) {
-    const currentW = weights[wDates[wDates.length - 1]];
-    wEl.textContent = `${currentW.toFixed(1)} kg`;
-    const ma = weightMA7(wDates[wDates.length - 1]);
-    wMa.textContent = ma != null ? `media 7gg ${ma.toFixed(1)} kg` : '—';
+  // Segue il giorno selezionato: pesata di quel giorno o, se manca, l'ultima precedente
+  const wRef = wDates.length > 0 ? weightOnOrBefore(state.currentDate) : null;
+  if (wRef) {
+    wEl.textContent = `${wRef.w.toFixed(1)} kg`;
+    const ma = weightMA7(state.currentDate);
+    const note = wRef.exact ? '' : ` · del ${shortDateIT(wRef.date)}`;
+    wMa.textContent = (ma != null ? `media 7gg ${ma.toFixed(1)} kg` : 'nessuna pesata in 7gg') + note;
   } else {
     wEl.textContent = '— kg';
     wMa.textContent = 'nessuna misurazione';
@@ -10080,6 +10082,20 @@ function weightMA7(dateKey) {
   return n > 0 ? sum / n : null;
 }
 
+// Pesata del giorno indicato o, se manca, l'ultima precedente. null se non ce ne sono.
+function weightOnOrBefore(dateKey) {
+  const dates = Object.keys(state.weights || {}).filter(d => d <= dateKey).sort();
+  if (dates.length === 0) return null;
+  const d = dates[dates.length - 1];
+  return { date: d, w: state.weights[d], exact: d === dateKey };
+}
+
+// Etichetta breve gg/mm per una data ISO
+function shortDateIT(iso) {
+  const [y, m, d] = iso.split('-');
+  return `${d}/${m}`;
+}
+
 function renderWeight() {
   const allDates = Object.keys(state.weights).sort();
   const empty = document.getElementById('weight-empty');
@@ -10108,21 +10124,26 @@ function renderWeight() {
     dates = allDates.filter(d => d >= cutoffStr);
   }
 
-  // Build stats (always over filtered range, but "totale" stays over all data)
+  // Build stats riferite al giorno selezionato (state.currentDate).
+  // Se quel giorno non ha pesata si usa l'ultima precedente; il grafico resta lo storico completo.
   const values = dates.map(d => state.weights[d]);
-  const allValues = allDates.map(d => state.weights[d]);
-  const firstWeight = allValues[0];
-  const currentWeight = allValues[allValues.length - 1];
-  const totalDelta = currentWeight - firstWeight;
+  const ref = weightOnOrBefore(state.currentDate);
+  const firstWeight = state.weights[allDates[0]];
+  const currentWeight = ref ? ref.w : null;
+  const totalDelta = ref ? currentWeight - firstWeight : null;
+  const refMA = weightMA7(state.currentDate);
+  const isToday = state.currentDate === todayISO();
+  const currentLabel = isToday ? 'Attuale' : `Al ${shortDateIT(state.currentDate)}`;
+  const currentNote = ref && !ref.exact ? ` · del ${shortDateIT(ref.date)}` : '';
 
-  // Last week delta
-  const today = new Date(allDates[allDates.length - 1]);
+  // Last week delta (rispetto alla pesata di riferimento)
+  const today = new Date(ref ? ref.date : allDates[allDates.length - 1]);
   const sevenDaysAgo = new Date(today);
   sevenDaysAgo.setDate(today.getDate() - 7);
   const sevenDaysAgoStr = dateKeyISO(sevenDaysAgo);
   const lastWeekWeights = allDates.filter(d => d <= sevenDaysAgoStr);
   const lastWeekRef = lastWeekWeights.length > 0 ? state.weights[lastWeekWeights[lastWeekWeights.length - 1]] : null;
-  const weekDelta = lastWeekRef !== null ? currentWeight - lastWeekRef : null;
+  const weekDelta = (lastWeekRef !== null && currentWeight !== null) ? currentWeight - lastWeekRef : null;
 
   // 30-day delta
   const thirtyAgo = new Date(today);
@@ -10130,7 +10151,7 @@ function renderWeight() {
   const thirtyAgoStr = dateKeyISO(thirtyAgo);
   const monthRefs = allDates.filter(d => d <= thirtyAgoStr);
   const monthRef = monthRefs.length > 0 ? state.weights[monthRefs[monthRefs.length - 1]] : null;
-  const monthDelta = monthRef !== null ? currentWeight - monthRef : null;
+  const monthDelta = (monthRef !== null && currentWeight !== null) ? currentWeight - monthRef : null;
 
   function deltaStr(d) {
     if (d === null) return '<span class="delta">—</span>';
@@ -10150,9 +10171,9 @@ function renderWeight() {
   content.innerHTML = `
     <div class="weight-stats">
       <div class="weight-stat">
-        <div class="label">Attuale</div>
-        <div class="value">${currentWeight.toFixed(1)} kg</div>
-        <div class="weight-ma7">media 7gg ${weightMA7(allDates[allDates.length - 1]).toFixed(1)} kg</div>
+        <div class="label">${currentLabel}</div>
+        <div class="value">${currentWeight !== null ? currentWeight.toFixed(1) + ' kg' : '—'}</div>
+        <div class="weight-ma7">${refMA !== null ? 'media 7gg ' + refMA.toFixed(1) + ' kg' : 'nessuna pesata'}${currentNote}</div>
       </div>
       <div class="weight-stat">
         <div class="label">Var. 7 giorni</div>
@@ -10161,7 +10182,7 @@ function renderWeight() {
       </div>
       <div class="weight-stat">
         <div class="label">Totale</div>
-        <div class="value">${totalDelta > 0 ? '+' : ''}${totalDelta.toFixed(1)}</div>
+        <div class="value">${totalDelta !== null ? (totalDelta > 0 ? '+' : '') + totalDelta.toFixed(1) : '—'}</div>
         <div class="label">da ${allDates[0]}</div>
       </div>
     </div>
