@@ -2875,6 +2875,16 @@
     border: 1px dashed var(--line);
   }
 
+  /* Media mobile 7gg sotto il peso del giorno */
+  .weight-ma7 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
   /* BODY MEASURES */
   .body-ratios-card {
     background: linear-gradient(135deg, var(--accent-soft), var(--gold-soft));
@@ -4890,7 +4900,7 @@
               <div class="home-quick-tile" data-go="peso">
                 <div class="hqt-label">Peso</div>
                 <div class="hqt-value" id="home-weight-val">— kg</div>
-                <div class="hqt-sub" id="home-weight-delta">—</div>
+                <div class="hqt-sub" id="home-weight-ma7">—</div>
               </div>
               <div class="home-quick-tile" data-go="attivita">
                 <div class="hqt-label">Attività oggi</div>
@@ -7687,7 +7697,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.24.3';
+const APP_VERSION = '3.24.4';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -8920,29 +8930,15 @@ function renderHome() {
   const weights = state.weights || {};
   const wDates = Object.keys(weights).sort();
   const wEl = document.getElementById('home-weight-val');
-  const wDelta = document.getElementById('home-weight-delta');
+  const wMa = document.getElementById('home-weight-ma7');
   if (wDates.length > 0) {
     const currentW = weights[wDates[wDates.length - 1]];
     wEl.textContent = `${currentW.toFixed(1)} kg`;
-    // Compute weekly delta
-    const today = new Date(wDates[wDates.length - 1]);
-    const sevenAgo = new Date(today);
-    sevenAgo.setDate(today.getDate() - 7);
-    const sevenAgoStr = dateKeyISO(sevenAgo);
-    const refs = wDates.filter(d => d <= sevenAgoStr);
-    if (refs.length > 0) {
-      const ref = weights[refs[refs.length - 1]];
-      const wd = currentW - ref;
-      wDelta.textContent = `${wd > 0 ? '+' : ''}${wd.toFixed(1)} kg in 7g`;
-      wDelta.className = 'hqt-sub ' + (wd < -0.05 ? 'improving' : (wd > 0.05 ? 'worsening' : ''));
-    } else {
-      wDelta.textContent = '—';
-      wDelta.className = 'hqt-sub';
-    }
+    const ma = weightMA7(wDates[wDates.length - 1]);
+    wMa.textContent = ma != null ? `media 7gg ${ma.toFixed(1)} kg` : '—';
   } else {
     wEl.textContent = '— kg';
-    wDelta.textContent = 'nessuna misurazione';
-    wDelta.className = 'hqt-sub';
+    wMa.textContent = 'nessuna misurazione';
   }
 
   // Activity today
@@ -10070,6 +10066,20 @@ function parseImportText(text) {
   return { entries, errors };
 }
 
+// Media mobile 7 giorni di calendario (giorno indicato + 6 precedenti),
+// media delle sole misurazioni presenti. Usata dal grafico e dalle tessere peso.
+function weightMA7(dateKey) {
+  const weights = state.weights || {};
+  const endTs = new Date(dateKey).getTime();
+  const startTs = endTs - 6 * 24 * 60 * 60 * 1000;
+  let sum = 0, n = 0;
+  for (const d in weights) {
+    const ts = new Date(d).getTime();
+    if (ts >= startTs && ts <= endTs) { sum += weights[d]; n++; }
+  }
+  return n > 0 ? sum / n : null;
+}
+
 function renderWeight() {
   const allDates = Object.keys(state.weights).sort();
   const empty = document.getElementById('weight-empty');
@@ -10142,7 +10152,7 @@ function renderWeight() {
       <div class="weight-stat">
         <div class="label">Attuale</div>
         <div class="value">${currentWeight.toFixed(1)} kg</div>
-        <div class="delta"></div>
+        <div class="weight-ma7">media 7gg ${weightMA7(allDates[allDates.length - 1]).toFixed(1)} kg</div>
       </div>
       <div class="weight-stat">
         <div class="label">Var. 7 giorni</div>
@@ -10686,13 +10696,8 @@ function drawWeightChart(dates, values) {
   // Convert dates to timestamps
   const pts = dates.map(d => ({ date: d, ts: new Date(d).getTime(), w: state.weights[d] }));
 
-  // Compute 7-day rolling average
-  const movingAvg = pts.map((p, idx) => {
-    const sevenAgo = p.ts - 6 * 24 * 60 * 60 * 1000;
-    const window = pts.filter(q => q.ts >= sevenAgo && q.ts <= p.ts);
-    if (window.length === 0) return p.w;
-    return window.reduce((s, q) => s + q.w, 0) / window.length;
-  });
+  // Compute 7-day rolling average (shared helper, same value shown under the daily weight)
+  const movingAvg = pts.map(p => weightMA7(p.date) ?? p.w);
 
   // SVG setup
   const width = 340;
