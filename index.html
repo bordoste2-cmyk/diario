@@ -7167,11 +7167,10 @@ const WORKOUT_SESSIONS = {
         execution: 'In piedi o seduto su una sedia con schienale. Impugna un manubrio con entrambe le mani (presa a "cuore" attorno alla testa superiore del manubrio, palmi verso l\'alto). Solleva il manubrio sopra la testa a braccia distese, poi piega SOLO i gomiti abbassando il manubrio dietro la nuca (i gomiti restano fermi vicino alla testa, puntati verso l\'alto). Discesa controllata in 2 secondi fino a sentire lo stretch del tricipite. Riporta su estendendo i gomiti fino alle braccia dritte. NON allargare i gomiti, restano stretti e puntati in avanti.',
         notes: 'Tricipiti isolati (parte lunga). Aiuta anche l\'estensione del gomito nel colpo tirato di padel. Se avverti fastidio al gomito o alla spalla, riduci il peso: la tecnica pulita conta più del carico.'
       },
-      { id: 'plank', name: 'Plank', sets: 3, repsMin: 45, repsMax: 60, defaultWeight: 0, weightUnit: 'sec', restSec: 45,
+      { id: 'pallof-press', name: 'Pallof press', sets: 3, repsMin: 10, repsMax: 12, defaultWeight: 0, weightUnit: 'elastico/lato', restSec: 45,
         category: 'core',
-        execution: 'Vedi sessione A. Stessa esecuzione.',
-        notes: 'Core. La tenuta vale solo se la postura è giusta.',
-        isTimed: true
+        execution: 'Elastico ancorato di lato all\'altezza dello sterno. IN GINOCCHIO (consigliato): inginocchiato su un cuscino, di fianco alla porta, elastico alla maniglia — così la maniglia è all\'altezza giusta e il bacino resta fermo. IN PIEDI: elastico più in alto (cardine o fascia sopra la porta), piedi larghezza spalle, ginocchia morbide. Impugna l\'elastico con entrambe le mani al petto, fai un passo laterale finché è in tensione. Spingi le braccia dritte in avanti, tieni 2 secondi resistendo alla trazione che vuole ruotarti, torna al petto. Busto e bacino NON ruotano. Finita la serie, giri e fai l\'altro lato. 1 rep = 1 spinta.',
+        notes: 'Anti-rotazione: protegge la L4-L5 e allena la stabilità che usi in ogni colpo di padel. Se il busto ruota, avvicinati all\'ancoraggio (meno tensione). Nel campo peso segna il livello dell\'elastico (0-4).'
       }
     ]
   },
@@ -7561,7 +7560,7 @@ const MAINTENANCE_GUIDE = {
       restart: 'Riparti da 6-8 reps per braccio con lo stesso peso (5 kg) + pausa 2s.'
     }
   },
-  // === Ex-Scheda C (Core) — dead entries, kept for reference ===
+  // === Ex-Scheda C (Core) — voci di riferimento; pallof-press è di nuovo in uso nella B ===
   'dead-bug': {
     threshold: 'Quando fai 12 reps per lato × 3 serie con lombari sempre a terra.',
     variant: {
@@ -7736,7 +7735,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.24.6';
+const APP_VERSION = '3.24.7';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -12568,6 +12567,8 @@ function openWorkoutModal(sessionId, existingSnapshot) {
     let repsUnit;
     if (unit === 'rip/lato' || unit === 'sec/lato') {
       repsUnit = unit;
+    } else if (unit.endsWith('/lato')) {
+      repsUnit = ex.isTimed ? 'sec/lato' : 'rip/lato';
     } else if (ex.isTimed) {
       repsUnit = 'sec';
     } else {
