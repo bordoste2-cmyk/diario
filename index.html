@@ -1293,6 +1293,38 @@
     background: var(--bg-card);
     border-bottom: 1px solid var(--line);
   }
+  .workout-rest-ctrl {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--line);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+  .workout-rest-label { flex: 1 1 auto; }
+  .workout-rest-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--bg-soft);
+    color: var(--ink);
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .workout-rest-btn:active { transform: scale(0.94); }
+  .workout-rest-val {
+    min-width: 44px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--ink);
+  }
   .workout-ex-target .lever-badge {
     display: inline-block;
     background: var(--accent-soft);
@@ -7050,10 +7082,10 @@ const WORKOUT_SESSIONS = {
         execution: 'Sdraiato sulla schiena (a terra o su panca), un solo manubrio tenuto con entrambe le mani sopra il petto, braccia leggermente flesse (10-15°) e ferme così per tutto il movimento. Abbassa il manubrio dietro la testa in un arco, finché senti allungamento sotto le ascelle. Riporta sopra il petto senza piegare ulteriormente i gomiti.',
         notes: 'Dorsali + serrato. Il movimento è alle spalle, non ai gomiti.'
       },
-      { id: 'hip-bridge', name: 'Hip thrust / Bridge', sets: 4, repsMin: 10, repsMax: 12, defaultWeight: 20, weightUnit: 'kg', restSec: 45,
+      { id: 'hip-bridge', name: 'Glute bridge', sets: 4, repsMin: 10, repsMax: 12, defaultWeight: 20, weightUnit: 'kg', restSec: 45,
         category: 'compound',
-        execution: 'BRIDGE: sdraiato supino, ginocchia piegate, piedi a terra vicini ai glutei. Manubrio appoggiato sull\'inguine (tienilo con le mani). Spingi i talloni a terra e solleva il bacino fino ad allineare ginocchia-anche-spalle. Stringi i glutei in alto, pausa 1". Discesa controllata. HIP THRUST (versione avanzata): scapole appoggiate su panca/divano, stessa esecuzione ma range più ampio.',
-        notes: 'Glutei. Quando 4×12 a 20 kg è facile, passa a hip thrust su panca.'
+        execution: 'Sdraiato supino a terra, ginocchia piegate, piedi a terra vicini ai glutei, larghezza anche. Manubrio appoggiato sul bacino (tienilo con le mani). Spingi i talloni a terra e solleva il bacino fino ad allineare ginocchia-anche-spalle. Stringi i glutei in alto, pausa 1". Discesa controllata fino a sfiorare il pavimento. Non inarcare la lombare in cima: fermati a bacino neutro.',
+        notes: 'Glutei e catena posteriore. Schiena a terra = carico lombare minimo.'
       },
       { id: 'sit-to-stand', name: 'Sit-to-stand', sets: 3, repsMin: 10, repsMax: 12, defaultWeight: 10, weightUnit: 'kg/mano', restSec: 45,
         category: 'compound',
@@ -7075,11 +7107,10 @@ const WORKOUT_SESSIONS = {
         execution: 'Elastico fissato all\'altezza del viso (maniglia della porta, gancio, manubrio del peso pesante fermo). In piedi di fronte all\'ancoraggio, impugna l\'elastico con entrambe le mani, presa neutra (palmi rivolti verso terra). Braccia distese in avanti all\'altezza degli occhi. Tira l\'elastico verso il viso spostando i gomiti ALTI e LARGHI (paralleli al pavimento), come se stessi facendo un "arco". Alla fine del movimento le mani sono ai lati della fronte, le scapole strette dietro, i gomiti dietro le spalle. Pausa 1 secondo in massima contrazione. Ritorno lento in 2 secondi.',
         notes: 'Deltoide posteriore + trapezio medio + rotatori esterni. Serve postura sana e prevenzione infortuni spalla (importante nel padel). NON pensare al peso: pensa alla contrazione delle scapole e alla posizione dei gomiti.'
       },
-      { id: 'plank', name: 'Plank', sets: 3, repsMin: 45, repsMax: 60, defaultWeight: 0, weightUnit: 'sec', restSec: 45,
+      { id: 'dead-bug-cross', name: 'Dead bug gomito-ginocchio', sets: 3, repsMin: 8, repsMax: 12, defaultWeight: 0, weightUnit: 'rip/lato', restSec: 45,
         category: 'core',
-        execution: 'Appoggio su avambracci (gomiti sotto le spalle) e punte dei piedi. Corpo dritto come una tavola: testa, schiena, glutei, talloni in linea. Stringi addome e glutei. NON alzare il sedere in alto (riduce lo sforzo) né lasciarlo cadere (sovraccarico lombare). Respira normalmente. Se 45" diventa facile, passa a 60".',
-        notes: 'Core. La tenuta vale solo se la postura è giusta. Il "rep" qui sono i secondi.',
-        isTimed: true
+        execution: 'Sdraiato supino, zona lombare SCHIACCIATA a terra per tutto l\'esercizio. Gambe piegate a 90° (cosce verticali, tibie parallele al pavimento), braccia verso il soffitto. Porta il gomito destro verso il ginocchio sinistro sopra l\'addome fino a toccarli (o quasi), espirando e stringendo l\'addome. Poi estendi lentamente braccio destro indietro e gamba sinistra in avanti, senza toccare terra e fermandoti prima che i lombari si stacchino. Torna e alterna lato. 1 rep = 1 lato.',
+        notes: 'Core anteriore + anti-estensione. Sicuro per L4-L5: la colonna resta ferma, si muovono solo braccia e gambe. NON sollevare spalle e testa per "andare incontro" al ginocchio (diventerebbe un crunch con rotazione).'
       }
     ]
   },
@@ -7104,9 +7135,9 @@ const WORKOUT_SESSIONS = {
         execution: 'In piedi, manubri ai lati con palmi verso il corpo. Gomiti leggermente piegati (10-15°) e fermi in quell\'angolo per tutto il movimento. Solleva le braccia di lato fino a portarle parallele al pavimento (mani all\'altezza delle spalle, non più su). Immagina di versare acqua dal manubrio: il mignolo leggermente più alto del pollice. Discesa controllata.',
         notes: 'Deltoide laterale. Se devi slanciare, peso troppo alto.'
       },
-      { id: 'hip-bridge-vol', name: 'Hip thrust / Bridge', sets: 4, repsMin: 12, repsMax: 15, defaultWeight: 20, weightUnit: 'kg', restSec: 45,
+      { id: 'hip-bridge-vol', name: 'Glute bridge', sets: 4, repsMin: 12, repsMax: 15, defaultWeight: 20, weightUnit: 'kg', restSec: 45,
         category: 'compound',
-        execution: 'Vedi sessione A. Stessa esecuzione, ma serie più lunghe (12-15 invece di 10-12) per più stimolo metabolico.',
+        execution: 'Vedi sessione A (glute bridge a terra con manubrio sul bacino). Stessa esecuzione, ma serie più lunghe (12-15 invece di 10-12) per più stimolo metabolico.',
         notes: 'Glutei - serie più lunghe rispetto a sessione A.'
       },
       { id: 'wall-sit', name: 'Wall sit isometrico', sets: 3, repsMin: 30, repsMax: 45, defaultWeight: 0, weightUnit: 'sec', restSec: 60,
@@ -7420,9 +7451,17 @@ const MAINTENANCE_GUIDE = {
   'hip-bridge': {
     threshold: 'Quando fai 15 reps con 20 kg × 5 serie, TUT 4s.',
     variant: {
-      name: 'Hip thrust monopodalico',
-      how: 'Uguale ma con una gamba sola sollevata (l\'altra piegata a 90° tenuta in aria). Bilancia peso corporeo + manubrio sul bacino su una gamba.',
-      restart: 'Riparti da 6-8 reps per gamba senza carico (solo corpo), poi aggiungi peso gradualmente.'
+      name: 'Glute bridge monopodalico',
+      how: 'Stesso bridge a terra ma spingendo con una gamba sola (l\'altra distesa o piegata a 90° in aria). Il bacino deve restare orizzontale, senza ruotare verso il lato scarico.',
+      restart: 'Riparti da 6-8 reps per gamba senza carico (solo corpo), poi aggiungi il manubrio gradualmente.'
+    }
+  },
+  'dead-bug-cross': {
+    threshold: 'Quando fai 12 rep per lato × 3 serie con i lombari sempre a terra.',
+    variant: {
+      name: 'Dead bug gomito-ginocchio con pausa e manubrio leggero',
+      how: 'Tieni 2-3 kg nella mano che si estende e fai 2 secondi di pausa nel tocco gomito-ginocchio, stringendo l\'addome. Più tensione senza mai flettere o ruotare la colonna.',
+      restart: 'Riparti da 8 rep per lato con 2 kg.'
     }
   },
   'sit-to-stand': {
@@ -7469,9 +7508,9 @@ const MAINTENANCE_GUIDE = {
   'hip-bridge-vol': {
     threshold: 'Quando fai 15 reps con 20 kg × 5 serie, TUT 4s (stessa soglia della versione in A).',
     variant: {
-      name: 'Hip thrust monopodalico',
-      how: 'Uguale ma con una gamba sola sollevata (l\'altra piegata a 90° tenuta in aria). Bilancia peso corporeo + manubrio sul bacino su una gamba.',
-      restart: 'Riparti da 6-8 reps per gamba senza carico (solo corpo), poi aggiungi peso gradualmente.'
+      name: 'Glute bridge monopodalico',
+      how: 'Stesso bridge a terra ma spingendo con una gamba sola (l\'altra distesa o piegata a 90° in aria). Il bacino deve restare orizzontale, senza ruotare verso il lato scarico.',
+      restart: 'Riparti da 6-8 reps per gamba senza carico (solo corpo), poi aggiungi il manubrio gradualmente.'
     }
   },
   'lateral-raise': {
@@ -7697,7 +7736,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.24.5';
+const APP_VERSION = '3.24.6';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -7830,6 +7869,7 @@ async function loadState() {
     const wl = localStorage.getItem(KEY_PREFIX + 'workoutLogs');
     if (wl) state.workoutLogs = JSON.parse(wl);
   } catch (e) { state.workoutLogs = []; }
+  migrateWorkoutLogNames();
 
   // Day emojis (manual tags)
   try {
@@ -7949,6 +7989,21 @@ async function saveMeds() {
     localStorage.setItem(KEY_PREFIX + 'meds', JSON.stringify(state.meds));
     markUnbackedChange();
   } catch (e) { console.error('save meds', e); }
+}
+// Allinea i nomi salvati nei log ai nomi attuali degli esercizi (solo il nome, nessun dato numerico).
+// v3.24.6: "Hip thrust / Bridge" → "Glute bridge".
+function migrateWorkoutLogNames() {
+  const RENAMES = { 'hip-bridge': 'Glute bridge', 'hip-bridge-vol': 'Glute bridge' };
+  let changed = false;
+  (state.workoutLogs || []).forEach(log => {
+    (log.exercises || []).forEach(ex => {
+      const n = RENAMES[ex.exerciseId];
+      if (n && ex.name !== n) { ex.name = n; changed = true; }
+    });
+  });
+  if (changed) {
+    try { localStorage.setItem(KEY_PREFIX + 'workoutLogs', JSON.stringify(state.workoutLogs)); } catch (e) {}
+  }
 }
 async function saveWorkoutLogs() {
   try {
@@ -12530,7 +12585,6 @@ function openWorkoutModal(sessionId, existingSnapshot) {
     }
     let targetText = `${ex.targetSets}×${ex.targetReps} ${repsUnit}${weightSuffix}`;
     if (ex.tempoSec > 2) targetText += ` · discesa ${ex.tempoSec}s`;
-    if (ex.restSec < exDef.restSec) targetText += ` · rec. ${ex.restSec}s`;
     const leverLabel = LEVER_LABELS[ex.lever] || '';
     const leverBadge = (ex.lever !== 'start' && ex.lever !== 'reps')
       ? `<span class="lever-badge" title="${leverLabel}">${ex.lever}</span>` : '';
@@ -12548,6 +12602,12 @@ function openWorkoutModal(sessionId, existingSnapshot) {
         <button class="workout-ex-info-btn" data-exid="${ex.exerciseId}" data-sessionid="${sessionId}">ⓘ</button>
       </div>
       <div class="workout-ex-target">${targetText}${maintenanceLabel}${leverBadge}${loadUpAlert}${beyondMaxAlert}</div>
+      <div class="workout-rest-ctrl">
+        <span class="workout-rest-label">⏱ recupero</span>
+        <button class="workout-rest-btn" data-delta="-15" aria-label="Riduci recupero">−</button>
+        <span class="workout-rest-val">${ex.restSec}s</span>
+        <button class="workout-rest-btn" data-delta="15" aria-label="Aumenta recupero">+</button>
+      </div>
       <div class="workout-set-row" style="background:var(--bg-soft); padding:6px 10px;">
         <span class="workout-set-input-label">set</span>
         <span class="workout-set-input-label">peso (kg)</span>
@@ -12633,6 +12693,19 @@ function openWorkoutModal(sessionId, existingSnapshot) {
         saveActiveWorkout(); // autosave after set done/undone
       });
     });
+    // Recupero regolabile (anteprima e durante la sessione): passi di 15s, 15-180s.
+    // Il valore viene salvato nel log e il motore di progressione riparte da lì la volta dopo.
+    const restVal = card.querySelector('.workout-rest-val');
+    card.querySelectorAll('.workout-rest-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const exObj = workoutSession.exercises[exIdx];
+        const next = Math.min(180, Math.max(15, (exObj.restSec || 45) + parseInt(btn.dataset.delta)));
+        exObj.restSec = next;
+        if (restVal) restVal.textContent = `${next}s`;
+        saveActiveWorkoutDebounced();
+      });
+    });
     const notesArea = card.querySelector('.ex-notes');
     notesArea.addEventListener('input', () => {
       workoutSession.exercises[exIdx].notes = notesArea.value;
@@ -12658,7 +12731,7 @@ function openWorkoutModal(sessionId, existingSnapshot) {
     workoutModal.classList.remove('preview-mode');
     workoutModal.classList.add('started-mode');
     workoutModal.classList.add('show');
-    startWorkout();
+    startWorkout({ resume: true });
     // Sync the visible sets state: mark ✓ on the sets that were already done
     workoutSession.exercises.forEach((ex, exIdx) => {
       ex.sets.forEach((s, sIdx) => {
@@ -12678,13 +12751,22 @@ function openWorkoutModal(sessionId, existingSnapshot) {
 }
 
 // Called when user taps "Via! Inizia l'allenamento" — OR when restoring a saved session
-function startWorkout() {
+function startWorkout(opts) {
   if (!workoutSession || workoutStarted) return;
   workoutStarted = true;
-  // Preserve elapsed time if we're resuming (openWorkoutModal set startTime/elapsedSec).
-  // For a fresh start these are already 0 / just now, so no harm.
-  if (!workoutStartTime) workoutStartTime = Date.now();
-  if (!workoutSegmentStart) workoutSegmentStart = Date.now();
+  const isResume = !!(opts && opts.resume === true);
+  if (isResume) {
+    // Ripristino: openWorkoutModal ha già impostato startTime/elapsedSec dallo snapshot.
+    if (!workoutStartTime) workoutStartTime = Date.now();
+    if (!workoutSegmentStart) workoutSegmentStart = Date.now();
+  } else {
+    // Avvio nuovo: il cronometro parte ADESSO, non da quando è stata aperta l'anteprima.
+    const now = Date.now();
+    workoutStartTime = now;
+    workoutSegmentStart = now;
+    workoutElapsedSec = 0;
+    workoutSession.startTs = now;
+  }
 
   workoutModal.classList.remove('preview-mode');
   workoutModal.classList.add('started-mode');
@@ -13604,7 +13686,7 @@ function initWorkoutHandlers() {
   // Preview cancel — no confirmation needed (nothing logged yet)
   document.getElementById('workout-cancel-preview').addEventListener('click', () => closeWorkoutModal(false));
   // Via! Start the actual workout
-  document.getElementById('workout-go').addEventListener('click', startWorkout);
+  document.getElementById('workout-go').addEventListener('click', () => startWorkout());
   document.getElementById('workout-finish').addEventListener('click', finishWorkoutSession);
   workoutModal.addEventListener('click', (e) => {
     if (e.target === workoutModal) maybeClose();
@@ -13889,7 +13971,7 @@ document.getElementById('backup-file-input').addEventListener('change', async (e
     if (d.weights) state.weights = d.weights;
     if (d.activities) state.activities = d.activities;
     if (d.labs) state.labs = d.labs;
-    if (d.workoutLogs) state.workoutLogs = d.workoutLogs;
+    if (d.workoutLogs) { state.workoutLogs = d.workoutLogs; migrateWorkoutLogNames(); }
     if (d.dayEmojis) state.dayEmojis = d.dayEmojis;
     if (d.meds) state.meds = d.meds;
     if (d.targets) state.targets = d.targets;
