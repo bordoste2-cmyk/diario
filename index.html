@@ -4974,6 +4974,79 @@
   .btn-danger { background: rgba(232,144,127,.12) !important; color: #F0A58F !important; border: 1px solid rgba(232,144,127,.5) !important; }
   .modal input[type=number], .modal input[type=text], .modal input[type=date], .modal select, .modal textarea { background: var(--bg-soft); color: var(--ink); border-color: var(--line); }
   .modal input:focus { border-color: var(--accent); outline: none; }
+  /* ===== Tappa 3: Attività / Peso / Salute ===== */
+  .add-activity-btn, .add-lab-btn { background: none !important; border: 1px dashed var(--line) !important; color: var(--accent) !important; border-radius: 12px; font: inherit; font-size: 15px; font-weight: 500; padding: 12px; width: 100%; text-transform: none; letter-spacing: 0; }
+  .add-activity-btn .add-icon, .add-lab-btn .add-icon { color: var(--accent); }
+  /* Prossima sessione */
+  .workout-card { padding: 18px 16px; }
+  .workout-suggest { background: none !important; border: 0 !important; padding: 0 !important; margin: 0; }
+  .ws-k { font-size: 15px; color: var(--ink-soft); }
+  .ws-top { display: flex; align-items: center; gap: 14px; margin: 4px 0 14px; }
+  .ws-session-id { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 64px; line-height: 1; color: var(--accent); background: none !important; border: 0 !important; width: auto; height: auto; padding: 0; }
+  .ws-meta { display: flex; flex-direction: column; gap: 2px; font-size: 15px; color: var(--ink-faint); margin: 0; }
+  .ws-meta b { color: var(--ink); font-weight: 400; font-size: 17px; line-height: 1.3; }
+  .ws-start-btn { width: 100%; background: var(--accent) !important; color: var(--on-accent) !important; border: 0; border-radius: 14px; padding: 16px; font: inherit; font-size: 18px; font-weight: 500; text-transform: none; letter-spacing: 0; }
+  .ws-other-btn { width: 100%; background: none !important; border: 0 !important; color: var(--accent) !important; font: inherit; font-size: 15px; padding: 12px 0 6px; text-transform: none; letter-spacing: 0; }
+  .ws-c-section { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; border: 0; padding: 0; }
+  .ws-c-btn { background: var(--bg-soft) !important; border: 1px solid var(--line) !important; color: var(--ink) !important; border-radius: 12px; padding: 12px 8px; font: inherit; font-size: 15px; margin: 0 !important; width: 100%; text-transform: none; letter-spacing: 0; }
+  .ws-c-hint { font-size: 13px; color: var(--ink-faint); text-align: center; margin-top: 8px; }
+  .workout-stats { display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 16px; }
+  /* Tile condivise (peso, sessioni) */
+  .wh-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0; }
+  .wh-t { background: var(--bg-soft); border: 1px solid var(--line); border-radius: 12px; padding: 10px; min-width: 0; }
+  .wh-t .k { font-size: 14px; color: var(--ink-soft); }
+  .wh-t .v { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 22px; margin-top: 2px; white-space: nowrap; }
+  .wh-t .v.sm { font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 18px; padding-top: 3px; }
+  .wh-t .s { font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
+  .wh-t.up .v { color: var(--accent-deep); }
+  .wh-t.goal.ok .s { color: var(--ok); }
+  .wh-t.goal.hi .s { color: var(--accent-deep); }
+  .wh-t.goal.lo .s { color: var(--blu-soft); }
+  /* Peso */
+  .wh-hero { padding: 2px 0 0; }
+  .wh-k { font-size: 16px; color: var(--ink-soft); }
+  .wh-k small { color: var(--ink-faint); font-size: 13px; }
+  .wh-n { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 64px; line-height: 1.05; color: var(--accent); letter-spacing: -.02em; }
+  .wh-n small { font-family: 'DM Sans', sans-serif; font-weight: 400; font-size: 20px; color: var(--ink-soft); margin-left: 6px; letter-spacing: 0; }
+  .wh-day { font-size: 15px; color: var(--ink-faint); }
+  .wh-day b { color: var(--ink); font-weight: 500; }
+  .weight-quick { display: flex; gap: 10px; margin: 0; }
+  .weight-quick input { flex: 1; background: var(--bg-soft) !important; color: var(--ink) !important; border: 1px solid var(--line) !important; border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 17px; text-align: left; }
+  .weight-quick button { background: var(--accent) !important; color: var(--on-accent) !important; border: 0; border-radius: 12px; padding: 0 22px; font: inherit; font-size: 16px; font-weight: 500; text-transform: none; letter-spacing: 0; }
+  .weight-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--ink-faint); margin-top: 8px; }
+  .weight-legend .range-info { margin-left: auto; }
+  .legend-band { display: inline-block; width: 14px; height: 10px; border-radius: 2px; background: rgba(127,199,154,.3); margin-right: 5px; vertical-align: -1px; }
+  .wh-card { padding: 0; overflow: hidden; }
+  .wh-head { width: 100%; display: flex; align-items: center; gap: 10px; background: none; border: 0; color: var(--ink); font: inherit; padding: 16px; cursor: pointer; text-align: left; }
+  .wh-head > span:first-child { flex: 1; font-size: 19px; font-weight: 300; }
+  .wh-sub { font-size: 14px; color: var(--ink-faint); }
+  .wh-head.collapsed .meal-chevron { transform: rotate(-90deg); }
+  .weight-history { max-height: none !important; border-top: 1px solid var(--line); padding: 0 16px 8px; }
+  .weight-entry { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 15px; background: none; }
+  .weight-entry:last-child { border-bottom: 0; }
+  .weight-entry .date { flex: 1; color: var(--ink-soft); font-family: inherit; }
+  .weight-entry .weight-val { font-weight: 500; font-family: inherit; }
+  .weight-entry .delete-weight { background: none; border: 0; color: var(--ink-faint); font-size: 14px; padding: 4px 6px; }
+  /* Salute */
+  .lab-param-delta.improving { color: var(--ok); }
+  .lab-param-delta.worsening { color: var(--tomato); }
+  .lab-param-delta.neutral { color: var(--ink-faint); }
+  .body-param-trend.good { color: var(--ok); }
+  .body-param-trend.bad { color: var(--tomato); }
+  .body-group-title { width: 100%; display: flex; align-items: center; gap: 8px; background: none; border: 0; color: var(--ink); font: inherit; font-size: 17px; font-weight: 400; padding: 12px 0 6px; cursor: pointer; text-align: left; }
+  .body-group-title .meal-chevron { margin-left: auto; color: var(--ink-faint); transition: transform .2s; }
+  .body-group.collapsed .body-group-title .meal-chevron { transform: rotate(-90deg); }
+  .body-group.collapsed .body-param-row { display: none; }
+  [hidden] { display: none !important; }
+  .body-param-trend { font-size: 12px; background: none; padding: 0; }
+  .lab-param-name, .body-param-name { font-size: 15px; }
+  .body-param-value { font-size: 15px; }
+  .lab-param-target, .lab-param-delta { font-size: 12px; }
+  .lab-last-date { font-size: 13px; }
+  .lab-group-header { font-size: 16px; }
+  .lab-param-value.status-ok { background: rgba(127,199,154,.14) !important; color: #9BD3AE !important; }
+  .lab-param-value.status-borderline { background: rgba(230,195,92,.15) !important; color: #E6C35C !important; }
+  .lab-param-value.status-bad { background: rgba(232,144,127,.16) !important; color: #F0A58F !important; }
   /* Piede e versione */
   .footer-note { color: var(--ink-faint); font-size: 12px; }
   .version-badge { background: var(--bg-soft); color: var(--ink-faint); margin-left: 6px; font-size: 11px; }
@@ -5149,27 +5222,20 @@
       <div class="grid">
         <div>
 
-          <!-- ACTIVITY CALENDAR -->
-          <div class="card">
-            <h2>Calendario attività <span class="sub" id="cal-sub">—</span></h2>
-            <div class="cal-nav">
-              <button class="cal-nav-btn" id="cal-prev">‹</button>
-              <span class="cal-month-label" id="cal-month-label">—</span>
-              <button class="cal-nav-btn" id="cal-next">›</button>
+          <!-- WORKOUT — Scheda allenamento -->
+          <div class="card workout-card">
+            <div class="workout-suggest" id="workout-suggest">
+              <div class="ws-k">Prossima sessione</div>
+              <div class="ws-top"><span class="ws-session-id" id="ws-session-id">A</span><div class="ws-meta" id="ws-meta">—</div></div>
+              <button class="ws-start-btn" id="ws-start-btn">Inizia sessione</button>
+              <button class="ws-other-btn" id="ws-other-btn">oppure fai l'altra</button>
+              <div class="ws-c-section">
+                <button class="ws-c-btn" id="ws-c-btn">C · Rescue ginocchio</button>
+                <button class="ws-c-btn ws-d-btn" id="ws-d-btn">D · Mobilità</button>
+              </div>
+              <div class="ws-c-hint">C e D sono fuori dalla rotazione A/B: falle quando vuoi</div>
             </div>
-            <div class="cal-weekdays">
-              <span>L</span><span>M</span><span>M</span><span>G</span><span>V</span><span>S</span><span>D</span>
-            </div>
-            <div class="cal-grid" id="cal-grid"></div>
-            <div class="cal-legend">
-              <span class="cal-legend-label">meno</span>
-              <span class="cal-legend-swatch" data-level="0"></span>
-              <span class="cal-legend-swatch" data-level="1"></span>
-              <span class="cal-legend-swatch" data-level="2"></span>
-              <span class="cal-legend-swatch" data-level="3"></span>
-              <span class="cal-legend-swatch" data-level="4"></span>
-              <span class="cal-legend-label">più</span>
-            </div>
+            <div class="workout-stats" id="workout-stats"></div>
           </div>
 
           <!-- ACTIVITIES -->
@@ -5200,28 +5266,27 @@
             </div>
           </div>
 
-          <!-- WORKOUT — Scheda allenamento -->
-          <div class="card workout-card">
-            <h2>Scheda allenamento <span class="sub" id="workout-sub">A/B alternate</span></h2>
-
-            <!-- Suggested next session -->
-            <div class="workout-suggest" id="workout-suggest">
-              <div class="ws-header">
-                <span class="ws-label">Prossima sessione</span>
-                <span class="ws-session-id" id="ws-session-id">A</span>
-              </div>
-              <div class="ws-meta" id="ws-meta">—</div>
-              <button class="ws-start-btn" id="ws-start-btn">▶ Inizia sessione</button>
-              <button class="ws-other-btn" id="ws-other-btn">o fai l'altra sessione</button>
-              <div class="ws-c-section">
-                <button class="ws-c-btn" id="ws-c-btn">🛡️ Scheda C — Rescue Ginocchio (indipendente)</button>
-                <button class="ws-c-btn ws-d-btn" id="ws-d-btn">🤸 Scheda D — Mobilità (indipendente)</button>
-                <div class="ws-c-hint">Non entrano nella rotazione A/B — falle quando vuoi</div>
-              </div>
+          <!-- ACTIVITY CALENDAR -->
+          <div class="card">
+            <h2>Calendario attività <span class="sub" id="cal-sub">—</span></h2>
+            <div class="cal-nav">
+              <button class="cal-nav-btn" id="cal-prev">‹</button>
+              <span class="cal-month-label" id="cal-month-label">—</span>
+              <button class="cal-nav-btn" id="cal-next">›</button>
             </div>
-
-            <!-- Stats summary -->
-            <div class="workout-stats" id="workout-stats"></div>
+            <div class="cal-weekdays">
+              <span>L</span><span>M</span><span>M</span><span>G</span><span>V</span><span>S</span><span>D</span>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+            <div class="cal-legend">
+              <span class="cal-legend-label">meno</span>
+              <span class="cal-legend-swatch" data-level="0"></span>
+              <span class="cal-legend-swatch" data-level="1"></span>
+              <span class="cal-legend-swatch" data-level="2"></span>
+              <span class="cal-legend-swatch" data-level="3"></span>
+              <span class="cal-legend-swatch" data-level="4"></span>
+              <span class="cal-legend-label">più</span>
+            </div>
           </div>
 
           <!-- WORKOUT HISTORY -->
@@ -5244,18 +5309,20 @@
 
           <!-- WEIGHT -->
           <div class="card">
-            <h2>Peso corporeo <span class="sub">mattina, a digiuno</span></h2>
-            <div class="weight-quick">
-              <input type="number" id="weight-input" step="0.1" min="0" placeholder="es. 78.5" inputmode="decimal">
-              <button id="weight-save">Salva oggi</button>
-            </div>
-
             <div id="weight-content">
-              <div class="empty-weight" id="weight-empty">Nessuna misurazione registrata.<br>Inserisci il peso di oggi o importa il tuo storico.</div>
+              <div class="empty-weight" id="weight-empty">Nessuna misurazione registrata.<br>Inserisci il peso di oggi.</div>
             </div>
+            <div class="weight-quick">
+              <input type="number" id="weight-input" step="0.1" min="0" placeholder="peso a digiuno, es. 76,5" inputmode="decimal">
+              <button id="weight-save">Salva</button>
+            </div>
+            <button class="weight-import-link" id="weight-import-btn" hidden>Importa storico</button>
+          </div>
 
-            <button class="weight-import-link" id="weight-import-btn">⤓ Importa storico (FatSecret, CSV o testo)</button>
-            <button class="show-history-btn" id="show-history-btn" style="display:none;">Mostra tutte le misurazioni</button>
+          <div class="card" id="weight-chart-card"></div>
+
+          <div class="card wh-card">
+            <button class="wh-head collapsed" id="show-history-btn" type="button"><span>Misurazioni</span><span class="wh-sub" id="wh-sub"></span><span class="meal-chevron">▾</span></button>
             <div class="weight-history" id="weight-history" style="display:none;"></div>
           </div>
 
@@ -5286,8 +5353,8 @@
             <div id="body-measures-content"></div>
           </div>
 
-          <!-- MEDICATIONS -->
-          <div class="card">
+          <!-- MEDICATIONS (nascosto da v3.27: i dati restano nel backup) -->
+          <div class="card" hidden>
             <h2>Farmaci <span class="sub" id="meds-sub">—</span></h2>
             <button class="add-lab-btn" id="add-med-btn">
               <span class="add-icon">+</span> Registra assunzione
@@ -7808,7 +7875,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.26.0';
+const APP_VERSION = '3.27.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -10157,6 +10224,12 @@ function weightMA7(dateKey) {
   return n > 0 ? sum / n : null;
 }
 
+// Obiettivo di peso (fascia). Default 76–77 kg, sovrascrivibile da localStorage 'diario_weightGoal' = {"min":..,"max":..}
+function getWeightGoal() {
+  try { const g = JSON.parse(localStorage.getItem(KEY_PREFIX + 'weightGoal') || 'null'); if (g && g.min && g.max) return g; } catch (e) {}
+  return { min: 76, max: 77 };
+}
+
 // Pesata del giorno indicato o, se manca, l'ultima precedente. null se non ce ne sono.
 function weightOnOrBefore(dateKey) {
   const dates = Object.keys(state.weights || {}).filter(d => d <= dateKey).sort();
@@ -10181,13 +10254,14 @@ function renderWeight() {
     content.innerHTML = '';
     if (empty) content.appendChild(empty);
     showBtn.style.display = 'none';
+    document.getElementById('weight-chart-card').style.display = 'none';
     return;
   }
 
   if (empty) empty.remove();
 
   // Filter dates by selected range
-  const rangeDays = state.weightRange || 90;
+  const rangeDays = state.weightRange ?? 90;
   let dates;
   if (rangeDays === 0) {
     dates = allDates;
@@ -10211,56 +10285,42 @@ function renderWeight() {
   const currentLabel = isToday ? 'Attuale' : `Al ${shortDateIT(state.currentDate)}`;
   const currentNote = ref && !ref.exact ? ` · del ${shortDateIT(ref.date)}` : '';
 
-  // Last week delta (rispetto alla pesata di riferimento)
-  const today = new Date(ref ? ref.date : allDates[allDates.length - 1]);
-  const sevenDaysAgo = new Date(today);
-  sevenDaysAgo.setDate(today.getDate() - 7);
-  const sevenDaysAgoStr = dateKeyISO(sevenDaysAgo);
-  const lastWeekWeights = allDates.filter(d => d <= sevenDaysAgoStr);
-  const lastWeekRef = lastWeekWeights.length > 0 ? state.weights[lastWeekWeights[lastWeekWeights.length - 1]] : null;
-  const weekDelta = (lastWeekRef !== null && currentWeight !== null) ? currentWeight - lastWeekRef : null;
-
-  // 30-day delta
-  const thirtyAgo = new Date(today);
-  thirtyAgo.setDate(today.getDate() - 30);
-  const thirtyAgoStr = dateKeyISO(thirtyAgo);
-  const monthRefs = allDates.filter(d => d <= thirtyAgoStr);
-  const monthRef = monthRefs.length > 0 ? state.weights[monthRefs[monthRefs.length - 1]] : null;
-  const monthDelta = (monthRef !== null && currentWeight !== null) ? currentWeight - monthRef : null;
-
-  function deltaStr(d) {
-    if (d === null) return '<span class="delta">—</span>';
-    const sign = d > 0 ? '+' : '';
-    const cls = d < -0.05 ? 'down' : (d > 0.05 ? 'up' : '');
-    return `<span class="delta ${cls}">${sign}${d.toFixed(1)} kg</span>`;
+  // v4: variazioni calcolate sulle medie mobili 7gg (meno rumore delle singole pesate)
+  const refKey = state.currentDate;
+  const shiftKey = (k, n) => { const d = new Date(k); d.setDate(d.getDate() - n); return dateKeyISO(d); };
+  const ma7ago = weightMA7(shiftKey(refKey, 7));
+  const ma30ago = weightMA7(shiftKey(refKey, 30));
+  const weekDelta = (refMA !== null && ma7ago !== null) ? refMA - ma7ago : null;
+  const monthDelta = (refMA !== null && ma30ago !== null) ? refMA - ma30ago : null;
+  const G = getWeightGoal();
+  const sgn = v => (v > 0 ? '+' : (v < 0 ? '−' : '')) + fmt(Math.abs(v), 1);
+  let goalTxt = '—', goalCls = '';
+  if (refMA !== null) {
+    if (refMA < G.min) { goalTxt = sgn(refMA - G.min) + ' sotto'; goalCls = 'lo'; }
+    else if (refMA > G.max) { goalTxt = sgn(refMA - G.max) + ' sopra'; goalCls = 'hi'; }
+    else { goalTxt = 'nel range'; goalCls = 'ok'; }
   }
+  const dayLbl = ref ? (ref.exact ? (isToday ? 'oggi' : 'il ' + shortDateIT(ref.date)) : 'ultima, del ' + shortDateIT(ref.date)) : '';
+  const nMA = (() => { const e = new Date(refKey).getTime(), s = e - 6*864e5; return allDates.filter(d => { const t = new Date(d).getTime(); return t >= s && t <= e; }).length; })();
 
-  const rangeLabels = {
-    30: '30 giorni',
-    90: '90 giorni',
-    180: '6 mesi',
-    365: '1 anno',
-    0: 'tutto'
-  };
+  const rangeLabels = { 30: '30 giorni', 90: '90 giorni', 180: '6 mesi', 365: '1 anno', 0: 'tutto lo storico' };
 
   content.innerHTML = `
-    <div class="weight-stats">
-      <div class="weight-stat">
-        <div class="label">${currentLabel}</div>
-        <div class="value">${currentWeight !== null ? currentWeight.toFixed(1) + ' kg' : '—'}</div>
-        <div class="weight-ma7">${refMA !== null ? 'media 7gg ' + refMA.toFixed(1) + ' kg' : 'nessuna pesata'}${currentNote}</div>
-      </div>
-      <div class="weight-stat">
-        <div class="label">Var. 7 giorni</div>
-        <div class="value">${weekDelta !== null ? (weekDelta > 0 ? '+' : '') + weekDelta.toFixed(1) : '—'}</div>
-        ${deltaStr(monthDelta).replace('delta', 'label').replace('kg', '30g')}
-      </div>
-      <div class="weight-stat">
-        <div class="label">Totale</div>
-        <div class="value">${totalDelta !== null ? (totalDelta > 0 ? '+' : '') + totalDelta.toFixed(1) : '—'}</div>
-        <div class="label">da ${allDates[0]}</div>
-      </div>
+    <div class="wh-hero">
+      <div class="wh-k">Media 7 giorni${nMA && nMA < 4 ? ` <small>(${nMA} pesat${nMA === 1 ? 'a' : 'e'})</small>` : ''}</div>
+      <div class="wh-n">${refMA !== null ? fmt(refMA, 1) : '—'}<small>kg</small></div>
+      <div class="wh-day">${ref ? `Pesata ${dayLbl}: <b>${fmt(currentWeight, 1)} kg</b>` : 'nessuna pesata'}</div>
     </div>
+    <div class="wh-tiles">
+      <div class="wh-t ${weekDelta !== null && weekDelta > 0.05 ? 'up' : ''}"><div class="k">7 giorni</div><div class="v">${weekDelta !== null ? sgn(weekDelta) : '—'}</div><div class="s">kg sulla media</div></div>
+      <div class="wh-t ${monthDelta !== null && monthDelta > 0.05 ? 'up' : ''}"><div class="k">30 giorni</div><div class="v">${monthDelta !== null ? sgn(monthDelta) : '—'}</div><div class="s">kg sulla media</div></div>
+      <div class="wh-t goal ${goalCls}"><div class="k">Obiettivo</div><div class="v">${fmt(G.min)}–${fmt(G.max)}</div><div class="s">${goalTxt}</div></div>
+    </div>
+  `;
+  const chartCard = document.getElementById('weight-chart-card');
+  chartCard.style.display = '';
+  chartCard.innerHTML = `
+    <h2>Andamento <span class="sub">${rangeLabels[rangeDays]}</span></h2>
     <div class="range-selector" id="range-selector">
       <button class="range-btn ${rangeDays===30?'active':''}" data-range="30">30g</button>
       <button class="range-btn ${rangeDays===90?'active':''}" data-range="90">90g</button>
@@ -10270,11 +10330,13 @@ function renderWeight() {
     </div>
     <div class="weight-chart-wrap" id="weight-chart-wrap"></div>
     <div class="weight-legend">
-      <span><span class="legend-dot" style="background:var(--ink-faint)"></span>peso giornaliero</span>
-      <span><span class="legend-line" style="background:var(--accent)"></span>media mobile 7gg</span>
-      <span class="range-info">vista: ${rangeLabels[rangeDays]} (${dates.length} misurazioni)</span>
+      <span><span class="legend-dot" style="background:#80A7CE"></span>pesata</span>
+      <span><span class="legend-line" style="background:var(--accent)"></span>media 7gg</span>
+      <span><span class="legend-band"></span>obiettivo</span>
+      <span class="range-info">${dates.length} pesate</span>
     </div>
   `;
+  const whSub = document.getElementById('wh-sub'); if (whSub) whSub.textContent = allDates.length + ' pesate';
 
   drawWeightChart(dates, values);
 
@@ -10283,13 +10345,13 @@ function renderWeight() {
   const historyDiv = document.getElementById('weight-history');
   historyDiv.innerHTML = '';
   // show most recent first
-  [...dates].reverse().forEach(d => {
+  [...allDates].reverse().forEach(d => {
     const w = state.weights[d];
     const entry = document.createElement('div');
     entry.className = 'weight-entry';
     entry.innerHTML = `
-      <span class="date">${d}</span>
-      <span class="weight-val">${w.toFixed(1)} kg</span>
+      <span class="date">${new Date(d).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}</span>
+      <span class="weight-val">${fmt(w, 1)} kg</span>
       <button class="delete-weight" data-date="${d}">✕</button>
     `;
     historyDiv.appendChild(entry);
@@ -10305,7 +10367,7 @@ function renderWeight() {
 
 // Initialize event delegation for range selector (attached once, survives re-renders)
 function initRangeSelector() {
-  const container = document.getElementById('weight-content');
+  const container = document.getElementById('weight-chart-card');
   if (!container || container.dataset.rangeBound === 'true') return;
   container.dataset.rangeBound = 'true';
   container.addEventListener('click', (e) => {
@@ -10816,6 +10878,10 @@ function drawWeightChart(dates, values) {
 
   // Build SVG
   let svg = `<svg class="weight-svg" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">`;
+  // Fascia obiettivo (ritagliata all'area del grafico)
+  const G = getWeightGoal();
+  const bTop = Math.max(padding.top, yPos(G.max)), bBot = Math.min(padding.top + chartH, yPos(G.min));
+  if (bBot > bTop) svg += `<rect x="${padding.left}" y="${bTop}" width="${chartW}" height="${bBot - bTop}" fill="#7FC79A" opacity="0.14"/>`;
 
   // Y-axis gridlines and labels
   const yTicks = 4;
@@ -10823,7 +10889,7 @@ function drawWeightChart(dates, values) {
     const w = minW + (wRange / yTicks) * i;
     const y = yPos(w);
     svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#1E3459" stroke-width="0.7"/>`;
-    svg += `<text x="${padding.left - 5}" y="${y + 3}" text-anchor="end" font-family="DM Sans, sans-serif" font-size="9" fill="#8A93A6">${w.toFixed(1)}</text>`;
+    svg += `<text x="${padding.left - 5}" y="${y + 3}" text-anchor="end" font-family="DM Sans, sans-serif" font-size="9" fill="#8A93A6">${fmt(w, 1)}</text>`;
   }
 
   // X-axis date labels (first, middle, last)
@@ -10855,15 +10921,15 @@ function drawWeightChart(dates, values) {
       const y = yPos(movingAvg[i]);
       d += (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1) + ' ';
     });
-    svg += `<path d="${d}" fill="none" stroke="#2d8659" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
+    svg += `<path d="${d}" fill="none" stroke="#F19004" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>`;
 
     // Current point marker on moving avg
     const lastX = xPos(pts[pts.length - 1].ts);
     const lastY = yPos(movingAvg[movingAvg.length - 1]);
-    svg += `<circle cx="${lastX}" cy="${lastY}" r="4" fill="#2d8659"/>`;
-    svg += `<circle cx="${lastX}" cy="${lastY}" r="7" fill="#2d8659" opacity="0.2"/>`;
+    svg += `<circle cx="${lastX}" cy="${lastY}" r="4" fill="#F19004"/>`;
+    svg += `<circle cx="${lastX}" cy="${lastY}" r="7" fill="#F19004" opacity="0.25"/>`;
   } else if (pts.length === 1) {
-    svg += `<circle cx="${xPos(pts[0].ts)}" cy="${yPos(pts[0].w)}" r="4" fill="#2d8659"/>`;
+    svg += `<circle cx="${xPos(pts[0].ts)}" cy="${yPos(pts[0].w)}" r="4" fill="#F19004"/>`;
   }
 
   svg += '</svg>';
@@ -10892,13 +10958,9 @@ document.getElementById('weight-input').addEventListener('keypress', e => {
 document.getElementById('show-history-btn').addEventListener('click', () => {
   const h = document.getElementById('weight-history');
   const btn = document.getElementById('show-history-btn');
-  if (h.style.display === 'none') {
-    h.style.display = 'block';
-    btn.textContent = 'Nascondi misurazioni';
-  } else {
-    h.style.display = 'none';
-    btn.textContent = 'Mostra tutte le misurazioni';
-  }
+  const open = h.style.display === 'none';
+  h.style.display = open ? 'block' : 'none';
+  btn.classList.toggle('collapsed', !open);
 });
 
 // Import modal
@@ -11038,8 +11100,11 @@ function renderLabs() {
             // improving if moving toward range center
             const center = (param.targetMin + param.targetMax) / 2;
             isImproving = Math.abs(last.value - center) < Math.abs(prev.value - center);
+            // dentro l'intervallo sia prima che ora: nessun giudizio
+            if (last.value >= param.targetMin && last.value <= param.targetMax && prev.value >= param.targetMin && prev.value <= param.targetMax) isImproving = null;
           }
-          deltaHtml = `<div class="lab-param-delta ${isImproving ? 'improving' : 'worsening'}">${delta > 0 ? '+' : '−'}${absDelta} vs prec.</div>`;
+          const dCls = (group.id === 'pressure' || isImproving === null) ? 'neutral' : (isImproving ? 'improving' : 'worsening');
+          deltaHtml = `<div class="lab-param-delta ${dCls}">${delta > 0 ? '+' : '−'}${absDelta} vs prec.</div>`;
         }
       }
 
@@ -11333,10 +11398,17 @@ function renderBodyMeasures() {
     if (!hasValues) return;
 
     const groupDiv = document.createElement('div');
-    groupDiv.className = 'body-group';
-    const title = document.createElement('div');
+    let collBG = {}; try { collBG = JSON.parse(localStorage.getItem(KEY_PREFIX + 'collapsedBodyGroups') || '{}'); } catch (e) {}
+    groupDiv.className = 'body-group' + (collBG[group.name] ? ' collapsed' : '');
+    const title = document.createElement('button');
+    title.type = 'button';
     title.className = 'body-group-title';
-    title.innerHTML = `<span>${group.emoji}</span> ${group.name}`;
+    title.innerHTML = `<span>${group.emoji}</span> ${group.name}<span class="meal-chevron">▾</span>`;
+    title.addEventListener('click', () => {
+      const now = !groupDiv.classList.contains('collapsed');
+      groupDiv.classList.toggle('collapsed', now);
+      try { const s = JSON.parse(localStorage.getItem(KEY_PREFIX + 'collapsedBodyGroups') || '{}'); s[group.name] = now; localStorage.setItem(KEY_PREFIX + 'collapsedBodyGroups', JSON.stringify(s)); } catch (e) {}
+    });
     groupDiv.appendChild(title);
 
     group.params.forEach(p => {
@@ -11349,7 +11421,9 @@ function renderBodyMeasures() {
         const delta = val - prev.values[p.id];
         if (Math.abs(delta) >= 0.05) {
           const arrow = delta > 0 ? '↑' : '↓';
-          trend = `<span class="body-param-trend">${arrow} ${Math.abs(delta).toFixed(1)}</span>`;
+          // verde se va nella direzione buona: circonferenze centrali in calo, muscolari in crescita
+          const good = group.name === 'Circonferenze centrali' && p.id !== 'neck' ? delta < 0 : (group.name === 'Muscolari' ? delta > 0 : null);
+          trend = `<span class="body-param-trend ${good === null ? '' : (good ? 'good' : 'bad')}">${arrow} ${Math.abs(delta).toFixed(1)}</span>`;
         }
       }
       row.innerHTML = `
@@ -12250,10 +12324,10 @@ function renderWorkout() {
   const nextSessionId = suggestNextSessionType();
   const session = WORKOUT_SESSIONS[nextSessionId];
   document.getElementById('ws-session-id').textContent = session.id;
-  document.getElementById('ws-meta').innerHTML = `
-    <strong>${session.name}</strong> · ${session.subtitle}<br>
-    ${session.exercises.length} esercizi
-  `;
+  document.getElementById('ws-meta').innerHTML = `<b>${session.subtitle}</b><span>${session.exercises.length} esercizi</span>`;
+  document.getElementById('ws-start-btn').textContent = 'Inizia sessione ' + session.id;
+  const otherId = nextSessionId === 'A' ? 'B' : 'A';
+  document.getElementById('ws-other-btn').textContent = 'oppure fai la ' + otherId;
 
   // Workout stats summary
   const logs = state.workoutLogs || [];
@@ -12267,22 +12341,9 @@ function renderWorkout() {
     const lastDate = logs.length > 0 ? logs[logs.length - 1].date : null;
     const lastDateLabel = lastDate ? daysAgoLabel(lastDate) : 'mai';
     stats.innerHTML = `
-      <div class="workout-stat">
-        <div class="ws-stat-label">Sessioni totali</div>
-        <div class="ws-stat-value">${totSessions}</div>
-      </div>
-      <div class="workout-stat">
-        <div class="ws-stat-label">A / B / C / D</div>
-        <div class="ws-stat-value" style="font-size:16px;">${sessA} / ${sessB} / ${sessC} / ${sessD}</div>
-      </div>
-      <div class="workout-stat">
-        <div class="ws-stat-label">Ultima sessione</div>
-        <div class="ws-stat-value" style="font-size:14px;">${lastDateLabel}</div>
-      </div>
-      <div class="workout-stat">
-        <div class="ws-stat-label">kcal totali stimate</div>
-        <div class="ws-stat-value" style="font-size:14px;">${computeTotalWorkoutKcal()} kcal</div>
-      </div>
+      <div class="wh-t"><div class="k">Sessioni</div><div class="v">${totSessions}</div><div class="s">A ${sessA} · B ${sessB} · C ${sessC} · D ${sessD}</div></div>
+      <div class="wh-t"><div class="k">Ultima</div><div class="v sm">${lastDateLabel}</div><div class="s">${lastDate ? 'sessione ' + logs[logs.length - 1].sessionId : ''}</div></div>
+      <div class="wh-t"><div class="k">Bruciate</div><div class="v">${fmt(computeTotalWorkoutKcal())}</div><div class="s">kcal stimate</div></div>
     `;
   }
 
