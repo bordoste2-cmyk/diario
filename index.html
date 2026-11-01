@@ -1085,7 +1085,7 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
 .mf-empty { font-size: 14px; color: var(--ink-faint); padding: 14px 0; }
 .hdr-ver { margin: 4px 0 0 0 !important; }
 /* Suono del timer */
-.sound-picker { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
+.sound-picker { padding: 14px 16px; }
 .sp-k { font-size: 15px; color: var(--ink-soft); margin-bottom: 8px; }
 .sp-k small { font-size: 12px; color: var(--ink-faint); margin-left: 6px; }
 .sp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -1248,7 +1248,6 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
               <div class="ws-c-hint">C e D sono fuori dalla rotazione A/B: falle quando vuoi</div>
             </div>
             <div class="workout-stats" id="workout-stats"></div>
-            <div class="sound-picker" id="sound-picker"></div>
           </div>
 
           <!-- ACTIVITIES -->
@@ -1310,6 +1309,8 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
             </h2>
             <div id="workout-history-list"></div>
           </div>
+
+          <div class="card sound-picker" id="sound-picker"></div>
 
         </div>
       </div>
@@ -3764,7 +3765,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.38.0';
+const APP_VERSION = '3.38.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
