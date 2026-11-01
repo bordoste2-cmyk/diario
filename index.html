@@ -5102,6 +5102,22 @@
   .st-btn { display: inline-flex; align-items: center; gap: 6px; background: var(--bg-soft); border: 1px solid var(--line); color: var(--ink-soft); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
   .st-btn svg { color: var(--accent); flex: none; }
   .st-btn:active { border-color: var(--accent); color: var(--ink); }
+  /* Obiettivi */
+  .tg-kcal { display: flex; align-items: center; gap: 10px; margin: 6px 0 14px; }
+  .tg-kcal label { flex: 1; font-size: 17px; color: var(--ink); }
+  .tg-kcal #t-kcal { width: 120px !important; flex: none; }
+  .tg-kcal label { min-width: 0; }
+  .tg-kcal span { font-size: 14px; color: var(--ink-faint); width: 30px; }
+  .tg-grid { display: grid; grid-template-columns: 1fr 76px 76px; gap: 8px 8px; align-items: center; }
+  .tg-h { font-size: 13px; color: var(--ink-faint); text-align: center; }
+  .tg-l { font-size: 15px; color: var(--ink); display: flex; flex-direction: column; }
+  .tg-l small { font-size: 12px; color: var(--ink-faint); }
+  .tg-kcal input, .tg-grid input { background: var(--bg-soft) !important; border: 1px solid var(--line) !important; color: var(--ink) !important; border-radius: 10px; padding: 9px 8px; font: inherit; font-size: 16px; text-align: right; min-width: 0; width: 100%; }
+  .tg-grid input[readonly] { background: transparent !important; border-style: dashed !important; color: var(--ink-soft) !important; }
+  .tg-na { text-align: center; color: var(--ink-faint); }
+  .tg-sum { margin-top: 12px; font-size: 13px; color: var(--ok); line-height: 1.4; }
+  .tg-sum.warn { color: var(--accent-deep); }
+  .tg-sum.bad { color: var(--tomato); }
   /* Piede e versione */
   .footer-note { color: var(--ink-faint); font-size: 12px; }
   .version-badge { background: var(--bg-soft); color: var(--ink-faint); margin-left: 6px; font-size: 11px; }
@@ -6106,34 +6122,31 @@
 <div class="modal-overlay" id="settings-modal">
   <div class="modal">
     <h3>I tuoi obiettivi giornalieri</h3>
-    <div class="modal-sub">Personalizza i target nutrizionali</div>
+    <div class="modal-sub">Proteine fisse in grammi, grassi in percentuale, carboidrati per differenza: i macro tornano sempre con le calorie.</div>
 
-    <div class="form-grid">
-      <div class="form-row">
-        <label>Calorie (kcal)</label>
-        <input type="number" id="t-kcal" step="any" min="0">
-      </div>
-      <div class="form-row">
-        <label>Proteine (g)</label>
-        <input type="number" id="t-protein" step="any" min="0">
-      </div>
-      <div class="form-row">
-        <label>Carboidrati (g)</label>
-        <input type="number" id="t-carbs" step="any" min="0">
-      </div>
-      <div class="form-row">
-        <label>Grassi (g)</label>
-        <input type="number" id="t-fat" step="any" min="0">
-      </div>
-      <div class="form-row">
-        <label>Grassi saturi max (g)</label>
-        <input type="number" id="t-saturated" step="any" min="0">
-      </div>
-      <div class="form-row">
-        <label>Fibre min (g)</label>
-        <input type="number" id="t-fiber" step="any" min="0">
-      </div>
+    <div class="tg-kcal">
+      <label for="t-kcal">Calorie</label>
+      <input type="number" id="t-kcal" step="10" min="0" inputmode="numeric"><span>kcal</span>
     </div>
+    <div class="tg-grid">
+      <div class="tg-h"></div><div class="tg-h">grammi</div><div class="tg-h">% kcal</div>
+      <div class="tg-l">Proteine<small>fisse in grammi</small></div>
+      <input type="number" id="t-protein" step="1" min="0" inputmode="decimal">
+      <input type="number" id="t-protein-pct" step="0.5" min="0" inputmode="decimal">
+      <div class="tg-l">Grassi<small>fissi in %</small></div>
+      <input type="number" id="t-fat" step="1" min="0" inputmode="decimal">
+      <input type="number" id="t-fat-pct" step="0.5" min="0" inputmode="decimal">
+      <div class="tg-l">Carboidrati<small>per differenza</small></div>
+      <input type="number" id="t-carbs" readonly tabindex="-1">
+      <input type="number" id="t-carbs-pct" readonly tabindex="-1">
+      <div class="tg-l">di cui saturi<small>tetto massimo</small></div>
+      <input type="number" id="t-saturated" step="1" min="0" inputmode="decimal">
+      <input type="number" id="t-saturated-pct" step="0.5" min="0" inputmode="decimal">
+      <div class="tg-l">Fibre<small>minimo</small></div>
+      <input type="number" id="t-fiber" step="1" min="0" inputmode="decimal">
+      <div class="tg-na">—</div>
+    </div>
+    <div class="tg-sum" id="t-sum"></div>
 
     <div class="modal-actions">
       <button class="btn-secondary" id="t-cancel">Annulla</button>
@@ -7925,7 +7938,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.29.3';
+const APP_VERSION = '3.30.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -10085,25 +10098,59 @@ document.getElementById('cf-save').addEventListener('click', async () => {
 
 // ========== SETTINGS MODAL ==========
 const settingsModal = document.getElementById('settings-modal');
+// Obiettivi: proteine fisse in g, grassi fissi in %, carboidrati = calorie restanti / 4.
+// Ogni campo si può scrivere in grammi o in %; l'altro si aggiorna.
+const T = id => document.getElementById(id);
+const tNum = id => { const v = parseFloat(String(T(id).value).replace(',', '.')); return isNaN(v) ? 0 : v; };
+const r1 = v => Math.round(v * 10) / 10;
+function targetsRecalc(src) {
+  const kcal = tNum('t-kcal');
+  if (kcal <= 0) return;
+  if (src === 'protein-pct') T('t-protein').value = Math.round(kcal * tNum('t-protein-pct') / 100 / 4);
+  if (src === 'fat') T('t-fat-pct').value = r1(tNum('t-fat') * 9 / kcal * 100);
+  if (src === 'saturated-pct') T('t-saturated').value = Math.round(kcal * tNum('t-saturated-pct') / 100 / 9);
+  // grassi: la % comanda (anche quando cambiano le calorie)
+  if (src !== 'fat') T('t-fat').value = Math.round(kcal * tNum('t-fat-pct') / 100 / 9);
+  if (src !== 'protein-pct') T('t-protein-pct').value = r1(tNum('t-protein') * 4 / kcal * 100);
+  if (src !== 'saturated-pct') T('t-saturated-pct').value = r1(tNum('t-saturated') * 9 / kcal * 100);
+  const carbsKcal = kcal - tNum('t-protein') * 4 - tNum('t-fat') * 9;
+  T('t-carbs').value = Math.round(carbsKcal / 4);
+  T('t-carbs-pct').value = r1(carbsKcal / kcal * 100);
+  const cp = carbsKcal / kcal * 100;
+  const sum = T('t-sum');
+  let msg = `Proteine ${fmt(tNum('t-protein-pct'), 1)}% + grassi ${fmt(tNum('t-fat-pct'), 1)}% + carboidrati ${fmt(r1(cp), 1)}% = 100%`;
+  let cls = '';
+  if (cp < 0) { msg = 'Proteine e grassi superano le calorie: abbassali o alza le calorie.'; cls = 'bad'; }
+  else if (cp < 40) { msg += ' · carboidrati sotto il 40%: dieta piuttosto low-carb'; cls = 'warn'; }
+  if (tNum('t-fat-pct') > 35) { msg += ' · grassi oltre il 35% consigliato'; cls = 'warn'; }
+  if (tNum('t-saturated-pct') > 10) { msg += ' · saturi oltre il 10%'; cls = 'warn'; }
+  sum.textContent = msg; sum.className = 'tg-sum ' + cls;
+}
+[['t-kcal', 'kcal'], ['t-protein', 'protein'], ['t-protein-pct', 'protein-pct'], ['t-fat', 'fat'], ['t-fat-pct', 'fat-pct'], ['t-saturated', 'saturated'], ['t-saturated-pct', 'saturated-pct']]
+  .forEach(([id, src]) => T(id).addEventListener('input', () => targetsRecalc(src)));
 document.getElementById('settings-btn').addEventListener('click', () => {
-  document.getElementById('t-kcal').value = state.targets.kcal;
-  document.getElementById('t-protein').value = state.targets.protein;
-  document.getElementById('t-carbs').value = state.targets.carbs;
-  document.getElementById('t-fat').value = state.targets.fat;
-  document.getElementById('t-saturated').value = state.targets.saturated;
-  document.getElementById('t-fiber').value = state.targets.fiber;
+  const t = state.targets;
+  T('t-kcal').value = t.kcal;
+  T('t-protein').value = t.protein;
+  T('t-fat-pct').value = t.fatPct != null ? t.fatPct : r1(t.fat * 9 / t.kcal * 100);
+  T('t-saturated').value = t.saturated;
+  T('t-fiber').value = t.fiber;
+  targetsRecalc('open');
   settingsModal.classList.add('show');
 });
 document.getElementById('t-cancel').addEventListener('click', () => settingsModal.classList.remove('show'));
 settingsModal.addEventListener('click', e => { if (e.target === settingsModal) settingsModal.classList.remove('show'); });
 document.getElementById('t-save').addEventListener('click', async () => {
+  targetsRecalc('save');
+  if (tNum('t-carbs') < 0) { alert('Proteine e grassi superano le calorie: correggi prima di salvare.'); return; }
   state.targets = {
-    kcal: parseFloat(document.getElementById('t-kcal').value) || 2100,
-    protein: parseFloat(document.getElementById('t-protein').value) || 140,
-    carbs: parseFloat(document.getElementById('t-carbs').value) || 220,
-    fat: parseFloat(document.getElementById('t-fat').value) || 70,
-    saturated: parseFloat(document.getElementById('t-saturated').value) || 20,
-    fiber: parseFloat(document.getElementById('t-fiber').value) || 30
+    kcal: tNum('t-kcal') || 2100,
+    protein: tNum('t-protein') || 92,
+    fat: tNum('t-fat') || 70,
+    fatPct: tNum('t-fat-pct') || 30,
+    carbs: tNum('t-carbs'),
+    saturated: tNum('t-saturated') || 20,
+    fiber: tNum('t-fiber') || 30
   };
   await saveTargets();
   settingsModal.classList.remove('show');
