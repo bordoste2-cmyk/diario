@@ -1049,6 +1049,11 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
 .footer-note { color: var(--ink-faint); font-size: 12px; }
 .version-badge { background: var(--bg-soft); color: var(--ink-faint); margin-left: 6px; font-size: 11px; }
 .fab-backup { background: var(--accent); color: var(--on-accent); box-shadow: 0 4px 16px rgba(0,0,0,.4); }
+/* Promemoria backup */
+.home-nag { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; margin: 16px 0 0; padding: 12px 14px; background: rgba(241,144,4,.12); border: 1px solid rgba(241,144,4,.45); border-radius: 14px; color: var(--ink); font: inherit; font-size: 15px; text-align: left; cursor: pointer; }
+.home-nag[hidden] { display: none; }
+.home-nag b { color: var(--accent); font-weight: 500; white-space: nowrap; }
+.fab-backup { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
 </style>
 </head>
 <body>
@@ -1088,6 +1093,8 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
 
           <!-- HOME: MACRO -->
           <div class="home-macros" id="home-macros"></div>
+
+          <button class="home-nag" id="home-backup-nag" type="button" hidden></button>
 
           <!-- HOME: OGGI -->
           <h2 class="home-h">Oggi</h2>
@@ -1380,7 +1387,7 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
       </button>
     </div>
 
-    <input type="file" id="backup-file-input" accept=".json,application/json" class="file-input-hidden">
+    <input type="file" id="backup-file-input" accept=".json,.txt,application/json,text/plain" class="file-input-hidden">
 
     <div class="modal-actions">
       <button class="btn-secondary" id="backup-close" style="flex: 1;">Chiudi</button>
@@ -3712,7 +3719,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.34.0';
+const APP_VERSION = '3.35.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -5033,8 +5040,20 @@ function renderHome() {
   const list = document.getElementById('home-today-list');
   list.innerHTML = rows;
   renderHomeWeek();
+  renderBackupNag();
   list.querySelectorAll('.hl-row').forEach(r => r.addEventListener('click', () => switchTab(r.dataset.go)));
 }
+
+// Promemoria backup in Home: compare se l'ultimo backup ha più di 7 giorni (o non c'è mai stato)
+function renderBackupNag() {
+  const el = document.getElementById('home-backup-nag');
+  if (!el) return;
+  const days = lastBackupTime ? Math.floor((Date.now() - lastBackupTime) / 864e5) : null;
+  if (days !== null && days < 7) { el.hidden = true; return; }
+  el.hidden = false;
+  el.innerHTML = `<span>${days === null ? 'Nessun backup ancora fatto' : `Ultimo backup ${days} giorni fa`}</span><b>Fai backup</b>`;
+}
+document.addEventListener('click', e => { if (e.target.closest && e.target.closest('#home-backup-nag')) doBackup(); });
 
 // Riepilogo degli ultimi 7 giorni (esclusa la giornata di oggi se è ancora in corso)
 function renderHomeWeek() {
@@ -9717,66 +9736,61 @@ function openBackupModal() {
   backupModal.classList.add('show');
 }
 
-fabBackup.addEventListener('click', openBackupModal);
+// ☁: tocco = backup subito (menu Condividi), pressione lunga = finestra Backup e ripristino
+(function () {
+  let t = null, long = false;
+  const start = () => { long = false; clearTimeout(t); t = setTimeout(() => { long = true; if (navigator.vibrate) navigator.vibrate(30); openBackupModal(); }, 550); };
+  const cancel = () => clearTimeout(t);
+  fabBackup.addEventListener('pointerdown', start);
+  fabBackup.addEventListener('pointerleave', cancel);
+  fabBackup.addEventListener('pointercancel', cancel);
+  fabBackup.addEventListener('contextmenu', e => e.preventDefault());
+  fabBackup.addEventListener('click', () => { cancel(); if (long) { long = false; return; } doBackup(); });
+})();
+fabBackup.title = 'Tocca: backup · Tieni premuto: ripristino';
 document.getElementById('backup-close').addEventListener('click', () => backupModal.classList.remove('show'));
 backupModal.addEventListener('click', e => { if (e.target === backupModal) backupModal.classList.remove('show'); });
 
-// EXPORT: Try Web Share API first (mobile), fall back to download
-document.getElementById('backup-export').addEventListener('click', async () => {
-  const data = getAllData();
-  const json = JSON.stringify(data, null, 2);
+// EXPORT: menu Condividi di Android (file di testo, accettato da Chrome) o, in mancanza, download.
+// Chiede al browser di non cancellare i dati dell'app quando lo spazio scarseggia
+(async () => { try { if (navigator.storage && navigator.storage.persist && !(await navigator.storage.persisted())) await navigator.storage.persist(); } catch (e) {} })();
+function markBackedUp() {
+  lastBackupTime = Date.now();
+  unbackedChanges = 0;
+  try {
+    localStorage.setItem(KEY_PREFIX + 'lastBackup', String(lastBackupTime));
+    localStorage.setItem(KEY_PREFIX + 'unbackedChanges', '0');
+  } catch (e) {}
+  updateBackupBadge();
+  if (typeof renderBackupNag === 'function') renderBackupNag();
+}
+async function doBackup() {
+  const json = JSON.stringify(getAllData(), null, 2);
   const now = new Date();
-  const dateStr = now.toISOString().split('T')[0];
-  const timeStr = now.toTimeString().substring(0, 5).replace(':', '');
-  const filename = `diario-backup-${dateStr}-${timeStr}.json`;
-
-  // Try Web Share API with file (best on mobile)
-  if (navigator.canShare) {
+  const stamp = `${dateKeyISO(now)}-${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+  // Chrome su Android non condivide i .json: lo stesso contenuto come .txt passa
+  const file = new File([json], `diario-backup-${stamp}.txt`, { type: 'text/plain' });
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
-      const file = new File([json], filename, { type: 'application/json' });
-      if (navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          title: 'Backup Health Diary',
-          text: 'Backup del diario alimentare',
-          files: [file]
-        });
-        // Mark as backed up
-        lastBackupTime = Date.now();
-        unbackedChanges = 0;
-        localStorage.setItem(KEY_PREFIX + 'lastBackup', String(lastBackupTime));
-        localStorage.setItem(KEY_PREFIX + 'unbackedChanges', '0');
-        updateBackupBadge();
-        backupModal.classList.remove('show');
-        return;
-      }
+      await navigator.share({ files: [file], title: 'Backup Health Diary' });
+      markBackedUp();
+      backupModal.classList.remove('show');
+      return;
     } catch (err) {
-      // User cancelled or share failed - fall through to download
       if (err.name === 'AbortError') return;
       console.warn('Share failed, falling back to download:', err);
     }
   }
-
-  // Fallback: download as file
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => {
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, 100);
-
-  // Mark as backed up
-  lastBackupTime = Date.now();
-  unbackedChanges = 0;
-  localStorage.setItem(KEY_PREFIX + 'lastBackup', String(lastBackupTime));
-  localStorage.setItem(KEY_PREFIX + 'unbackedChanges', '0');
-  updateBackupBadge();
+  a.href = url; a.download = `diario-backup-${stamp}.json`;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+  markBackedUp();
   backupModal.classList.remove('show');
-});
+}
+document.getElementById('backup-export').addEventListener('click', doBackup);
 
 // IMPORT: file picker
 document.getElementById('backup-import').addEventListener('click', () => {
