@@ -1054,6 +1054,11 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
 .home-nag[hidden] { display: none; }
 .home-nag b { color: var(--accent); font-weight: 500; white-space: nowrap; }
 .fab-backup { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+/* Restano */
+.hh-left { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 15px; color: var(--ink-soft); }
+.hh-left b { color: var(--ink); font-weight: 500; }
+.hh-left small { display: block; font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
+.hh-left.over b { color: var(--accent-deep); }
 </style>
 </head>
 <body>
@@ -1089,6 +1094,7 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
               <div class="hh-bar"><i id="hh-bmr" style="background:#2B4166"></i><i id="hh-act" style="background:var(--accent)"></i></div>
             </div>
             <div class="hh-leg"><span>Mangiato <b id="home-net-in">0</b></span><span id="hh-out-lbl">Basale <b id="home-net-met">0</b></span></div>
+            <div class="hh-left" id="hh-left"></div>
           </div>
 
           <!-- HOME: MACRO -->
@@ -3719,7 +3725,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.35.0';
+const APP_VERSION = '3.36.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -4994,6 +5000,17 @@ function renderHome() {
   document.getElementById('hh-out-lbl').innerHTML = burned > 0
     ? `Basale <b id="home-net-met">${fmt(bmr)}</b> + attività <b>${fmt(burned)}</b>`
     : `Basale <b id="home-net-met">${fmt(bmr)}</b>`;
+
+  // Quanto resta all'obiettivo del giorno (che include la quota delle attività)
+  const leftEl = document.getElementById('hh-left');
+  if (leftEl) {
+    const kLeft = Math.round(tg.kcal - t.kcal), pLeft = tg.protein - t.protein;
+    const goalTxt = tg.bonus > 0 ? `obiettivo ${fmt(tg.kcal)} (${fmt(state.targets.kcal)} + ${fmt(tg.bonus)} attività)` : `obiettivo ${fmt(tg.kcal)}`;
+    const kPart = kLeft >= 0 ? `Restano <b>${fmt(kLeft)}</b> kcal` : `Obiettivo superato di <b>${fmt(-kLeft)}</b> kcal`;
+    const pPart = pLeft > 0.5 ? ` · mancano <b>${fmt(pLeft)}</b> g di proteine` : ' · proteine raggiunte';
+    leftEl.innerHTML = `<div>${kPart}${pPart}</div><small>${goalTxt}</small>`;
+    leftEl.className = 'hh-left' + (kLeft < -tg.kcal * 0.05 ? ' over' : '');
+  }
 
   // Macro: proteine, carboidrati, grassi rispetto all'obiettivo
   const macro = (label, val, target, overIsBad) => {
@@ -10475,6 +10492,27 @@ function initHomeSettingsBtn() {
   }
 }
 
+// Scorciatoie dell'icona (manifest "shortcuts"): ?action=pasto | peso | backup
+function handleLaunchAction() {
+  let action = null;
+  try { action = new URLSearchParams(location.search).get('action'); } catch (e) {}
+  if (!action) return;
+  try { history.replaceState(null, '', location.pathname); } catch (e) {}
+  state.currentDate = todayISO();
+  renderAll();
+  if (action === 'pasto') {
+    switchTab('diario');
+    setTimeout(() => openSearchModal(guessCurrentMeal()), 150);
+  } else if (action === 'peso') {
+    switchTab('peso');
+    setTimeout(() => { const i = document.getElementById('weight-input'); if (i) i.focus(); }, 200);
+  } else if (action === 'backup') {
+    // la condivisione richiede un tocco: apro la finestra con il tasto pronto
+    switchTab('home');
+    openBackupModal();
+  }
+}
+
 // ========== INIT ==========
 (async () => {
   initVersionBadge();
@@ -10488,6 +10526,7 @@ function initHomeSettingsBtn() {
   initWorkoutHandlers();
   initCalendar();
   initHomeCalendar();
+  handleLaunchAction();
   // Check for a saved active workout — if present, ask user to resume or discard
   const savedWorkout = loadActiveWorkout();
   if (savedWorkout && savedWorkout.session && savedWorkout.session.sessionId) {
