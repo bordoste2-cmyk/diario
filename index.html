@@ -5091,6 +5091,12 @@
   .backup-info strong { text-transform: none; letter-spacing: 0; color: var(--ink); font-weight: 500; font-size: 15px; }
   .backup-option { background: var(--bg-soft) !important; border: 1px solid var(--line) !important; color: var(--ink) !important; }
   #workout-cancel, #workout-cancel-preview { background: var(--bg-soft) !important; color: #F0A58F !important; border: 1px solid var(--line) !important; }
+  .workout-addset-row { display: flex; gap: 8px; padding: 8px 10px 4px; }
+  .workout-addset-row button { flex: 1; background: none; border: 1px dashed var(--line); border-radius: 10px; padding: 9px; font: inherit; font-size: 14px; color: var(--accent); cursor: pointer; }
+  .workout-addset-row .workout-delset-btn { color: var(--ink-soft); }
+  .workout-addset-row button:disabled { opacity: .35; cursor: default; }
+  .workout-set-row.done .workout-set-input { background: rgba(127,199,154,.10) !important; border-color: rgba(127,199,154,.45) !important; color: var(--ink) !important; }
+  .workout-set-row.done .workout-set-done { background: var(--ok) !important; border-color: var(--ok) !important; color: var(--on-accent) !important; }
   /* Piede e versione */
   .footer-note { color: var(--ink-faint); font-size: 12px; }
   .version-badge { background: var(--bg-soft); color: var(--ink-faint); margin-left: 6px; font-size: 11px; }
@@ -6824,6 +6830,8 @@ const FOODS = [
   { id:'salsa-rosa', name:'Salsa rosa (cocktail)', cat:'Salse', kcal:430, protein:1, carbs:9, sugar:7, fat:43, sat:6, fiber:0, unit:'g' },
   // Contorni tipici
   { id:'patatine-fritte', name:'Patatine fritte (cotte)', cat:'Verdure', kcal:312, protein:3.4, carbs:41, sugar:0.3, fat:15, sat:2.5, fiber:3.8, unit:'g' },
+  { id:'pure-patate', name:'Purè di patate (con latte e burro)', cat:'Verdure', kcal:110, protein:2, carbs:16.5, sugar:1.5, fat:4.2, sat:2.6, fiber:1.5, unit:'g' },
+  { id:'pangrattato', name:'Pangrattato', cat:'Cereali', kcal:365, protein:11.5, carbs:73, sugar:3, fat:2.5, sat:0.5, fiber:4, unit:'g' },
   { id:'patatine-forno', name:'Patate al forno', cat:'Verdure', kcal:145, protein:2.5, carbs:24, sugar:1, fat:4.5, sat:0.7, fiber:2.3, unit:'g' },
   { id:'onion-rings', name:'Anelli di cipolla fritti', cat:'Verdure', kcal:332, protein:4.5, carbs:38, sugar:4, fat:18, sat:3, fiber:1.3, unit:'g' },
   // Piatti pronti hamburger
@@ -7919,7 +7927,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.28.0';
+const APP_VERSION = '3.29.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -12739,14 +12747,11 @@ function openWorkoutModal(sessionId, existingSnapshot) {
         <span class="workout-set-input-label">${ex.isTimed ? 'secondi' : 'reps'}</span>
         <span></span>
       </div>
-      ${ex.sets.map((s, sIdx) => `
-        <div class="workout-set-row" data-setidx="${sIdx}">
-          <span class="workout-set-label">${sIdx + 1}</span>
-          <input class="workout-set-input weight-input" type="number" step="0.5" min="0" value="${s.weight}" data-field="weight" inputmode="decimal">
-          <input class="workout-set-input reps-input" type="number" step="${ex.isTimed ? 5 : 1}" min="0" value="${s.reps || ''}" placeholder="${ex.targetReps}" data-field="reps" inputmode="numeric">
-          <button class="workout-set-done" data-setidx="${sIdx}">✓</button>
-        </div>
-      `).join('')}
+      ${ex.sets.map((s, sIdx) => workoutSetRowHtml(ex, s, sIdx)).join('')}
+      <div class="workout-addset-row">
+        <button class="workout-addset-btn" type="button">+ Aggiungi serie</button>
+        <button class="workout-delset-btn" type="button">− Togli l'ultima</button>
+      </div>
       <div class="workout-ex-notes-row">
         <textarea data-exidx="${exIdx}" class="ex-notes" placeholder="Note (opzionale): ginocchio ok, salire prossima, ecc."></textarea>
       </div>
@@ -12757,7 +12762,7 @@ function openWorkoutModal(sessionId, existingSnapshot) {
   // Bind input handlers
   listEl.querySelectorAll('.workout-ex-card').forEach((card) => {
     const exIdx = parseInt(card.dataset.exidx);
-    card.querySelectorAll('.workout-set-row[data-setidx]').forEach(row => {
+    const bindRow = (row) => {
       const sIdx = parseInt(row.dataset.setidx);
       const weightIn = row.querySelector('.weight-input');
       const repsIn = row.querySelector('.reps-input');
@@ -12817,7 +12822,47 @@ function openWorkoutModal(sessionId, existingSnapshot) {
         updateWorkoutProgress();
         saveActiveWorkout(); // autosave after set done/undone
       });
+    };
+    card.querySelectorAll('.workout-set-row[data-setidx]').forEach(bindRow);
+    // Aggiungi / togli serie (anteprima e sessione in corso)
+    const addSetBtn = card.querySelector('.workout-addset-btn');
+    const delSetBtn = card.querySelector('.workout-delset-btn');
+    const syncDelBtn = () => {
+      const exObj = workoutSession.exercises[exIdx];
+      const last = exObj.sets[exObj.sets.length - 1];
+      delSetBtn.disabled = exObj.sets.length <= 1 || (last && last.done);
+    };
+    addSetBtn.addEventListener('click', () => {
+      const exObj = workoutSession.exercises[exIdx];
+      const prev = exObj.sets[exObj.sets.length - 1];
+      const s = { reps: null, weight: prev ? prev.weight : exObj.targetWeight, done: false };
+      exObj.sets.push(s);
+      const tmp = document.createElement('div');
+      tmp.innerHTML = workoutSetRowHtml(exObj, s, exObj.sets.length - 1).trim();
+      const row = tmp.firstElementChild;
+      addSetBtn.parentElement.before(row);
+      bindRow(row);
+      syncDelBtn();
+      if (workoutStarted) updateNextSetHighlight();
+      updateWorkoutProgress();
+      saveActiveWorkout();
     });
+    delSetBtn.addEventListener('click', () => {
+      const exObj = workoutSession.exercises[exIdx];
+      const last = exObj.sets[exObj.sets.length - 1];
+      if (exObj.sets.length <= 1 || !last || last.done) return;
+      const lastIdx = exObj.sets.length - 1;
+      if (setTimerActive && setTimerExIdx === exIdx && setTimerSetIdx === lastIdx) stopSetTimer();
+      exObj.sets.pop();
+      const row = card.querySelector(`.workout-set-row[data-setidx="${lastIdx}"]`);
+      if (row) row.remove();
+      syncDelBtn();
+      if (workoutStarted) updateNextSetHighlight();
+      updateWorkoutProgress();
+      saveActiveWorkout();
+    });
+    card.addEventListener('click', (e) => { if (e.target.closest('.workout-set-done')) setTimeout(syncDelBtn, 0); });
+    syncDelBtn();
     // Recupero regolabile (anteprima e durante la sessione): passi di 15s, 15-180s.
     // Il valore viene salvato nel log e il motore di progressione riparte da lì la volta dopo.
     const restVal = card.querySelector('.workout-rest-val');
@@ -12873,6 +12918,18 @@ function openWorkoutModal(sessionId, existingSnapshot) {
     workoutModal.classList.remove('started-mode');
     workoutModal.classList.add('show');
   }
+}
+
+// Riga di una serie (usata nel rendering iniziale e quando si aggiunge una serie durante la sessione)
+function workoutSetRowHtml(ex, s, sIdx) {
+  return `
+  <div class="workout-set-row" data-setidx="${sIdx}">
+          <span class="workout-set-label">${sIdx + 1}</span>
+          <input class="workout-set-input weight-input" type="number" step="0.5" min="0" value="${s.weight}" data-field="weight" inputmode="decimal">
+          <input class="workout-set-input reps-input" type="number" step="${ex.isTimed ? 5 : 1}" min="0" value="${s.reps || ''}" placeholder="${ex.targetReps}" data-field="reps" inputmode="numeric">
+          <button class="workout-set-done" data-setidx="${sIdx}">✓</button>
+        </div>
+`;
 }
 
 // Called when user taps "Via! Inizia l'allenamento" — OR when restoring a saved session
