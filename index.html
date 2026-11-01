@@ -5166,6 +5166,11 @@
   .td-row b { color: var(--ink); font-weight: 500; }
   .td-row .td-r { text-align: right; }
   .td-foot { font-size: 12px; color: var(--ink-faint); line-height: 1.45; margin-top: 8px; }
+  /* Scorri per eliminare */
+  .meal-body .item { position: relative; overflow: hidden; }
+  .item-swipe-del { position: absolute; top: 0; right: 0; bottom: 0; width: 96px; border: 0; background: #C0392B; color: #fff; font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; }
+  .meal-body .item-tap { position: relative; z-index: 1; background: var(--bg-card); transition: transform .2s ease; touch-action: pan-y; }
+  .meal-body .item.removing { opacity: 0; transition: opacity .18s; }
   /* Piede e versione */
   .footer-note { color: var(--ink-faint); font-size: 12px; }
   .version-badge { background: var(--bg-soft); color: var(--ink-faint); margin-left: 6px; font-size: 11px; }
@@ -7991,7 +7996,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.32.1';
+const APP_VERSION = '3.33.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -8727,6 +8732,7 @@ function renderMeals() {
         const noteTxt = foodCategory === 'bad-trig' ? foodWarning : (foodCategory === 'protein-rich' ? 'ricco di proteine' : (foodCategory === 'caution' ? 'da moderare' : ''));
         // v4: riga compatta, nutrienti sempre visibili, tocco = modifica/elimina
         itemDiv.innerHTML = `
+          <button class="item-swipe-del" type="button" data-meal="${mealName}" data-idx="${idx}">Elimina</button>
           <div class="item-tap" data-meal="${mealName}" data-idx="${idx}">
             <div class="it-r1"><i class="it-dot"></i><span class="it-nm">${item.name}</span><span class="it-q">${qtyStr}</span><span class="it-k">${fmt(item.kcal)}</span></div>
             <div class="it-r2"><span><b>${fmt(item.protein,1)}</b> prot</span><span><b>${fmt(item.carbs,1)}</b> carbo</span><span><b>${fmt(item.fat,1)}</b> grassi</span>${noteTxt ? `<span class="it-note">${noteTxt}</span>` : ''}</div>
@@ -8777,9 +8783,26 @@ function renderMeals() {
   // tap-to-edit handlers (on the item content itself, not the buttons)
   container.querySelectorAll('.item-tap').forEach(el => {
     el.addEventListener('click', () => {
+      // se la riga è aperta (scorsa a sinistra) il tocco la richiude invece di aprire la modifica
+      if (el.classList.contains('swiped') || el.dataset.justSwiped) { closeSwipes(); return; }
+      if (container.querySelector('.item-tap.swiped')) { closeSwipes(); return; }
       const meal = el.dataset.meal;
       const idx = parseInt(el.dataset.idx);
       openEditModal(meal, idx);
+    });
+    bindSwipe(el);
+  });
+  container.querySelectorAll('.item-swipe-del').forEach(btn => {
+    btn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      const list = state.diary[state.currentDate] && state.diary[state.currentDate][btn.dataset.meal];
+      const idx = parseInt(btn.dataset.idx);
+      if (!list || !list[idx]) return;
+      const row = btn.closest('.item');
+      row.classList.add('removing');
+      list.splice(idx, 1);
+      await saveDiary();
+      setTimeout(renderAll, 180);
     });
   });
 
@@ -8936,6 +8959,42 @@ function renderTotals() {
     container.appendChild(div);
   });
 }
+
+// ===== Scorri a sinistra per eliminare (righe del diario) =====
+const SWIPE_W = 96;
+function closeSwipes(except) {
+  document.querySelectorAll('.item-tap.swiped').forEach(el => {
+    if (el === except) return;
+    el.classList.remove('swiped'); el.style.transform = '';
+  });
+}
+function bindSwipe(el) {
+  let x0 = 0, y0 = 0, dx = 0, mode = null, base = 0;
+  el.addEventListener('touchstart', e => {
+    const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; dx = 0; mode = null;
+    base = el.classList.contains('swiped') ? -SWIPE_W : 0;
+    el.style.transition = 'none';
+  }, { passive: true });
+  el.addEventListener('touchmove', e => {
+    const t = e.touches[0]; const mx = t.clientX - x0, my = t.clientY - y0;
+    if (!mode) { if (Math.abs(mx) < 8 && Math.abs(my) < 8) return; mode = Math.abs(mx) > Math.abs(my) ? 'h' : 'v'; if (mode === 'h') closeSwipes(el); }
+    if (mode !== 'h') return;
+    e.preventDefault();
+    dx = mx;
+    const pos = Math.max(-SWIPE_W - 24, Math.min(0, base + dx));
+    el.style.transform = `translateX(${pos}px)`;
+  }, { passive: false });
+  el.addEventListener('touchend', () => {
+    el.style.transition = '';
+    if (mode !== 'h') return;
+    const open = base + dx < -SWIPE_W / 2;
+    el.classList.toggle('swiped', open);
+    el.style.transform = open ? `translateX(${-SWIPE_W}px)` : '';
+    // evita che il click sintetico subito dopo lo swipe apra la modifica
+    el.dataset.justSwiped = '1'; setTimeout(() => { delete el.dataset.justSwiped; }, 350);
+  });
+}
+document.addEventListener('touchstart', e => { if (!e.target.closest('.item')) closeSwipes(); }, { passive: true });
 
 // ===== Copia pasti / giornata =====
 const MEAL_NAMES = ['Colazione','Spuntino mattina','Pranzo','Merenda','Cena'];
