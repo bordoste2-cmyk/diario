@@ -1084,6 +1084,13 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
 .mf-del.armed { background: #C0392B; border-color: #C0392B; color: #fff; }
 .mf-empty { font-size: 14px; color: var(--ink-faint); padding: 14px 0; }
 .hdr-ver { margin: 4px 0 0 0 !important; }
+/* Suono del timer */
+.sound-picker { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); }
+.sp-k { font-size: 15px; color: var(--ink-soft); margin-bottom: 8px; }
+.sp-k small { font-size: 12px; color: var(--ink-faint); margin-left: 6px; }
+.sp-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sp-row button { background: var(--bg-soft); border: 1px solid var(--line); color: var(--ink); border-radius: 12px; padding: 10px 8px; font: inherit; font-size: 14px; cursor: pointer; }
+.sp-row button.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 </style>
 </head>
 <body>
@@ -1241,6 +1248,7 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
               <div class="ws-c-hint">C e D sono fuori dalla rotazione A/B: falle quando vuoi</div>
             </div>
             <div class="workout-stats" id="workout-stats"></div>
+            <div class="sound-picker" id="sound-picker"></div>
           </div>
 
           <!-- ACTIVITIES -->
@@ -3756,7 +3764,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.37.5';
+const APP_VERSION = '3.38.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -8181,6 +8189,7 @@ function renderWorkout() {
 
   const nextSessionId = suggestNextSessionType();
   const session = WORKOUT_SESSIONS[nextSessionId];
+  renderSoundPicker();
   document.getElementById('ws-session-id').textContent = session.id;
   document.getElementById('ws-meta').innerHTML = `<b>${session.subtitle}</b><span>${session.exercises.length} esercizi</span>`;
   document.getElementById('ws-start-btn').textContent = 'Inizia sessione ' + session.id;
@@ -9124,35 +9133,85 @@ function _ensureAudio() {
   } catch (e) { return false; }
 }
 
-// End-of-rest cue: two rising beeps (existing behavior)
-function playBeep() {
+// ===== Suoni del timer: profili selezionabili (Attività → Suono del timer) =====
+const SOUND_PROFILES = { classico: 'Classico', campanella: 'Campanella', digitale: 'Sveglia digitale', palestra: 'Timer palestra' };
+function soundProfile() { try { return localStorage.getItem(KEY_PREFIX + 'soundProfile') || 'classico'; } catch (e) { return 'classico'; } }
+let _soundOut = null;
+function _out() {
+  // compressore in uscita: suoni più forti senza distorcere
+  if (_soundOut && _soundOut.context === audioCtx) return _soundOut;
+  const comp = audioCtx.createDynamicsCompressor();
+  comp.threshold.value = -10; comp.ratio.value = 6; comp.attack.value = 0.002; comp.release.value = 0.1;
+  comp.connect(audioCtx.destination);
+  _soundOut = comp; return comp;
+}
+function _tone(t, freq, dur, gain, type) {
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = type || 'sine'; o.frequency.value = freq;
+  o.connect(g); g.connect(_out());
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(gain, t + 0.005);
+  g.gain.setValueAtTime(gain, t + Math.max(0.01, dur - 0.02));
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.start(t); o.stop(t + dur + 0.02);
+}
+function _bell(t, freq, dur) {
+  // campana: fondamentale + armoniche inarmoniche, attacco secco e coda lunga
+  [[1, 0.6], [2.76, 0.3], [5.4, 0.15], [8.93, 0.08]].forEach(([m, gn]) => {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'sine'; o.frequency.value = freq * m;
+    o.connect(g); g.connect(_out());
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(gn, t + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur / (1 + m * 0.15));
+    o.start(t); o.stop(t + dur + 0.05);
+  });
+}
+function playCue(kind, profileOverride) {
   if (!_ensureAudio()) return;
   try {
-    const now = audioCtx.currentTime;
-    _beepAt(now, 880, 0.2, 0.3);
-    _beepAt(now + 0.25, 1175, 0.2, 0.3);
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const t = audioCtx.currentTime + 0.02;
+    const p = profileOverride || soundProfile();
+    if (p === 'campanella') {
+      if (kind === 'w10') _bell(t, 1568, 0.9);
+      else if (kind === 'w5') { _bell(t, 1568, 0.6); _bell(t + 0.22, 1568, 0.9); }
+      else { _bell(t, 2093, 0.7); _bell(t + 0.2, 2093, 0.7); _bell(t + 0.4, 2637, 1.6); }
+    } else if (p === 'digitale') {
+      const burst = (t0, n) => { for (let i = 0; i < n; i++) _tone(t0 + i * 0.11, 2400, 0.07, 0.35, 'square'); };
+      if (kind === 'w10') burst(t, 2);
+      else if (kind === 'w5') burst(t, 3);
+      else { burst(t, 4); burst(t + 0.6, 4); burst(t + 1.2, 4); }
+    } else if (p === 'palestra') {
+      if (kind === 'w10') _tone(t, 1000, 0.14, 0.4, 'square');
+      else if (kind === 'w5') { _tone(t, 1000, 0.14, 0.4, 'square'); _tone(t + 0.3, 1000, 0.14, 0.4, 'square'); }
+      else { _tone(t, 1000, 0.15, 0.4, 'square'); _tone(t + 0.35, 1000, 0.15, 0.4, 'square'); _tone(t + 0.7, 1500, 0.8, 0.45, 'square'); }
+    } else {
+      // classico (quello di prima)
+      if (kind === 'w10') { _beepAt(t, 660, 0.10, 0.18); _beepAt(t + 0.16, 660, 0.10, 0.18); }
+      else if (kind === 'w5') { _beepAt(t, 880, 0.09, 0.22); _beepAt(t + 0.14, 880, 0.09, 0.22); _beepAt(t + 0.28, 880, 0.09, 0.22); }
+      else { _beepAt(t, 880, 0.2, 0.3); _beepAt(t + 0.25, 1175, 0.2, 0.3); }
+    }
   } catch (e) {}
 }
+// Fine recupero / avvisi a -10s e -5s
+function playBeep() { playCue('end'); }
+function playWarningBeep10() { playCue('w10'); }
+function playWarningBeep5() { playCue('w5'); }
 
-// Warning at -10s: two short medium beeps ("preparati")
-function playWarningBeep10() {
-  if (!_ensureAudio()) return;
-  try {
-    const now = audioCtx.currentTime;
-    _beepAt(now, 660, 0.10, 0.18);
-    _beepAt(now + 0.16, 660, 0.10, 0.18);
-  } catch (e) {}
-}
-
-// Warning at -5s: three short higher beeps ("imminente")
-function playWarningBeep5() {
-  if (!_ensureAudio()) return;
-  try {
-    const now = audioCtx.currentTime;
-    _beepAt(now, 880, 0.09, 0.22);
-    _beepAt(now + 0.14, 880, 0.09, 0.22);
-    _beepAt(now + 0.28, 880, 0.09, 0.22);
-  } catch (e) {}
+// Selettore nella scheda Attività: tocco = scegli e ascolta (avviso + fine)
+function renderSoundPicker() {
+  const box = document.getElementById('sound-picker');
+  if (!box) return;
+  const cur = soundProfile();
+  box.innerHTML = `<div class="sp-k">Suono del timer <small>tocca per ascoltare</small></div><div class="sp-row">` +
+    Object.entries(SOUND_PROFILES).map(([k, l]) => `<button type="button" class="${k === cur ? 'on' : ''}" data-s="${k}">${l}</button>`).join('') + '</div>';
+  box.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    try { localStorage.setItem(KEY_PREFIX + 'soundProfile', b.dataset.s); } catch (e) {}
+    box.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    playCue('w5', b.dataset.s);
+    setTimeout(() => playCue('end', b.dataset.s), 1100);
+  }));
 }
 
 function closeWorkoutModal(saved) {
