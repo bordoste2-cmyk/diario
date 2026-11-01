@@ -4925,6 +4925,55 @@
   .item.food-protein-rich::before { background: #5FA36A; }
   .item.food-bad-trig::before { background: #E0603F; }
   .item.food-caution::before { background: #C9A227; }
+  /* ===== Diario v4 ===== */
+  .tab-panel[data-tab="diario"] .summary-totals, #summary-chips, .metabolism-toggle-row, #net-balance { display: none !important; }
+  .meal { background: var(--bg-card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin-bottom: 12px; box-shadow: none; }
+  .meal-header { background: none !important; border: 0; width: 100%; text-align: left; padding: 13px 16px 11px; color: var(--ink); cursor: pointer; display: block; font: inherit; }
+  .mh2-top { display: flex; align-items: center; gap: 10px; }
+  .mh2-n { flex: 1; font-size: 19px; font-weight: 500; }
+  .mh2-k { font-family: 'Syne', 'DM Sans', sans-serif; font-weight: 700; font-size: 20px; }
+  .mh2-k small { font-family: 'DM Sans', sans-serif; font-weight: 400; font-size: 13px; color: var(--ink-faint); margin-left: 3px; }
+  .meal-header .meal-chevron { color: var(--ink-faint); transition: transform .2s; font-size: 14px; }
+  .meal-header.collapsed .meal-chevron { transform: rotate(-90deg); }
+  .mh2-m { display: flex; gap: 14px; margin-top: 3px; font-size: 14px; color: var(--ink-faint); }
+  .mh2-m b { color: var(--ink-soft); font-weight: 500; }
+  .meal-body { padding: 0; }
+  .meal-body .item { display: block; border: 0; border-top: 1px solid var(--line); border-radius: 0; margin: 0; background: none !important; box-shadow: none; }
+  .meal-body .item::before { display: none; }
+  .meal-body .item-actions { display: none; }
+  .item-tap { padding: 10px 16px; cursor: pointer; display: block; }
+  .item-tap:active { background: var(--bg-soft); }
+  .it-r1 { display: flex; align-items: center; gap: 10px; }
+  .it-dot { width: 8px; height: 8px; border-radius: 4px; flex: none; background: transparent; display: inline-block; }
+  .food-bad-trig .it-dot, .lg-bad { background: #E0603F; }
+  .food-caution .it-dot, .lg-cau { background: #C9A227; }
+  .food-protein-rich .it-dot, .lg-pro { background: #5FA36A; }
+  .it-nm { flex: 1; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .it-q { font-size: 14px; color: var(--ink-faint); white-space: nowrap; }
+  .it-k { font-size: 16px; font-weight: 500; min-width: 38px; text-align: right; }
+  .it-r2 { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 3px 0 0 18px; font-size: 13px; color: var(--ink-faint); }
+  .it-r2 b { color: var(--ink-soft); font-weight: 500; }
+  .it-note { color: #F0A58F; }
+  .food-protein-rich .it-note { color: #9BD39B; }
+  .food-caution .it-note { color: #E6C35C; }
+  .empty-meal { padding: 10px 16px; border-top: 1px solid var(--line); color: var(--ink-faint); font-size: 14px; }
+  .meal-add-btn { display: block; width: 100%; text-align: left; background: none; border: 0; border-top: 1px solid var(--line); border-radius: 0; padding: 12px 16px; color: var(--accent); font: inherit; font-size: 15px; font-weight: 500; cursor: pointer; }
+  .nutri-legend { display: flex; gap: 14px; flex-wrap: wrap; margin: 0 4px 12px; font-size: 13px; color: var(--ink-faint); border: 0; background: none; padding: 0; }
+  .nutri-legend .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  /* Totale del giorno */
+  #macros .nb { margin: 12px 0; }
+  .nb-l { display: flex; justify-content: space-between; font-size: 15px; }
+  .nb-l span:last-child { color: var(--ink-soft); }
+  .nb-l b { color: var(--ink); font-weight: 500; }
+  .nb-t { height: 6px; border-radius: 3px; background: var(--line); margin-top: 5px; overflow: hidden; }
+  .nb-t i { display: block; height: 100%; background: var(--blu); border-radius: 3px; }
+  .nb.hi .nb-t i { background: var(--accent); } .nb.hi .nb-l b { color: var(--accent-deep); }
+  .nb.lo .nb-t i { background: var(--blu-soft); }
+  .metric-btn { background: var(--bg-soft); border: 1px solid var(--line); color: var(--ink-soft); }
+  .metric-btn.active, .metric-btn.selected { border-color: var(--accent); color: var(--accent); background: var(--bg-soft); }
+  .btn-danger { background: rgba(232,144,127,.12) !important; color: #F0A58F !important; border: 1px solid rgba(232,144,127,.5) !important; }
+  .modal input[type=number], .modal input[type=text], .modal input[type=date], .modal select, .modal textarea { background: var(--bg-soft); color: var(--ink); border-color: var(--line); }
+  .modal input:focus { border-color: var(--accent); outline: none; }
   /* Piede e versione */
   .footer-note { color: var(--ink-faint); font-size: 12px; }
   .version-badge { background: var(--bg-soft); color: var(--ink-faint); margin-left: 6px; font-size: 11px; }
@@ -5833,6 +5882,7 @@
     </div>
 
     <div class="modal-actions">
+      <button class="btn-danger" id="qty-delete" style="display:none;">Elimina</button>
       <button class="btn-secondary" id="qty-cancel">Annulla</button>
       <button class="btn-primary" id="qty-add">Aggiungi</button>
     </div>
@@ -7758,7 +7808,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.25.2';
+const APP_VERSION = '3.26.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -8412,32 +8462,8 @@ function renderMeals() {
     const isCollapsed = state.collapsedMeals[mealName] === true;
     mealDiv.innerHTML = `
       <button class="meal-header ${isCollapsed ? 'collapsed' : ''}" data-meal="${mealName}" type="button">
-        <div class="meal-header-top">
-          <div class="meal-name"><span class="meal-emoji">${mealEmojis[mealName]||'🍴'}</span>${displayName}</div>
-          <div class="meal-header-right">
-            <div class="meal-kcal-badge">
-              <span class="nutri-icon nutri-kcal">${flameSvgH}</span>
-              <span class="meal-kcal-val">${fmt(mt.kcal)}</span>
-            </div>
-            <span class="meal-chevron" aria-hidden="true">▾</span>
-          </div>
-        </div>
-        ${showMacros ? `
-        <div class="meal-header-bottom">
-          <span class="nutri-chip">
-            <span class="nutri-icon nutri-prot">${leafSvgH}</span>
-            <span class="nutri-val">${fmt(mt.protein,1)}</span>
-          </span>
-          <span class="nutri-chip">
-            <span class="nutri-icon nutri-carbs">${wheatSvgH}</span>
-            <span class="nutri-val">${fmt(mt.carbs,1)}</span>
-          </span>
-          <span class="nutri-chip">
-            <span class="nutri-icon nutri-fat">${dropSvgH}</span>
-            <span class="nutri-val">${fmt(mt.fat,1)}</span>
-          </span>
-        </div>
-        ` : ''}
+        <div class="mh2-top"><span class="mh2-n">${displayName}</span><span class="mh2-k">${fmt(mt.kcal)}<small>kcal</small></span><span class="meal-chevron" aria-hidden="true">▾</span></div>
+        ${showMacros ? `<div class="mh2-m"><span><b>${fmt(mt.protein,1)}</b> prot</span><span><b>${fmt(mt.carbs,1)}</b> carbo</span><span><b>${fmt(mt.fat,1)}</b> grassi</span></div>` : ''}
       </button>
       <div class="meal-body ${isCollapsed ? 'collapsed' : ''}" data-meal-body="${mealName}"></div>
     `;
@@ -8515,35 +8541,12 @@ function renderMeals() {
         }
 
         itemDiv.classList.add(`food-${foodCategory}`);
+        const noteTxt = foodCategory === 'bad-trig' ? foodWarning : (foodCategory === 'protein-rich' ? 'ricco di proteine' : (foodCategory === 'caution' ? 'da moderare' : ''));
+        // v4: riga compatta, nutrienti sempre visibili, tocco = modifica/elimina
         itemDiv.innerHTML = `
           <div class="item-tap" data-meal="${mealName}" data-idx="${idx}">
-            <div class="item-top-row">
-              <span class="item-name">${item.name}</span>
-              <span class="item-qty-badge">${qtyStr}</span>
-            </div>
-            ${categoryTagHtml ? `<div class="item-tag-row">${categoryTagHtml}</div>` : ''}
-            <div class="item-bottom-row">
-              <span class="nutri-chip">
-                <span class="nutri-icon nutri-kcal">${flameSvg}</span>
-                <span class="nutri-val">${fmt(item.kcal)}</span>
-              </span>
-              <span class="nutri-chip">
-                <span class="nutri-icon nutri-prot">${leafSvg}</span>
-                <span class="nutri-val">${fmt(item.protein,1)}</span>
-              </span>
-              <span class="nutri-chip">
-                <span class="nutri-icon nutri-carbs">${wheatSvg}</span>
-                <span class="nutri-val">${fmt(item.carbs,1)}</span>
-              </span>
-              <span class="nutri-chip">
-                <span class="nutri-icon nutri-fat">${dropSvg}</span>
-                <span class="nutri-val">${fmt(item.fat,1)}</span>
-              </span>
-            </div>
-          </div>
-          <div class="item-actions">
-            <button class="edit-btn" data-meal="${mealName}" data-idx="${idx}" title="Modifica">✎</button>
-            <button class="delete-btn" data-meal="${mealName}" data-idx="${idx}" title="Rimuovi">✕</button>
+            <div class="it-r1"><i class="it-dot"></i><span class="it-nm">${item.name}</span><span class="it-q">${qtyStr}</span><span class="it-k">${fmt(item.kcal)}</span></div>
+            <div class="it-r2"><span><b>${fmt(item.protein,1)}</b> prot</span><span><b>${fmt(item.carbs,1)}</b> carbo</span><span><b>${fmt(item.fat,1)}</b> grassi</span>${noteTxt ? `<span class="it-note">${noteTxt}</span>` : ''}</div>
           </div>
         `;
         mealDiv.querySelector('.meal-body').appendChild(itemDiv);
@@ -8553,7 +8556,7 @@ function renderMeals() {
     const addBtn = document.createElement('button');
     addBtn.className = 'meal-add-btn';
     addBtn.dataset.meal = mealName;
-    addBtn.innerHTML = `<span class="meal-add-icon">+</span> Aggiungi a ${displayName.toLowerCase()}`;
+    addBtn.innerHTML = `+ Aggiungi a ${displayName.toLowerCase()}`;
     addBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       openSearchModal(mealName);
@@ -8571,13 +8574,11 @@ function renderMeals() {
   const wheatSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 8c0-2.21 1.79-4 4-4 1.74 0 3.21 1.12 3.75 2.67l1.13-.6C13.2 4 11.21 3 9 3 5.69 3 3 5.69 3 9c0 2.21 1 4.2 2.57 5.55l.6-1.13C5 12.21 5 10.74 5 9V8zm14 6c0 2.21-1.79 4-4 4-1.74 0-3.21-1.12-3.75-2.67l-1.13.6C10.8 18 12.79 19 15 19c3.31 0 6-2.69 6-6 0-2.21-1-4.2-2.57-5.55l-.6 1.13C19 11.79 19 13.26 19 15v-1z"/><circle cx="9" cy="9" r="2"/><circle cx="15" cy="15" r="2"/></svg>';
   const dropSvg = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.1L7.05 8.05a7 7 0 109.9 0L12 3.1zm0 2.83l3.54 3.54a5 5 0 11-7.07 0L12 5.93z"/></svg>';
   legend.innerHTML = `
-    <span class="legend-title">legenda</span>
-    <span class="legend-item"><span class="legend-icon nutri-kcal">${flameSvg}</span> kcal</span>
-    <span class="legend-item"><span class="legend-icon nutri-prot">${leafSvg}</span> g proteine</span>
-    <span class="legend-item"><span class="legend-icon nutri-carbs">${wheatSvg}</span> g carboidrati</span>
-    <span class="legend-item"><span class="legend-icon nutri-fat">${dropSvg}</span> g grassi</span>
+    <span class="legend-item"><i class="it-dot lg-bad"></i>da limitare</span>
+    <span class="legend-item"><i class="it-dot lg-cau"></i>da moderare</span>
+    <span class="legend-item"><i class="it-dot lg-pro"></i>ricco di proteine</span>
   `;
-  container.appendChild(legend);
+  container.insertBefore(legend, container.firstChild);
 
   // tap-to-edit handlers (on the item content itself, not the buttons)
   container.querySelectorAll('.item-tap').forEach(el => {
@@ -8723,34 +8724,31 @@ function renderTotals() {
     { key:'fiber', label:'Fibre', val:t.fiber, target:tg.fiber, cls:'fiber', goal:'min' },
   ];
 
+  // v4: barre con significato. Blu = in linea, arancio = sopra, azzurro chiaro = sotto un minimo
+  macros.unshift({ key:'kcal', label:'Calorie', val:t.kcal, target:tg.kcal, goal:'target', unit:'kcal' });
   const container = document.getElementById('macros');
   container.innerHTML = '';
   macros.forEach(m => {
-    const pct = Math.min((m.val / m.target) * 100, 100);
-    const over = m.val > m.target;
-    const isMaxAndOver = m.goal === 'max' && over;
+    const pct = m.target > 0 ? Math.min((m.val / m.target) * 100, 100) : 0;
+    let state2 = '';
+    if ((m.goal === 'target' || m.goal === 'max') && m.val > m.target * 1.05) state2 = 'hi';
+    else if (m.goal === 'min' && m.val < m.target * 0.9) state2 = 'lo';
     const div = document.createElement('div');
-    div.className = 'macro';
-    const goalSymbol = m.goal === 'min' ? '≥' : (m.goal === 'max' ? '≤' : '');
-    div.innerHTML = `
-      <div class="macro-head">
-        <span class="macro-name">${m.label}</span>
-        <span class="macro-vals"><span class="now">${fmt(m.val,1)}</span> / ${goalSymbol} ${fmt(m.target)} g</span>
-      </div>
-      <div class="bar"><div class="bar-fill ${isMaxAndOver ? 'over' : m.cls}" style="width:${pct}%"></div></div>
-    `;
+    div.className = 'nb ' + state2;
+    const dec = m.unit === 'kcal' ? 0 : 1;
+    div.innerHTML = `<div class="nb-l"><span>${m.label}</span><span><b>${fmt(m.val, dec)}</b> / ${fmt(m.target)} ${m.unit || 'g'}</span></div><div class="nb-t"><i style="width:${pct}%"></i></div>`;
     container.appendChild(div);
   });
 }
 
 // Metric metadata for the interactive kcal chart
 const KCAL_METRIC_INFO = {
-  kcal:      { label: 'kcal',     unit: '',    color: '#c4634f', target: () => state.targets.kcal },
-  protein:   { label: 'proteine', unit: 'g',   color: '#2d8659', target: () => state.targets.protein },
-  carbs:     { label: 'carbo',    unit: 'g',   color: '#c88a3b', target: () => state.targets.carbs },
-  fat:       { label: 'grassi',   unit: 'g',   color: '#8c5e1d', target: () => state.targets.fat },
-  saturated: { label: 'saturi',   unit: 'g',   color: '#a04a1f', target: () => state.targets.saturated },
-  fiber:     { label: 'fibre',    unit: 'g',   color: '#7c9c5b', target: () => state.targets.fiber }
+  kcal:      { label: 'kcal',     unit: '',    color: '#F19004', target: () => state.targets.kcal },
+  protein:   { label: 'proteine', unit: 'g',   color: '#F19004', target: () => state.targets.protein },
+  carbs:     { label: 'carbo',    unit: 'g',   color: '#F19004', target: () => state.targets.carbs },
+  fat:       { label: 'grassi',   unit: 'g',   color: '#F19004', target: () => state.targets.fat },
+  saturated: { label: 'saturi',   unit: 'g',   color: '#F19004', target: () => state.targets.saturated },
+  fiber:     { label: 'fibre',    unit: 'g',   color: '#F19004', target: () => state.targets.fiber }
 };
 
 function renderWeekChart() {
@@ -8881,8 +8879,8 @@ function drawKcalChart(points, target, info) {
   for (let i = 0; i <= yTicks; i++) {
     const v = yMin + (yRange / yTicks) * i;
     const y = yPos(v);
-    svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#e8e1d4" stroke-width="0.5"/>`;
-    svg += `<text x="${padding.left - 5}" y="${y + 3}" text-anchor="end" font-family="DM Sans, sans-serif" font-size="9" fill="#a8a8a0">${Math.round(v)}</text>`;
+    svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#1E3459" stroke-width="0.7"/>`;
+    svg += `<text x="${padding.left - 5}" y="${y + 3}" text-anchor="end" font-family="DM Sans, sans-serif" font-size="9" fill="#8A93A6">${Math.round(v)}</text>`;
   }
 
   // Target line (dashed)
@@ -8902,7 +8900,7 @@ function drawKcalChart(points, target, info) {
     : [points[0], points[Math.floor(points.length/2)], points[points.length - 1]];
   labelDates.forEach(p => {
     const x = xPos(p.ts);
-    svg += `<text x="${x}" y="${height - 8}" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="9" fill="#a8a8a0">${formatShortDate(p.date)}</text>`;
+    svg += `<text x="${x}" y="${height - 8}" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="9" fill="#8A93A6">${formatShortDate(p.date)}</text>`;
   });
 
   // Raw daily dots (skip zero days — they're "no data")
@@ -8924,13 +8922,13 @@ function drawKcalChart(points, target, info) {
     if (isToday) {
       // Today: hollow circle with metric color, larger, to signal "in progress".
       const r = Math.max(dotRadius + 1, 3);
-      svg += `<circle cx="${x}" cy="${y}" r="${r}" fill="white" stroke="${info.color}" stroke-width="1.5" opacity="0.95"/>`;
+      svg += `<circle cx="${x}" cy="${y}" r="${r}" fill="#010D23" stroke="${info.color}" stroke-width="1.8" opacity="0.95"/>`;
       // Little tag "oggi" if there's space
       if (points.length <= 60) {
         svg += `<text x="${x + r + 3}" y="${y + 3}" font-family="DM Sans, sans-serif" font-size="9" fill="${info.color}" opacity="0.8">oggi</text>`;
       }
     } else {
-      svg += `<circle cx="${x}" cy="${y}" r="${dotRadius}" fill="#a8a8a0" opacity="${dotOpacity}"/>`;
+      svg += `<circle cx="${x}" cy="${y}" r="${dotRadius}" fill="#80A7CE" opacity="${dotOpacity}"/>`;
     }
   });
 
@@ -9556,6 +9554,21 @@ document.querySelectorAll('.meal-pick').forEach(btn => {
 });
 
 document.getElementById('qty-cancel').addEventListener('click', () => qtyModal.classList.remove('show'));
+// Elimina alimento (solo in modifica): sostituisce la ✕ sempre visibile della lista
+document.getElementById('qty-delete').addEventListener('click', async () => {
+  if (!editMode) return;
+  const list = state.diary[state.currentDate] && state.diary[state.currentDate][editMode.meal];
+  if (!list || !list[editMode.idx]) return;
+  list.splice(editMode.idx, 1);
+  editMode = null;
+  await saveDiary();
+  qtyModal.classList.remove('show');
+  renderAll();
+});
+// Mostra "Elimina" solo quando si modifica un alimento già registrato
+new MutationObserver(() => {
+  if (qtyModal.classList.contains('show')) document.getElementById('qty-delete').style.display = editMode ? '' : 'none';
+}).observe(qtyModal, { attributes: true, attributeFilter: ['class'] });
 document.getElementById('qty-edit-custom').addEventListener('click', () => {
   if (!currentFood || !currentFood.custom) return;
   // Look up the original custom food from state to preserve recipe data
@@ -10809,8 +10822,8 @@ function drawWeightChart(dates, values) {
   for (let i = 0; i <= yTicks; i++) {
     const w = minW + (wRange / yTicks) * i;
     const y = yPos(w);
-    svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#e8e1d4" stroke-width="0.5"/>`;
-    svg += `<text x="${padding.left - 5}" y="${y + 3}" text-anchor="end" font-family="DM Sans, sans-serif" font-size="9" fill="#a8a8a0">${w.toFixed(1)}</text>`;
+    svg += `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#1E3459" stroke-width="0.7"/>`;
+    svg += `<text x="${padding.left - 5}" y="${y + 3}" text-anchor="end" font-family="DM Sans, sans-serif" font-size="9" fill="#8A93A6">${w.toFixed(1)}</text>`;
   }
 
   // X-axis date labels (first, middle, last)
@@ -10824,14 +10837,14 @@ function drawWeightChart(dates, values) {
     : [pts[0], pts[Math.floor(pts.length/2)], pts[pts.length - 1]];
   labelDates.forEach(p => {
     const x = xPos(p.ts);
-    svg += `<text x="${x}" y="${height - 8}" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="9" fill="#a8a8a0">${formatShortDate(p.date)}</text>`;
+    svg += `<text x="${x}" y="${height - 8}" text-anchor="middle" font-family="DM Sans, sans-serif" font-size="9" fill="#8A93A6">${formatShortDate(p.date)}</text>`;
   });
 
   // Raw weight dots — adaptive size based on density
   const dotRadius = pts.length > 200 ? 1 : pts.length > 100 ? 1.3 : pts.length > 50 ? 1.8 : 2.5;
   const dotOpacity = pts.length > 100 ? 0.4 : 0.65;
   pts.forEach(p => {
-    svg += `<circle cx="${xPos(p.ts)}" cy="${yPos(p.w)}" r="${dotRadius}" fill="#a8a8a0" opacity="${dotOpacity}"/>`;
+    svg += `<circle cx="${xPos(p.ts)}" cy="${yPos(p.w)}" r="${dotRadius}" fill="#80A7CE" opacity="${dotOpacity}"/>`;
   });
 
   // Moving average line
