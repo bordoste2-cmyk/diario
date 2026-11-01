@@ -4879,15 +4879,18 @@
   /* Calendari: colori rispetto all'obiettivo su fondo scuro */
   .home-cal-card { padding: 14px 12px; }
   .cal-day { background: var(--bg-soft); color: var(--ink-soft); }
-  .cal-day.ktarget-0 { background: #1F4A2B; } .cal-day.ktarget-0 .cal-day-num { color: #CFEACF; }
-  .cal-day.ktarget-1 { background: #3D4A1C; } .cal-day.ktarget-1 .cal-day-num { color: #E6E9C4; }
-  .cal-day.ktarget-2 { background: #5A4A10; } .cal-day.ktarget-2 .cal-day-num { color: #F2E2A8; }
-  .cal-day.ktarget-3 { background: #6A3A10; } .cal-day.ktarget-3 .cal-day-num { color: #F6D2B0; }
-  .cal-day.ktarget-4 { background: #6E2418; } .cal-day.ktarget-4 .cal-day-num { color: #F6CFC8; }
+  .cal-day.ktarget-0 { background: #2E8B57; }
+  .cal-day.ktarget-1 { background: #8FA321; }
+  .cal-day.ktarget-2 { background: #D9A400; }
+  .cal-day.ktarget-3 { background: #E06A10; }
+  .cal-day.ktarget-4 { background: #C0392B; }
+  .cal-day[class*="ktarget-"]:not(.ktarget-none) .cal-day-num { color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,0,0,.35); }
   .cal-day.ktarget-none { background: var(--bg-soft); }
-  .cal-legend-swatch.home-cal-sw[data-klevel="0"] { background: #1F4A2B; }
-  .cal-legend-swatch.home-cal-sw[data-klevel="2"] { background: #5A4A10; }
-  .cal-legend-swatch.home-cal-sw[data-klevel="4"] { background: #6E2418; }
+  .cal-legend-swatch.home-cal-sw[data-klevel="0"] { background: #2E8B57; }
+  .cal-legend-swatch.home-cal-sw[data-klevel="1"] { background: #8FA321; }
+  .cal-legend-swatch.home-cal-sw[data-klevel="2"] { background: #D9A400; }
+  .cal-legend-swatch.home-cal-sw[data-klevel="3"] { background: #E06A10; }
+  .cal-legend-swatch.home-cal-sw[data-klevel="4"] { background: #C0392B; }
   .cal-nav-btn { background: var(--bg-soft); border: 1px solid var(--line); color: var(--accent); }
   .cal-month-label { font-weight: 300; color: var(--ink); }
   #home-cal-grid .cal-day { aspect-ratio: 0.9; }
@@ -4984,11 +4987,13 @@
             </div>
             <div class="cal-grid" id="home-cal-grid"></div>
             <div class="cal-legend">
-              <span class="cal-legend-label">lontano</span>
-              <span class="cal-legend-swatch home-cal-sw" data-klevel="4"></span>
-              <span class="cal-legend-swatch home-cal-sw" data-klevel="2"></span>
+              <span class="cal-legend-label">in pari</span>
               <span class="cal-legend-swatch home-cal-sw" data-klevel="0"></span>
-              <span class="cal-legend-label">sul target</span>
+              <span class="cal-legend-swatch home-cal-sw" data-klevel="1"></span>
+              <span class="cal-legend-swatch home-cal-sw" data-klevel="2"></span>
+              <span class="cal-legend-swatch home-cal-sw" data-klevel="3"></span>
+              <span class="cal-legend-swatch home-cal-sw" data-klevel="4"></span>
+              <span class="cal-legend-label">lontano dal pari</span>
             </div>
           </div>
 
@@ -7753,7 +7758,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.25.1';
+const APP_VERSION = '3.25.2';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -11921,14 +11926,22 @@ function kcalTargetLevel(dateKey) {
   if (!day || Object.keys(day).length === 0) return 'none';
   const t = dayTotals(dateKey);
   if (t.kcal === 0) return 'none';
-  const target = state.targets.kcal || 2100;
-  const diff = Math.abs(t.kcal - target);
-  const pct = diff / target;
-  if (pct <= 0.07) return 0;   // within 7%
-  if (pct <= 0.15) return 1;   // within 15%
-  if (pct <= 0.25) return 2;   // within 25%
-  if (pct <= 0.40) return 3;   // within 40%
-  return 4;                    // way off
+  // v3.25.2: colore in base al BILANCIO della giornata (mangiato − basale − attività),
+  // obiettivo = pari (mantenimento). Così un giorno di padel in cui si mangia di più resta verde.
+  const off = Math.abs(dayNetBalance(dateKey));
+  if (off <= 150) return 0;    // in pari
+  if (off <= 300) return 1;
+  if (off <= 500) return 2;
+  if (off <= 800) return 3;
+  return 4;                    // molto lontano
+}
+
+// Bilancio energetico del giorno: mangiato − metabolismo basale − attività
+function dayNetBalance(dateKey) {
+  const t = dayTotals(dateKey);
+  const act = dayActivityTotals(dateKey);
+  const bmr = computeSedentaryKcal(dateKey).sedentaryKcal;
+  return Math.round(t.kcal - act.kcal - bmr);
 }
 
 // Build emoji list for a day: auto (workout A/B + activities) + manual, capped at 4
@@ -11991,7 +12004,8 @@ function renderHomeCalendar() {
     const dk = `${homeCalYear}-${String(homeCalMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const level = kcalTargetLevel(dk);
     const cell = document.createElement('div');
-    cell.className = `cal-day ktarget-${level}`;
+    // Il giorno in corso non si colora: il bilancio non è ancora chiuso
+    cell.className = `cal-day ktarget-${dk === todayKey ? 'none' : level}`;
     if (dk === todayKey) cell.classList.add('today');
     cell.dataset.date = dk;
 
@@ -12029,8 +12043,8 @@ function openHomeCalDayModal(dateKey) {
   let kcalStatus = '';
   if (level === 'none') kcalStatus = 'nessun pasto registrato';
   else {
-    const diff = t.kcal - target;
-    kcalStatus = `${Math.round(t.kcal)} / ${target} kcal (${diff >= 0 ? '+' : ''}${Math.round(diff)})`;
+    const net = dayNetBalance(dateKey);
+    kcalStatus = `bilancio ${net > 0 ? '+' : ''}${net} kcal · mangiate ${Math.round(t.kcal)}`;
   }
   document.getElementById('home-cal-day-sub').textContent = kcalStatus;
 
