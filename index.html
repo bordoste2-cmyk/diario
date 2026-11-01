@@ -1102,6 +1102,11 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
 .dl-r small { font-size: 12px; }
 .dl-bar { display: flex; gap: 2px; height: 6px; border-radius: 3px; background: var(--line); margin-top: 6px; overflow: hidden; }
 .dl-bar i { display: block; height: 100%; border-radius: 3px; }
+/* Pasti: sotto-riquadri più visibili dentro la card */
+.meal { background: var(--bg-soft) !important; border: 1px solid #2C4A78 !important; }
+.meal-body .item-tap { background: var(--bg-soft); }
+.meal-body .item, .meal-add-row, .empty-meal { border-top-color: #24406A !important; }
+.meal-copy-btn { border-left-color: #24406A; }
 </style>
 </head>
 <body>
@@ -3776,7 +3781,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.39.1';
+const APP_VERSION = '3.39.2';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
