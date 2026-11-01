@@ -7952,7 +7952,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.31.0';
+const APP_VERSION = '3.31.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -8939,7 +8939,7 @@ function renderWeekChart() {
 
   const metric = state.kcalMetric || 'kcal';
   const info = KCAL_METRIC_INFO[metric] || KCAL_METRIC_INFO.kcal;
-  const rangeDays = state.kcalRange || 30;
+  const rangeDays = state.kcalRange ?? 30;
 
   // Update selectors visual state
   document.querySelectorAll('#kcal-metric-selector .metric-btn').forEach(btn => {
