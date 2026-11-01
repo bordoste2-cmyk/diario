@@ -5118,6 +5118,20 @@
   .tg-sum { margin-top: 12px; font-size: 13px; color: var(--ok); line-height: 1.4; }
   .tg-sum.warn { color: var(--accent-deep); }
   .tg-sum.bad { color: var(--tomato); }
+  /* Dettaglio nutriente */
+  #macros .nb { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+  #macros .nb:active { opacity: .7; }
+  .nbk-list { max-height: 60vh; overflow-y: auto; margin: 4px -4px 0; padding: 0 4px; }
+  .nbk-row { padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .nbk-row:last-child { border-bottom: 0; }
+  .nbk-top { display: flex; align-items: baseline; gap: 10px; }
+  .nbk-nm { flex: 1; font-size: 15px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .nbk-v { font-size: 15px; font-weight: 500; white-space: nowrap; }
+  .nbk-v small { font-weight: 400; color: var(--ink-faint); font-size: 12px; }
+  .nbk-p { width: 42px; text-align: right; font-size: 13px; color: var(--ink-faint); }
+  .nbk-meta { font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
+  .nbk-bar { height: 4px; border-radius: 2px; background: var(--line); margin-top: 6px; overflow: hidden; }
+  .nbk-bar i { display: block; height: 100%; background: var(--accent); border-radius: 2px; }
   /* Piede e versione */
   .footer-note { color: var(--ink-faint); font-size: 12px; }
   .version-badge { background: var(--bg-soft); color: var(--ink-faint); margin-left: 6px; font-size: 11px; }
@@ -7938,7 +7952,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.30.0';
+const APP_VERSION = '3.31.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -8865,10 +8879,47 @@ function renderTotals() {
     else if (m.goal === 'min' && m.val < m.target * 0.9) state2 = 'lo';
     const div = document.createElement('div');
     div.className = 'nb ' + state2;
+    div.dataset.key = m.key;
+    div.addEventListener('click', () => openNutrientBreakdown(m.key, m.label, m.unit || 'g'));
     const dec = m.unit === 'kcal' ? 0 : 1;
     div.innerHTML = `<div class="nb-l"><span>${m.label}</span><span><b>${fmt(m.val, dec)}</b> / ${fmt(m.target)} ${m.unit || 'g'}</span></div><div class="nb-t"><i style="width:${pct}%"></i></div>`;
     container.appendChild(div);
   });
+}
+
+// Tocco su una barra del Totale giornaliero: da quali alimenti arriva quel nutriente
+function openNutrientBreakdown(key, label, unit) {
+  const day = state.diary[state.currentDate] || {};
+  const rows = [];
+  for (const meal in day) {
+    (day[meal] || []).forEach(item => {
+      const v = Number(item[key]) || 0;
+      if (v > 0.04) rows.push({ name: item.name, meal: meal === 'Spuntino mattina' ? 'Spuntino' : meal, qty: item.qty, unit: item.unit || 'g', v });
+    });
+  }
+  rows.sort((a, b) => b.v - a.v);
+  const tot = rows.reduce((s, r) => s + r.v, 0);
+  const dec = unit === 'kcal' ? 0 : 1;
+  const max = rows.length ? rows[0].v : 1;
+  let modal = document.getElementById('nutrient-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.className = 'modal-overlay'; modal.id = 'nutrient-modal';
+    modal.innerHTML = `<div class="modal"><h3 id="nb-title"></h3><div class="modal-sub" id="nb-sub"></div><div id="nb-list" class="nbk-list"></div><div class="modal-actions"><button class="btn-secondary" id="nb-close" style="flex:1">Chiudi</button></div></div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('show'); });
+    modal.querySelector('#nb-close').addEventListener('click', () => modal.classList.remove('show'));
+  }
+  const dLbl = new Date(state.currentDate).toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' });
+  modal.querySelector('#nb-title').textContent = `${label} · ${fmt(tot, dec)} ${unit}`;
+  modal.querySelector('#nb-sub').textContent = rows.length ? `da dove arrivano, ${dLbl}` : `nessun alimento con ${label.toLowerCase()}, ${dLbl}`;
+  modal.querySelector('#nb-list').innerHTML = rows.map(r => {
+    const pct = tot > 0 ? r.v / tot * 100 : 0;
+    const q = r.qty != null ? ` · ${fmt(r.qty, r.qty % 1 ? 1 : 0)} ${r.unit === 'pz' ? 'pz' : r.unit}` : '';
+    return `<div class="nbk-row"><div class="nbk-top"><span class="nbk-nm">${r.name}</span><span class="nbk-v">${fmt(r.v, dec)}<small> ${unit}</small></span><span class="nbk-p">${fmt(pct)}%</span></div>
+      <div class="nbk-meta">${r.meal}${q}</div><div class="nbk-bar"><i style="width:${(r.v / max * 100).toFixed(1)}%"></i></div></div>`;
+  }).join('');
+  modal.classList.add('show');
 }
 
 // Metric metadata for the interactive kcal chart
