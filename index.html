@@ -1054,8 +1054,11 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
 .home-nag[hidden] { display: none; }
 .home-nag b { color: var(--accent); font-weight: 500; white-space: nowrap; }
 .fab-backup { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.hh-left { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 14px; color: var(--ink-faint); }
+.hh-left b { color: var(--ink-soft); font-weight: 500; }
+.hh-left small { font-size: 12px; }
+.hh-leg small { font-size: 12px; color: var(--ink-faint); }
 /* Restano: barre come il bilancio */
-.hh-left { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
 .hl-bh { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; color: var(--ink-soft); margin-bottom: 5px; }
 .hl-bh small { font-size: 13px; color: var(--ink-faint); margin-left: 4px; }
 .hl-bh b { color: var(--ink); font-weight: 500; }
@@ -1120,13 +1123,10 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
 
           <!-- HOME: BILANCIO -->
           <div class="home-hero2">
-            <div class="hh-row"><span class="hh-k">Bilancio della giornata</span><button class="hh-link" id="home-settings-btn">obiettivi</button></div>
+            <div class="hh-row"><span class="hh-k" id="hh-k">Restano oggi</span><button class="hh-link" id="home-settings-btn">obiettivi</button></div>
             <div class="hh-n" id="home-net-result">—</div>
-            <div class="hh-bars">
-              <div class="hh-bar"><i id="hh-in" style="background:var(--blu)"></i></div>
-              <div class="hh-bar"><i id="hh-bmr" style="background:#2B4166"></i><i id="hh-act" style="background:var(--accent)"></i></div>
-            </div>
-            <div class="hh-leg"><span>Mangiato <b id="home-net-in">0</b></span><span id="hh-out-lbl">Basale <b id="home-net-met">0</b></span></div>
+            <div class="hh-bars"><div class="hh-bar" id="hh-bar"></div></div>
+            <div class="hh-leg"><span>Mangiato <b id="home-net-in">0</b></span><span id="hh-out-lbl">obiettivo <b>0</b></span></div>
             <div class="hh-left" id="hh-left"></div>
           </div>
 
@@ -3765,7 +3765,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.38.1';
+const APP_VERSION = '3.39.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -5024,39 +5024,29 @@ function renderHome() {
   const t = dayTotals(state.currentDate);
   const tg = dayTargets(state.currentDate);
 
-  // Bilancio: mangiato contro basale + attività
+  // Numero grande = calorie che restano all'obiettivo del giorno (base + 50% attività).
+  // Il bilancio contro basale + attività resta come riga secondaria: è una stima.
   const actTot = dayActivityTotals(state.currentDate);
-  const metInfo = computeSedentaryKcal(state.currentDate);
   const burned = Math.round(actTot.kcal);
-  const bmr = Math.round(metInfo.sedentaryKcal);
+  const bmr = Math.round(computeSedentaryKcal(state.currentDate).sedentaryKcal);
   const net = Math.round(t.kcal) - burned - bmr;
-  netEl.innerHTML = `${net > 0 ? '+' : (net < 0 ? '−' : '')}${fmt(Math.abs(net))}<small>kcal</small>`;
-  netEl.className = 'hh-n ' + (net > 100 ? 'surplus' : (net < -100 ? 'deficit' : 'pari'));
-  const maxV = Math.max(t.kcal, bmr + burned, 1);
-  document.getElementById('hh-in').style.width = (t.kcal / maxV * 100) + '%';
-  document.getElementById('hh-bmr').style.width = (bmr / maxV * 100) + '%';
-  document.getElementById('hh-act').style.width = (burned / maxV * 100) + '%';
+  const kLeft = Math.round(tg.kcal - t.kcal);
+  const over = kLeft < 0;
+  document.getElementById('hh-k').textContent = over ? 'Oltre l\'obiettivo' : (state.currentDate === todayISO() ? 'Restano oggi' : 'Restavano');
+  netEl.innerHTML = `${over ? '+' : ''}${fmt(Math.abs(kLeft))}<small>kcal</small>`;
+  netEl.className = 'hh-n ' + (over ? 'surplus' : '');
+  const pct = tg.kcal > 0 ? Math.min(100, t.kcal / tg.kcal * 100) : 0;
+  const overPct = over ? Math.min(30, -kLeft / tg.kcal * 100) : 0;
+  document.getElementById('hh-bar').innerHTML = `<i class="hl-fill" style="width:${(pct * (100 - overPct) / 100).toFixed(1)}%"></i>` +
+    (over ? `<i class="hl-ovr" style="width:${overPct.toFixed(1)}%"></i>` : `<i class="hl-rest" style="width:${(100 - pct).toFixed(1)}%"></i>`);
   document.getElementById('home-net-in').textContent = fmt(t.kcal);
-  document.getElementById('hh-out-lbl').innerHTML = burned > 0
-    ? `Basale <b id="home-net-met">${fmt(bmr)}</b> + attività <b>${fmt(burned)}</b>`
-    : `Basale <b id="home-net-met">${fmt(bmr)}</b>`;
-
-  // Quanto resta all'obiettivo del giorno (che include la quota delle attività): due barre come il bilancio
+  document.getElementById('hh-out-lbl').innerHTML = tg.bonus > 0
+    ? `obiettivo <b>${fmt(tg.kcal)}</b> <small>(${fmt(state.targets.kcal)} + ${fmt(tg.bonus)} attività)</small>`
+    : `obiettivo <b>${fmt(tg.kcal)}</b>`;
   const leftEl = document.getElementById('hh-left');
   if (leftEl) {
-    const bar = (label, val, target, unit, dec) => {
-      const left = target - val;
-      const over = left < 0;
-      const pct = target > 0 ? Math.min(100, val / target * 100) : 0;
-      const txt = left > (unit === 'g' ? 0.5 : 0) ? `restano <b>${fmt(left, dec)}</b>${unit === 'g' ? ' g' : ''}`
-        : (over && unit !== 'g' ? `oltre di <b>${fmt(-left, dec)}</b>` : '<b>raggiunto</b>');
-      const overPct = over && unit !== 'g' ? Math.min(30, -left / target * 100) : 0;
-      return `<div class="hl-b ${over && unit !== 'g' ? 'over' : ''} ${!over || unit === 'g' ? '' : ''}">
-        <div class="hl-bh"><span>${label} <small>${fmt(val, dec)} / ${fmt(target)}${unit === 'g' ? ' g' : ''}</small></span><span>${txt}</span></div>
-        <div class="hh-bar"><i class="hl-fill${left <= 0 && unit === 'g' ? ' ok' : ''}" style="width:${(pct * (100 - overPct) / 100).toFixed(1)}%"></i>${overPct ? `<i class="hl-ovr" style="width:${overPct.toFixed(1)}%"></i>` : `<i class="hl-rest" style="width:${(100 - pct).toFixed(1)}%"></i>`}</div></div>`;
-    };
-    leftEl.innerHTML = bar('Calorie', t.kcal, tg.kcal, '', 0) +
-      (tg.bonus > 0 ? `<small class="hl-note">obiettivo ${fmt(tg.kcal)} = ${fmt(state.targets.kcal)} + ${fmt(tg.bonus)} per le attività</small>` : '');
+    const sg = net > 0 ? '+' : (net < 0 ? '−' : '');
+    leftEl.innerHTML = `<span>Bilancio stimato <b>${sg}${fmt(Math.abs(net))}</b> kcal</span><small>basale ${fmt(bmr)}${burned > 0 ? ` + attività ${fmt(burned)}` : ''}</small>`;
   }
 
   // Macro: proteine, carboidrati, grassi rispetto all'obiettivo
