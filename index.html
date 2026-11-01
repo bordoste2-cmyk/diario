@@ -3750,7 +3750,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.37.1';
+const APP_VERSION = '3.37.2';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -5308,7 +5308,7 @@ function renderResults(query) {
       const item = document.createElement('div');
       item.className = 'result-item';
       const macroStr = `<span class="kcal">${fmt(f.kcal)}</span> kcal · ${fmt(f.protein,1)}p / ${fmt(f.carbs,1)}c / ${fmt(f.fat,1)}g`;
-      const customTag = f.custom && !f.recipe ? '<span class="custom-tag">MIO</span>' : '';
+      const customTag = f.custom && !f.recipe && !f.barcode ? '<span class="custom-tag">MIO</span>' : '';
       const recipeTag = f.recipe ? '<span class="recipe-badge">📋 ricetta</span>' : '';
       const perLabel = f.recipe ? 'porzione' : `/100${f.unit}`;
       item.innerHTML = `
@@ -5760,7 +5760,7 @@ function openMyFoods() {
     modal = document.createElement('div');
     modal.className = 'modal-overlay'; modal.id = 'myfoods-modal';
     modal.innerHTML = `<div class="modal"><h3 id="mf-title">I miei alimenti</h3>
-      <div class="modal-sub">Tocca per modificare, ✕ due volte per eliminare. Le voci già nel diario non cambiano.</div>
+      <div class="modal-sub">Alimenti e ricette creati da te. Tocca per modificare, ✕ due volte per eliminare. Le voci già nel diario non cambiano.</div>
       <input type="text" class="search-input" id="mf-search" placeholder="Cerca tra i tuoi alimenti" autocomplete="off">
       <div class="mf-sort" id="mf-sort"><button data-s="uso">Più usati</button><button data-s="az">A–Z</button><button data-s="vecchi">Non usati da tempo</button></div>
       <div class="mf-list" id="mf-list"></div>
@@ -5780,7 +5780,8 @@ function renderMyFoods() {
   const q = normalize(modal.querySelector('#mf-search').value || '');
   const u = customFoodUsage();
   const today = new Date(todayISO());
-  let rows = (state.customFoods || []).map(f => {
+  // solo gli alimenti creati a mano e le ricette: i prodotti scansionati restano come prodotti reali
+  let rows = (state.customFoods || []).filter(f => !f.barcode).map(f => {
     const x = u[String(f.id)] || u['n:' + f.name] || { n: 0, last: '' };
     return { f, n: x.n, last: x.last };
   });
