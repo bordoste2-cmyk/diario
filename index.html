@@ -1054,11 +1054,33 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
 .home-nag[hidden] { display: none; }
 .home-nag b { color: var(--accent); font-weight: 500; white-space: nowrap; }
 .fab-backup { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
-/* Restano */
-.hh-left { margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--line); font-size: 15px; color: var(--ink-soft); }
-.hh-left b { color: var(--ink); font-weight: 500; }
-.hh-left small { display: block; font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
-.hh-left.over b { color: var(--accent-deep); }
+/* Restano: barre come il bilancio */
+.hh-left { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+.hl-bh { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; color: var(--ink-soft); margin-bottom: 5px; }
+.hl-bh small { font-size: 13px; color: var(--ink-faint); margin-left: 4px; }
+.hl-bh b { color: var(--ink); font-weight: 500; }
+.hl-fill { background: var(--blu); }
+.hl-fill.ok { background: var(--ok); }
+.hl-rest { background: var(--line); }
+.hl-ovr { background: var(--accent); }
+.hl-b.over .hl-bh b { color: var(--accent-deep); }
+.hl-note { font-size: 12px; color: var(--ink-faint); }
+/* I miei alimenti */
+.search-tools { overflow-x: auto; scrollbar-width: none; }
+.search-tools::-webkit-scrollbar { display: none; }
+.st-btn { flex: none; }
+.mf-sort { display: flex; gap: 6px; margin: 10px 0 6px; flex-wrap: wrap; }
+.mf-sort button { background: var(--bg-soft); border: 1px solid var(--line); color: var(--ink-soft); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+.mf-sort button.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.mf-list { max-height: 55vh; overflow-y: auto; margin: 0 -4px; padding: 0 4px; }
+.mf-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+.mf-row:last-child { border-bottom: 0; }
+.mf-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.mf-tx b { font-weight: 400; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mf-tx span { font-size: 12px; color: var(--ink-faint); }
+.mf-del { flex: none; min-width: 40px; height: 34px; background: none; border: 1px solid var(--line); border-radius: 10px; color: var(--ink-faint); font: inherit; font-size: 14px; cursor: pointer; padding: 0 10px; }
+.mf-del.armed { background: #C0392B; border-color: #C0392B; color: #fff; }
+.mf-empty { font-size: 14px; color: var(--ink-faint); padding: 14px 0; }
 </style>
 </head>
 <body>
@@ -1826,6 +1848,7 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
       <button class="st-btn" id="scan-btn" type="button"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 6h2v12H4V6m3 0h1v12H7V6m2 0h2v12H9V6m3 0h2v12h-2V6m3 0h1v12h-1V6m2 0h3v12h-3V6M3 4v16h18V4H3z"/></svg>Scansiona</button>
       <button class="st-btn" id="search-online-btn" type="button"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>Online</button>
       <button class="st-btn" id="add-custom-btn" type="button">+ Nuovo</button>
+      <button class="st-btn" id="my-foods-btn" type="button">I miei</button>
     </div>
     <div class="search-wrap">
       <input type="text" class="search-input" id="search" placeholder="Es. pasta, salmone, yogurt greco..." autocomplete="off">
@@ -3725,7 +3748,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.36.0';
+const APP_VERSION = '3.37.0';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -5001,15 +5024,22 @@ function renderHome() {
     ? `Basale <b id="home-net-met">${fmt(bmr)}</b> + attività <b>${fmt(burned)}</b>`
     : `Basale <b id="home-net-met">${fmt(bmr)}</b>`;
 
-  // Quanto resta all'obiettivo del giorno (che include la quota delle attività)
+  // Quanto resta all'obiettivo del giorno (che include la quota delle attività): due barre come il bilancio
   const leftEl = document.getElementById('hh-left');
   if (leftEl) {
-    const kLeft = Math.round(tg.kcal - t.kcal), pLeft = tg.protein - t.protein;
-    const goalTxt = tg.bonus > 0 ? `obiettivo ${fmt(tg.kcal)} (${fmt(state.targets.kcal)} + ${fmt(tg.bonus)} attività)` : `obiettivo ${fmt(tg.kcal)}`;
-    const kPart = kLeft >= 0 ? `Restano <b>${fmt(kLeft)}</b> kcal` : `Obiettivo superato di <b>${fmt(-kLeft)}</b> kcal`;
-    const pPart = pLeft > 0.5 ? ` · mancano <b>${fmt(pLeft)}</b> g di proteine` : ' · proteine raggiunte';
-    leftEl.innerHTML = `<div>${kPart}${pPart}</div><small>${goalTxt}</small>`;
-    leftEl.className = 'hh-left' + (kLeft < -tg.kcal * 0.05 ? ' over' : '');
+    const bar = (label, val, target, unit, dec) => {
+      const left = target - val;
+      const over = left < 0;
+      const pct = target > 0 ? Math.min(100, val / target * 100) : 0;
+      const txt = left > (unit === 'g' ? 0.5 : 0) ? `restano <b>${fmt(left, dec)}</b>${unit === 'g' ? ' g' : ''}`
+        : (over && unit !== 'g' ? `oltre di <b>${fmt(-left, dec)}</b>` : '<b>raggiunto</b>');
+      const overPct = over && unit !== 'g' ? Math.min(30, -left / target * 100) : 0;
+      return `<div class="hl-b ${over && unit !== 'g' ? 'over' : ''} ${!over || unit === 'g' ? '' : ''}">
+        <div class="hl-bh"><span>${label} <small>${fmt(val, dec)} / ${fmt(target)}${unit === 'g' ? ' g' : ''}</small></span><span>${txt}</span></div>
+        <div class="hh-bar"><i class="hl-fill${left <= 0 && unit === 'g' ? ' ok' : ''}" style="width:${(pct * (100 - overPct) / 100).toFixed(1)}%"></i>${overPct ? `<i class="hl-ovr" style="width:${overPct.toFixed(1)}%"></i>` : `<i class="hl-rest" style="width:${(100 - pct).toFixed(1)}%"></i>`}</div></div>`;
+    };
+    leftEl.innerHTML = bar('Calorie', t.kcal, tg.kcal, '', 0) +
+      (tg.bonus > 0 ? `<small class="hl-note">obiettivo ${fmt(tg.kcal)} = ${fmt(state.targets.kcal)} + ${fmt(tg.bonus)} per le attività</small>` : '');
   }
 
   // Macro: proteine, carboidrati, grassi rispetto all'obiettivo
@@ -5707,6 +5737,89 @@ document.getElementById('qty-add').addEventListener('click', async () => {
 qtyInput.addEventListener('keypress', e => {
   if (e.key === 'Enter') document.getElementById('qty-add').click();
 });
+
+// ========== I MIEI ALIMENTI: elenco degli alimenti personalizzati, con uso e cancellazione ==========
+let myFoodsSort = 'uso';
+function customFoodUsage() {
+  const u = {};
+  for (const dk in state.diary) {
+    const day = state.diary[dk];
+    for (const m in day) (day[m] || []).forEach(it => {
+      const k = it.foodId != null ? String(it.foodId) : 'n:' + it.name;
+      const x = u[k] || (u[k] = { n: 0, last: '' });
+      x.n++; if (dk > x.last) x.last = dk;
+    });
+  }
+  return u;
+}
+function openMyFoods() {
+  let modal = document.getElementById('myfoods-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.className = 'modal-overlay'; modal.id = 'myfoods-modal';
+    modal.innerHTML = `<div class="modal"><h3 id="mf-title">I miei alimenti</h3>
+      <div class="modal-sub">Tocca per modificare, ✕ due volte per eliminare. Le voci già nel diario non cambiano.</div>
+      <input type="text" class="search-input" id="mf-search" placeholder="Cerca tra i tuoi alimenti" autocomplete="off">
+      <div class="mf-sort" id="mf-sort"><button data-s="uso">Più usati</button><button data-s="az">A–Z</button><button data-s="vecchi">Non usati da tempo</button></div>
+      <div class="mf-list" id="mf-list"></div>
+      <div class="modal-actions"><button class="btn-secondary" id="mf-close" style="flex:1">Chiudi</button></div></div>`;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('show'); });
+    modal.querySelector('#mf-close').addEventListener('click', () => modal.classList.remove('show'));
+    modal.querySelector('#mf-search').addEventListener('input', renderMyFoods);
+    modal.querySelectorAll('#mf-sort button').forEach(b => b.addEventListener('click', () => { myFoodsSort = b.dataset.s; renderMyFoods(); }));
+  }
+  modal.querySelector('#mf-search').value = '';
+  renderMyFoods();
+  modal.classList.add('show');
+}
+function renderMyFoods() {
+  const modal = document.getElementById('myfoods-modal'); if (!modal) return;
+  const q = normalize(modal.querySelector('#mf-search').value || '');
+  const u = customFoodUsage();
+  const today = new Date(todayISO());
+  let rows = (state.customFoods || []).map(f => {
+    const x = u[String(f.id)] || u['n:' + f.name] || { n: 0, last: '' };
+    return { f, n: x.n, last: x.last };
+  });
+  const never = rows.filter(r => r.n === 0).length;
+  modal.querySelector('#mf-title').textContent = `I miei alimenti (${rows.length})`;
+  modal.querySelectorAll('#mf-sort button').forEach(b => {
+    b.classList.toggle('on', b.dataset.s === myFoodsSort);
+    if (b.dataset.s === 'vecchi') b.textContent = `Non usati da tempo${never ? ` · ${never} mai` : ''}`;
+  });
+  if (q) rows = rows.filter(r => normalize(r.f.name).includes(q));
+  if (myFoodsSort === 'az') rows.sort((a, b) => a.f.name.localeCompare(b.f.name, 'it'));
+  else if (myFoodsSort === 'vecchi') rows.sort((a, b) => (a.last || '') .localeCompare(b.last || '') || a.n - b.n);
+  else rows.sort((a, b) => b.n - a.n || (b.last || '').localeCompare(a.last || ''));
+  const list = modal.querySelector('#mf-list');
+  if (!rows.length) { list.innerHTML = '<div class="mf-empty">Nessun alimento trovato.</div>'; return; }
+  list.innerHTML = rows.map(r => {
+    const ago = r.last ? Math.round((today - new Date(r.last)) / 864e5) : null;
+    const meta = r.n === 0 ? 'mai usato' : `${r.n} ${r.n === 1 ? 'volta' : 'volte'} · ultima ${ago === 0 ? 'oggi' : ago === 1 ? 'ieri' : shortDateIT(r.last)}`;
+    const kcal = r.f.kcal != null ? `${fmt(r.f.kcal)} kcal${r.f.unit && r.f.unit !== 'g' ? '' : '/100g'}` : '';
+    return `<div class="mf-row" data-id="${r.f.id}"><div class="mf-tx"><b>${r.f.name}</b><span>${meta}${kcal ? ' · ' + kcal : ''}</span></div><button class="mf-del" type="button" data-id="${r.f.id}" aria-label="Elimina">✕</button></div>`;
+  }).join('');
+  list.querySelectorAll('.mf-row').forEach(row => row.addEventListener('click', e => {
+    if (e.target.closest('.mf-del')) return;
+    const f = state.customFoods.find(x => String(x.id) === row.dataset.id);
+    if (!f) return;
+    modal.classList.remove('show');
+    openCustomFoodModal(f.name, f);
+  }));
+  list.querySelectorAll('.mf-del').forEach(btn => btn.addEventListener('click', async e => {
+    e.stopPropagation();
+    if (!btn.classList.contains('armed')) {
+      list.querySelectorAll('.mf-del.armed').forEach(b => { b.classList.remove('armed'); b.textContent = '✕'; });
+      btn.classList.add('armed'); btn.textContent = 'Elimina';
+      return;
+    }
+    state.customFoods = state.customFoods.filter(x => String(x.id) !== btn.dataset.id);
+    await saveCustomFoods();
+    renderMyFoods();
+  }));
+}
+document.getElementById('my-foods-btn').addEventListener('click', openMyFoods);
 
 // ========== CUSTOM FOOD MODAL ==========
 const customModal = document.getElementById('custom-modal');
