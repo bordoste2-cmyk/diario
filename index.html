@@ -1083,6 +1083,7 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
 .mf-del { flex: none; min-width: 40px; height: 34px; background: none; border: 1px solid var(--line); border-radius: 10px; color: var(--ink-faint); font: inherit; font-size: 14px; cursor: pointer; padding: 0 10px; }
 .mf-del.armed { background: #C0392B; border-color: #C0392B; color: #fff; }
 .mf-empty { font-size: 14px; color: var(--ink-faint); padding: 14px 0; }
+.hdr-ver { margin: 4px 0 0 0 !important; }
 </style>
 </head>
 <body>
@@ -1093,6 +1094,7 @@ body { background: var(--bg); background-image: none; font-family: "DM Sans", -a
     <div class="hdr-title-wrap">
       <div class="hdr-title" id="hdr-title">—</div>
       <div class="hdr-sub" id="hdr-sub"></div>
+      <div><span class="version-badge hdr-ver" id="hdr-ver"></span></div>
     </div>
     <div class="date-pick" id="date-pick">
       <button id="prev-day" title="Giorno precedente" aria-label="Giorno precedente">‹</button>
@@ -3750,7 +3752,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.37.2';
+const APP_VERSION = '3.37.4';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
@@ -10526,6 +10528,15 @@ function initVersionBadge() {
   const badge = document.getElementById('version-badge');
   if (!badge) return;
   badge.textContent = 'v' + APP_VERSION;
+  // versione anche in alto; se è appena cambiata la segnalo in arancio per qualche secondo
+  const hv = document.getElementById('hdr-ver');
+  if (hv) {
+    let prev = null; try { prev = localStorage.getItem(KEY_PREFIX + 'seenVersion'); } catch (e) {}
+    hv.textContent = 'v' + APP_VERSION;
+    if (prev && prev !== APP_VERSION) { hv.classList.add('fresh'); setTimeout(() => hv.classList.remove('fresh'), 6000); }
+    try { localStorage.setItem(KEY_PREFIX + 'seenVersion', APP_VERSION); } catch (e) {}
+    hv.addEventListener('click', () => badge.click());
+  }
   // Highlight badge briefly on load to confirm fresh version
   badge.classList.add('fresh');
   setTimeout(() => badge.classList.remove('fresh'), 3000);
