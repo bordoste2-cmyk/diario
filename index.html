@@ -4892,6 +4892,36 @@
   .cal-month-label { font-weight: 300; color: var(--ink); }
   #home-cal-grid .cal-day { aspect-ratio: 0.9; }
   .home-cal-card .cal-month-label { font-size: 20px; }
+  /* Calendario attività: intensità su fondo scuro, testo sempre bianco */
+  .cal-day.level-0 { background: var(--bg-soft); }
+  .cal-day.level-1 { background: #2B4166; }
+  .cal-day.level-2 { background: #3E5F8E; }
+  .cal-day.level-3 { background: #8A5A12; }
+  .cal-day.level-4 { background: #C27408; }
+  .cal-day.level-1 .cal-day-num, .cal-day.level-2 .cal-day-num,
+  .cal-day.level-3 .cal-day-num, .cal-day.level-4 .cal-day-num { color: #FFFFFF; }
+  .cal-day .cal-day-workout-letter { color: #FFFFFF !important; font-family: 'Syne', 'DM Sans', sans-serif; font-weight: 700; }
+  .cal-legend-swatch[data-level="0"] { background: var(--bg-soft); }
+  .cal-legend-swatch[data-level="1"] { background: #2B4166; }
+  .cal-legend-swatch[data-level="2"] { background: #3E5F8E; }
+  .cal-legend-swatch[data-level="3"] { background: #8A5A12; }
+  .cal-legend-swatch[data-level="4"] { background: #C27408; }
+  /* Grafico calorie bruciate: attività arancio pieno, basale blu scuro */
+  .act-bar-activity, .act-day-bar:hover .act-bar-activity { background: #C27408; }
+  .act-day-bar.today .act-bar-activity { background: var(--accent); }
+  .act-bar-bmr, .act-day-bar:hover .act-bar-bmr { background: #2B4166; }
+  .act-day-bar.today .act-bar-bmr { background: #3A5580; }
+  .leg-swatch.leg-activity { background: var(--accent) !important; }
+  .leg-swatch.leg-bmr { background: #2B4166 !important; }
+  /* Diario: etichette alimenti leggibili su fondo scuro */
+  .food-tag { font-size: 12px; font-weight: 500; text-transform: none; padding: 3px 9px; }
+  .tag-bad-trig { color: #FFD9CF; background: #6E2418; border-color: #8E3A2A; }
+  .tag-caution { color: #F6E2A8; background: #5A4A10; border-color: #7A6414; }
+  .tag-protein { color: #CFEACF; background: #1F4A2B; border-color: #2E6B2E; }
+  .item.food-protein-rich, .item.food-bad-trig, .item.food-caution { background: var(--bg-card); }
+  .item.food-protein-rich::before { background: #5FA36A; }
+  .item.food-bad-trig::before { background: #E0603F; }
+  .item.food-caution::before { background: #C9A227; }
   /* Piede e versione */
   .footer-note { color: var(--ink-faint); font-size: 12px; }
   .version-badge { background: var(--bg-soft); color: var(--ink-faint); margin-left: 6px; font-size: 11px; }
@@ -7723,7 +7753,7 @@ function getExerciseHistory(exerciseId, sessionId) {
 }
 
 // ========== APP VERSION ==========
-const APP_VERSION = '3.25.0';
+const APP_VERSION = '3.25.1';
 const APP_BUILD_DATE = '2026-05-22';
 
 // ========== STATE ==========
