@@ -28,5 +28,43 @@
       "type": "image/png",
       "purpose": "maskable"
     }
+  ],
+  "shortcuts": [
+    {
+      "name": "Aggiungi pasto",
+      "short_name": "Pasto",
+      "url": "./index.html?action=pasto",
+      "icons": [
+        {
+          "src": "sc-pasto.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Registra peso",
+      "short_name": "Peso",
+      "url": "./index.html?action=peso",
+      "icons": [
+        {
+          "src": "sc-peso.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Backup",
+      "short_name": "Backup",
+      "url": "./index.html?action=backup",
+      "icons": [
+        {
+          "src": "sc-backup.png",
+          "sizes": "96x96",
+          "type": "image/png"
+        }
+      ]
+    }
   ]
 }
